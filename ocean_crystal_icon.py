@@ -1,9 +1,10 @@
 """Generate a 128x128 pixel-art icon: deep blue ocean crystal (Minecraft item style).
 
-An amethyst-inspired jagged gem in sapphire/indigo/cyan/turquoise, with
-swirling seawater currents trapped inside. Drawn at 32x32 for authentic
-pixel density, then upscaled 4x with nearest-neighbor so every pixel
-stays crisp. Transparent background.
+An amethyst-inspired CLUSTER: three sharp shards growing from a rocky
+crystal base. Each shard holds trapped seawater — a foam waterline with
+dark glassy crystal above and glowing, swirling turquoise water below.
+Drawn at 32x32 for authentic pixel density, then upscaled 4x with
+nearest-neighbor so every pixel stays crisp. Transparent background.
 """
 
 import math
@@ -15,168 +16,181 @@ SCALE = 4  # 32 * 4 = 128
 
 # Depth ramp, deep -> bright
 RAMP = [
-    (16, 18, 64),     # 0 deepest indigo (cold outer facets, tips)
-    (24, 34, 104),    # 1 indigo
-    (30, 58, 152),    # 2 deep sapphire
-    (36, 92, 198),    # 3 sapphire
-    (44, 134, 224),   # 4 ocean blue
-    (62, 180, 230),   # 5 cyan
-    (110, 222, 226),  # 6 turquoise
-    (210, 250, 248),  # 7 pale sea-foam highlight
+    (14, 16, 58),     # 0 deepest indigo
+    (24, 36, 102),    # 1 indigo
+    (32, 62, 150),    # 2 deep sapphire
+    (38, 96, 198),    # 3 sapphire
+    (46, 140, 222),   # 4 ocean blue
+    (66, 188, 228),   # 5 cyan
+    (122, 228, 224),  # 6 turquoise foam
+    (216, 252, 248),  # 7 sea-foam white
 ]
-OUTLINE = (10, 10, 44)
+OUTLINE = (8, 10, 40)
 
-# Inclusive (left, right) interior spans per row for each spike of the crystal.
-MAIN = {
-    1: (16, 16), 2: (15, 17), 3: (15, 17), 4: (15, 18), 5: (14, 18),
-    6: (14, 19), 7: (13, 19), 8: (13, 19), 9: (13, 20), 10: (12, 20),
-    11: (12, 21), 12: (12, 21), 13: (11, 21), 14: (11, 22), 15: (11, 22),
-    16: (10, 22), 17: (10, 22), 18: (10, 23), 19: (10, 23), 20: (10, 23),
-    21: (10, 23), 22: (10, 22), 23: (11, 22),
+# Shards as y -> (x0, x1) interior spans, drawn back-to-front so each
+# keeps its own outline where they overlap (reads as a crystal cluster).
+LEFT_SHARD = {
+    8: (7, 7), 9: (7, 8), 10: (6, 8), 11: (6, 9), 12: (6, 9),
+    13: (6, 10), 14: (7, 10), 15: (7, 10), 16: (7, 11), 17: (7, 11),
+    18: (8, 11), 19: (8, 12), 20: (8, 12), 21: (8, 12), 22: (9, 12),
+    23: (9, 13), 24: (9, 13),
 }
-RIGHT_SPIKE = {
-    4: (26, 26), 5: (26, 27), 6: (25, 27), 7: (25, 26), 8: (24, 26),
-    9: (23, 25), 10: (23, 25), 11: (22, 24), 12: (22, 23),
+RIGHT_SHARD = {
+    5: (24, 24), 6: (23, 24), 7: (23, 25), 8: (23, 25), 9: (22, 25),
+    10: (22, 25), 11: (22, 26), 12: (21, 26), 13: (21, 26), 14: (21, 26),
+    15: (21, 25), 16: (20, 25), 17: (20, 25), 18: (20, 25), 19: (19, 25),
+    20: (19, 24), 21: (19, 24), 22: (19, 24), 23: (18, 24), 24: (18, 23),
 }
-LEFT_SPIKE = {
-    8: (5, 5), 9: (5, 6), 10: (5, 7), 11: (6, 7), 12: (6, 8),
-    13: (7, 9), 14: (7, 9), 15: (8, 10), 16: (9, 10),
+CENTER_SHARD = {
+    2: (15, 15), 3: (15, 16), 4: (14, 16), 5: (14, 17), 6: (14, 17),
+    7: (13, 17), 8: (13, 18), 9: (13, 18), 10: (12, 18), 11: (12, 18),
+    12: (12, 19), 13: (12, 19), 14: (11, 19), 15: (11, 19), 16: (11, 19),
+    17: (11, 20), 18: (11, 20), 19: (10, 20), 20: (10, 20), 21: (10, 20),
+    22: (10, 20), 23: (10, 20), 24: (10, 20),
 }
-# Jagged bottom points (three uneven elegant shards)
-BOTTOM = {
-    24: [(11, 13), (15, 18), (20, 22)],
-    25: [(11, 12), (15, 17), (21, 22)],
-    26: [(12, 12), (16, 17), (21, 21)],
-    27: [(16, 16), (22, 22)],
-    28: [(16, 16)],
+# Rocky crystal base the shards grow from (drawn in front, like a geode chunk)
+BASE = {
+    24: (7, 24), 25: (6, 25), 26: (7, 24), 27: (10, 21),
+}
+
+SHARD_RIDGES = {  # shard -> ridge x per row is center-ish; lit face is left
+    "left": lambda y, x0, x1: (x0 + x1) // 2,
+    "right": lambda y, x0, x1: (x0 + x1) // 2,
+    "center": lambda y, x0, x1: (x0 + x1) // 2,
 }
 
 
-def build_mask():
-    mask = set()
-    for table in (MAIN, RIGHT_SPIKE, LEFT_SPIKE):
-        for y, (x0, x1) in table.items():
-            for x in range(x0, x1 + 1):
-                mask.add((x, y))
-    for y, spans in BOTTOM.items():
-        for x0, x1 in spans:
-            for x in range(x0, x1 + 1):
-                mask.add((x, y))
-    return mask
+def waterline(x):
+    """The trapped-ocean surface line, gently uneven like small waves."""
+    return 14 + ((x // 3) % 2)
 
 
-def shade_at(x, y):
-    """Watery glow from an inner heart, flowing currents, facet lighting."""
-    heart_d = math.hypot(x - 16, (y - 17) * 1.05)
-    if heart_d < 1.6:
-        s = 6
-    elif heart_d < 3.4:
-        s = 5
-    elif heart_d < 5.6:
-        s = 4
-    elif heart_d < 8.0:
-        s = 3
-    elif heart_d < 10.5:
-        s = 2
-    elif heart_d < 13.5:
+def shard_shade(x, y, x0, x1):
+    """Dark glass above the waterline, glowing swirling seawater below."""
+    ridge = (x0 + x1) // 2
+    wl = waterline(x)
+    if y < wl:
+        # Glassy crystal: deep, calm, with a faint shimmer
         s = 1
-    else:
-        s = 0
-
-    # Swirling current: diagonal sine bands brighten the water inside
-    if math.sin(x * 0.85 + y * 0.5) > 0.45:
-        s += 1
-
-    # Facets: main spike ridge at x=15 (left face catches light, right face dark)
-    if y in MAIN and MAIN[y][0] <= x <= MAIN[y][1]:
-        if x == 15 and 3 <= y <= 12:
-            s -= 2  # dark facet ridge line up the spike
-        elif x < 15:
+        if math.sin(x * 1.3 + y * 0.7) > 0.82:
             s += 1
-        elif x > 17:
-            s -= 1
-    # Side spikes: lifted out of the deep range, top faces lit, undersides dark
-    if y in RIGHT_SPIKE and RIGHT_SPIKE[y][0] <= x <= RIGHT_SPIKE[y][1]:
-        s += 2 if (x + y) <= 31 else 1
-    if y in LEFT_SPIKE and LEFT_SPIKE[y][0] <= x <= LEFT_SPIKE[y][1]:
-        s += 2 if y <= 11 else 1
-    return max(0, min(7, s))
+        floor = 1  # keep glass visible on dark inventory backgrounds
+    elif y == wl:
+        return 6  # foam crest along the waterline
+    else:
+        # Seawater: bright, with flowing current bands and an inner glow
+        s = 3
+        if math.sin(x * 0.8 - y * 0.6) > 0.35:
+            s += 1
+        if math.hypot(x - 15, (y - 20) * 1.2) < 3.2:
+            s += 1
+        floor = 2
+    # Facets: left face catches light, right face falls dark
+    if x < ridge:
+        s += 1
+    elif x > ridge + 1:
+        s -= 1
+    return max(floor, min(6, s))
 
 
-# Wave squiggles: tiny bright crests flowing through the gem
-WAVES = {
-    (13, 14): 5, (14, 13): 6, (15, 14): 5, (16, 13): 5,
-    (17, 14): 6, (18, 15): 5,
-    (12, 19): 5, (13, 18): 6, (14, 19): 5, (18, 19): 5,
-    (19, 18): 6, (20, 19): 5, (21, 20): 4,
-    (14, 22): 5, (15, 21): 6, (17, 22): 5,
-    (16, 9): 5, (15, 8): 4, (17, 8): 4,
-    (24, 9): 5, (23, 11): 5, (6, 11): 5, (8, 14): 5,
-}
-# Glowing inner reflections and sparkle glints
+# Sparkle glints near tips and bright facet streaks in the dark glass
 GLINTS = {
-    (16, 2): 6, (26, 5): 6, (5, 9): 6, (16, 26): 6,
-    (13, 5): 7, (12, 11): 7, (20, 12): 7, (11, 17): 7,
-    (16, 17): 7, (22, 17): 6, (16, 24): 6,
+    (15, 3): 7, (14, 6): 4, (14, 7): 4, (15, 10): 3,
+    (24, 6): 7, (23, 9): 4, (22, 12): 3,
+    (7, 9): 7, (7, 12): 4,
 }
-# Dark fracture lines inside the facets
-CRACKS = [
-    (14, 7), (13, 10), (19, 10), (20, 14),
-    (11, 20), (22, 21), (18, 6),
-    (25, 8), (7, 13),
-]
+# Rising bubbles and bright swirl flecks in the water
+BUBBLES = {
+    (13, 17): 6, (18, 21): 6, (12, 21): 5, (16, 16): 6,
+    (15, 23): 5, (23, 18): 6, (10, 19): 5, (21, 21): 5,
+}
+# A couple of fine fracture lines in the glass
+CRACKS = [(16, 8), (13, 12), (24, 11)]
+# Foam sparkles riding the waterline
+FOAM = [(12, 14), (17, 14), (23, 15), (8, 15)]
 
-AURA_NEAR = (80, 190, 230, 80)
-AURA_FAR = (50, 120, 210, 38)
-SPARKS = [(16, 0), (27, 3), (4, 7), (9, 4), (24, 1), (16, 30), (7, 20), (26, 20)]
+AURA_NEAR = (70, 180, 225, 70)
+AURA_FAR = (45, 110, 200, 32)
+DRIPS = [(15, 0), (25, 2), (6, 5), (28, 13), (3, 16), (16, 30), (26, 27), (5, 26)]
 
 
-def main():
-    mask = build_mask()
-    img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    px = img.load()
-
-    def near_mask(x, y, dist):
-        return any(
-            (x + dx, y + dy) in mask
-            for dx in range(-dist, dist + 1)
-            for dy in range(-dist, dist + 1)
-        )
-
-    # Subtle watery shimmer: soft glow ring, fainter checkerboard beyond
-    for y in range(SIZE):
-        for x in range(SIZE):
-            if (x, y) in mask:
-                continue
-            if near_mask(x, y, 1):
-                px[x, y] = AURA_NEAR
-            elif near_mask(x, y, 2) and (x + y) % 2 == 0:
-                px[x, y] = AURA_FAR
-    for x, y in SPARKS:
-        if (x, y) not in mask:
-            px[x, y] = AURA_NEAR
-
-    # Crystal body
-    for (x, y) in mask:
+def draw_layer(px, layer, prev_union):
+    """Paint one shard/base with its own outline over what's behind it."""
+    cells = {
+        (x, y)
+        for y, (x0, x1) in layer.items()
+        for x in range(x0, x1 + 1)
+    }
+    for (x, y) in cells:
         edge = any(
-            (x + dx, y + dy) not in mask
+            (x + dx, y + dy) not in cells
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
         )
         if edge:
             px[x, y] = OUTLINE + (255,)
         else:
-            px[x, y] = RAMP[shade_at(x, y)] + (255,)
+            x0, x1 = layer[y]
+            px[x, y] = RAMP[shard_shade(x, y, x0, x1)] + (255,)
+    prev_union |= cells
+    return prev_union
 
-    # Overlays: wave crests and glints shine over anything, cracks darken
-    for (x, y), s in WAVES.items():
-        if (x, y) in mask:
+
+def main():
+    img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    px = img.load()
+
+    union = set()
+    for layer in (LEFT_SHARD, RIGHT_SHARD, CENTER_SHARD):
+        union = draw_layer(px, layer, union)
+
+    # Rocky base: dark indigo crystal chunk with faint sapphire flecks
+    base_cells = {
+        (x, y)
+        for y, (x0, x1) in BASE.items()
+        for x in range(x0, x1 + 1)
+    }
+    for (x, y) in base_cells:
+        edge = any(
+            (x + dx, y + dy) not in base_cells
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+        )
+        if edge:
+            px[x, y] = OUTLINE + (255,)
+        else:
+            s = 2 if (x + 2 * y) % 5 == 0 else 1
+            px[x, y] = RAMP[s] + (255,)
+    union |= base_cells
+
+    # Detail overlays
+    for (x, y), s in {**GLINTS, **BUBBLES}.items():
+        if (x, y) in union:
             px[x, y] = RAMP[s] + (255,)
     for (x, y) in CRACKS:
-        if (x, y) in mask:
+        if (x, y) in union:
             px[x, y] = OUTLINE + (255,)
-    for (x, y), s in GLINTS.items():
-        if (x, y) in mask:
-            px[x, y] = RAMP[s] + (255,)
+    for (x, y) in FOAM:
+        if (x, y) in union:
+            px[x, y] = RAMP[7] + (255,)
+
+    # Subtle watery shimmer around the silhouette + drifting droplets
+    def near(x, y, dist):
+        return any(
+            (x + dx, y + dy) in union
+            for dx in range(-dist, dist + 1)
+            for dy in range(-dist, dist + 1)
+        )
+
+    for y in range(SIZE):
+        for x in range(SIZE):
+            if (x, y) in union or px[x, y][3] != 0:
+                continue
+            if near(x, y, 1):
+                px[x, y] = AURA_NEAR
+            elif near(x, y, 2) and (x + y) % 2 == 0:
+                px[x, y] = AURA_FAR
+    for x, y in DRIPS:
+        if (x, y) not in union:
+            px[x, y] = AURA_NEAR
 
     img.save("ocean_crystal_32.png")
     img.resize((SIZE * SCALE, SIZE * SCALE), Image.NEAREST).save("ocean_crystal_128.png")
