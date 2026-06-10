@@ -1,0 +1,23 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Elemental Overdrive",
+    "description": "Adds the four Elemental Relics: Fire, Water, Earth, and Air.",
+    "uuid": "4cf9ffcb-3da1-43b7-ba67-139be2ad9edb",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 0]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "b7a0b430-bb18-4b9b-a640-3aafc94f957c",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "4ea6ad3f-ab25-4b3c-baf2-985d635c3a15",
+      "version": [1, 0, 0]
+    }
+  ]
+}

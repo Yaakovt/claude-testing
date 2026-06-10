@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Elemental Overdrive Resources",
+    "description": "Textures for the four Elemental Relics: Fire, Water, Earth, and Air.",
+    "uuid": "4ea6ad3f-ab25-4b3c-baf2-985d635c3a15",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 0]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "75832b65-b815-498d-823d-8d5e9ed451aa",
+      "version": [1, 0, 0]
+    }
+  ]
+}

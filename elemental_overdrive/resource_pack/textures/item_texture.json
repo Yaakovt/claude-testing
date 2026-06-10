@@ -1,0 +1,18 @@
+{
+  "resource_pack_name": "elemental_overdrive",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "fire_relic": {
+      "textures": "textures/items/fire_relic"
+    },
+    "water_relic": {
+      "textures": "textures/items/water_relic"
+    },
+    "earth_relic": {
+      "textures": "textures/items/earth_relic"
+    },
+    "air_relic": {
+      "textures": "textures/items/air_relic"
+    }
+  }
+}

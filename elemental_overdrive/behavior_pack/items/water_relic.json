@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "elemental_overdrive:water_relic",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "water_relic",
+      "minecraft:display_name": {
+        "value": "item.elemental_overdrive:water_relic"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:rarity": "epic",
+      "minecraft:glint": true
+    }
+  }
+}

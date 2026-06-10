@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "elemental_overdrive:earth_relic",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "earth_relic",
+      "minecraft:display_name": {
+        "value": "item.elemental_overdrive:earth_relic"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:rarity": "epic",
+      "minecraft:glint": true
+    }
+  }
+}

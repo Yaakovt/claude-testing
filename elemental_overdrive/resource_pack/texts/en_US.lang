@@ -1,0 +1,6 @@
+item.elemental_overdrive:fire_relic=Fire Relic
+item.elemental_overdrive:water_relic=Water Relic
+item.elemental_overdrive:earth_relic=Earth Relic
+item.elemental_overdrive:air_relic=Air Relic
+pack.name=Elemental Overdrive Resources
+pack.description=Textures for the four Elemental Relics: Fire, Water, Earth, and Air.
