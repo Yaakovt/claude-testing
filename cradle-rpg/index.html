@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Path of Ascension</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #0b0a10;
+      overflow: hidden;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #cfc8e8;
+    }
+    #wrap {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: #0b0a10;
+      display: block;
+      outline: none;
+    }
+    #title {
+      position: fixed;
+      top: 8px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #5c5478;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap"><canvas id="game" tabindex="0"></canvas></div>
+  <div id="title">Path of Ascension</div>
+  <script type="module" src="dist/game/main.js"></script>
+</body>
+</html>

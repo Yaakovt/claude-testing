@@ -1,0 +1,15 @@
+{
+  "name": "path-of-ascension",
+  "version": "0.1.0",
+  "description": "A Cradle-inspired 2D action RPG. Fan project; zero runtime dependencies.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npx tsc",
+    "serve": "node tools/serve.mjs",
+    "start": "npx tsc && node tools/serve.mjs",
+    "check": "node tools/checkmap.mjs && node tools/smoke.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
