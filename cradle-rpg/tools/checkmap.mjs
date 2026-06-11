@@ -3,6 +3,7 @@
 // Usage: npm run build && node tools/checkmap.mjs
 import { buildTestValleyData, createTestValley, TEST_VALLEY_SPAWN } from "../dist/game/maps/testValley.js";
 import { moveAndCollide, overlapsSolid } from "../dist/engine/collision.js";
+import { TEST_VALLEY_SHRINES } from "../dist/game/shrine.js";
 
 let failures = 0;
 const ok = (cond, msg) => {
@@ -40,6 +41,14 @@ reach(30, 17, "house B doorstep");
 reach(17, 14, "courtyard interior");
 reach(2, 27, "southwest meadow");
 reach(37, 2, "northeast shore");
+
+// M3: every meditation shrine must stand on walkable, reachable ground.
+ok(TEST_VALLEY_SHRINES.length >= 2 && TEST_VALLEY_SHRINES.length <= 3,
+  `2-3 shrines placed (got ${TEST_VALLEY_SHRINES.length})`);
+for (const s of TEST_VALLEY_SHRINES) {
+  ok(!map.isSolid(s.tx, s.ty), `shrine tile is walkable (${s.tx},${s.ty})`);
+  reach(s.tx, s.ty, "meditation shrine");
+}
 
 // Courtyard is enclosed: interior unreachable if the gate at (17,12) were solid.
 {

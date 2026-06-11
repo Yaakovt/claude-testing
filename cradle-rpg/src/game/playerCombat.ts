@@ -10,12 +10,16 @@
  * the pattern.
  */
 
-import type { EntityManager } from "../engine/entity.js";
+import type { Entity, EntityManager } from "../engine/entity.js";
 import type { Input } from "../engine/input.js";
+import type { Tilemap } from "../engine/tilemap.js";
 import { facingVector, type CombatSystem } from "../systems/combat.js";
 import type { FxManager } from "../systems/fx.js";
-import { TechniqueCaster, TECHNIQUE_SLOT_ACTIONS } from "../systems/techniques.js";
-import { DEFAULT_TECHNIQUE_SLOTS } from "./techniques.js";
+import {
+  TechniqueCaster,
+  TECHNIQUE_SLOT_ACTIONS,
+  type TechniqueContext,
+} from "../systems/techniques.js";
 import type { Player } from "./player.js";
 
 export const CYCLE_SPEED_FACTOR = 0.35;
@@ -45,6 +49,9 @@ export class PlayerCombat {
   comboIndex = 0;
   dodgeCooldown = 0;
   readonly caster = new TechniqueCaster();
+  /** M3 hook: called with the number of foes a basic strike connected with
+   *  (the Unsouled's Empty Palm practice counter listens here). */
+  onBasicHit: ((hits: number) => void) | null = null;
 
   private swingTimer = 0;
   private buffered = false;
@@ -59,12 +66,21 @@ export class PlayerCombat {
     private combat: CombatSystem,
     private entities: EntityManager,
     private fx: FxManager | null,
+    private map: Tilemap,
   ) {
-    this.caster.slots = [...DEFAULT_TECHNIQUE_SLOTS];
+    // Slot assignment is character knowledge: AdvancementFlow.assignSlots()
+    // sets these from the chosen origin's Path (src/game/paths.ts).
   }
 
-  /** Movement speed factor from combat state (cycling roots you). */
+  /** K/L/U/I technique ids (null = empty slot). */
+  setSlots(slots: (string | null)[]): void {
+    this.caster.slots = [...slots];
+  }
+
+  /** Movement speed factor from combat state (cycling roots you; a parry
+   *  stance — Still Surface — roots you completely). */
   get speedFactor(): number {
+    if (this.player.parryTimer > 0) return 0;
     return this.cycling ? CYCLE_SPEED_FACTOR : 1;
   }
 
@@ -116,7 +132,7 @@ export class PlayerCombat {
         if (this.state === "idle") {
           for (let i = 0; i < TECHNIQUE_SLOT_ACTIONS.length; i++) {
             if (this.input.pressed(TECHNIQUE_SLOT_ACTIONS[i]!)) {
-              this.caster.tryCast(i, { user: this.player, fx: this.fx });
+              this.caster.tryCast(i, this.castContext());
             }
           }
         }
@@ -189,13 +205,25 @@ export class PlayerCombat {
     this.state = "dodge";
   }
 
+  /** Full world context handed to technique defs. */
+  private castContext(): TechniqueContext {
+    return {
+      user: this.player,
+      fx: this.fx,
+      entities: this.entities,
+      combat: this.combat,
+      map: this.map,
+      spawn: (e: Entity) => this.entities.add(e),
+    };
+  }
+
   private startSwing(index: number): void {
     this.state = "swing";
     this.comboIndex = index;
     this.swingTimer = SWING_TIME;
     this.buffered = false;
     const finisher = index === 2;
-    this.combat.meleeAttack(
+    const hits = this.combat.meleeAttack(
       this.player,
       this.entities.all,
       finisher ? SWING_REACH + 3 : SWING_REACH,
@@ -206,5 +234,6 @@ export class PlayerCombat {
         hitstun: 0.2,
       },
     );
+    if (hits.length > 0) this.onBasicHit?.(hits.length);
   }
 }

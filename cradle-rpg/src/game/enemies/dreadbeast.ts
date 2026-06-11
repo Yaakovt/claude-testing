@@ -15,7 +15,7 @@
  */
 
 import { Combatant, type CombatSystem } from "../../systems/combat.js";
-import type { Stats } from "../../systems/stats.js";
+import { Stage, type Stats } from "../../systems/stats.js";
 import { moveAndCollide } from "../../engine/collision.js";
 import type { Tilemap } from "../../engine/tilemap.js";
 import type { EntityManager } from "../../engine/entity.js";
@@ -69,6 +69,18 @@ export abstract class Dreadbeast extends Combatant {
   protected deaggroRadius = 150;
   protected leashRadius = 130;
 
+  // --- M3 spirit-disruption state (techniques act on these) ---------------
+  /** While > 0 the beast loses aggro and wanders aimlessly (Fox Dream,
+   *  Empty Palm). */
+  dazeTimer = 0;
+  /** While > 0 the beast's "techniques" (windup/attack specials) are sealed
+   *  — its madra is scattered (Empty Palm). It can still chase and shove. */
+  madraLockTimer = 0;
+  /** Movement speed factor applied while slowTimer > 0 (Evening Tide). */
+  slowFactor = 1;
+  private slowTimer = 0;
+  private dazeWanderT = 0;
+
   private patrolX: number;
   private patrolY: number;
 
@@ -86,6 +98,25 @@ export abstract class Dreadbeast extends Combatant {
   }
 
   abstract override stats: Stats;
+
+  /** Daze: drop aggro and wander (illusion/spirit disruption). */
+  applyDaze(seconds: number): void {
+    this.dazeTimer = Math.max(this.dazeTimer, seconds);
+    this.dazeWanderT = 0;
+    this.setState("idle");
+  }
+
+  /** Madra lock: seal specials for a while (Empty Palm). */
+  applyMadraLock(seconds: number): void {
+    this.madraLockTimer = Math.max(this.madraLockTimer, seconds);
+    if (this.state === "windup" || this.state === "attack") this.setState("recover");
+  }
+
+  /** Temporary movement slow (zone techniques). Re-applied per tick. */
+  applySlow(factor: number, seconds: number): void {
+    this.slowFactor = factor;
+    this.slowTimer = Math.max(this.slowTimer, seconds);
+  }
 
   protected setState(s: BeastState): void {
     this.state = s;
@@ -140,6 +171,7 @@ export abstract class Dreadbeast extends Combatant {
     const d = Math.hypot(dx, dy);
     if (d < 1) return { hitWall: false, arrived: true };
     this.faceToward(tx, ty);
+    if (this.slowTimer > 0) speed *= this.slowFactor;
     const res = moveAndCollide(this.aabb, (dx / d) * speed * dt, (dy / d) * speed * dt, this.world.map);
     this.x = res.x - this.hitbox.offsetX;
     this.y = res.y - this.hitbox.offsetY;
@@ -154,6 +186,7 @@ export abstract class Dreadbeast extends Combatant {
     speed: number,
     dt: number,
   ): { hitWall: boolean } {
+    if (this.slowTimer > 0) speed *= this.slowFactor;
     const res = moveAndCollide(this.aabb, dirX * speed * dt, dirY * speed * dt, this.world.map);
     this.x = res.x - this.hitbox.offsetX;
     this.y = res.y - this.hitbox.offsetY;
@@ -185,10 +218,36 @@ export abstract class Dreadbeast extends Combatant {
 
   override update(dt: number): void {
     this.moved = false;
+    if (this.slowTimer > 0) {
+      this.slowTimer -= dt;
+      if (this.slowTimer <= 0) this.slowFactor = 1;
+    }
+    this.madraLockTimer = Math.max(0, this.madraLockTimer - dt);
     if (this.tickCombat(dt, this.world.map)) return;
     this.stateTime += dt;
-    this.think(dt);
+    if (this.dazeTimer > 0) {
+      this.dazeTimer -= dt;
+      this.dazeWander(dt);
+    } else {
+      this.think(dt);
+      // Madra sealed: cancel any special the brain just tried to start.
+      if (this.madraLockTimer > 0 && (this.state === "windup" || this.state === "attack")) {
+        this.setState("recover");
+      }
+    }
     this.separate(dt);
+  }
+
+  /** Aimless stumbling while dazed — aggro is forgotten. */
+  private dazeWander(dt: number): void {
+    this.dazeWanderT -= dt;
+    if (this.dazeWanderT <= 0) {
+      this.dazeWanderT = 0.5 + Math.random() * 0.5;
+      const a = Math.random() * Math.PI * 2;
+      this.patrolX = this.x + Math.cos(a) * 18;
+      this.patrolY = this.y + Math.sin(a) * 18;
+    }
+    this.moveToward(this.patrolX, this.patrolY, 22, dt);
   }
 
   protected abstract think(dt: number): void;
@@ -239,6 +298,47 @@ export abstract class Dreadbeast extends Combatant {
     const ry = this.renderY(alpha) - (sprite.height - 2);
     this.drawWithEffects(ctx, sprite, rx, ry, this.flip);
     this.drawHpPips(ctx, cx, ry - 5);
+    this.drawSpiritStatus(ctx, cx, ry);
+    this.drawStageLabel(ctx, cx, ry);
+  }
+
+  /** Orbiting motes while dazed (violet) or madra-locked (pale blue). */
+  private drawSpiritStatus(ctx: CanvasRenderingContext2D, cx: number, top: number): void {
+    if (this.dazeTimer <= 0 && this.madraLockTimer <= 0) return;
+    const t = (this.dazeTimer + this.madraLockTimer) * 6 + this.x;
+    ctx.fillStyle = this.dazeTimer > 0 ? "#b88fd4" : "#9db8e8";
+    for (let i = 0; i < 3; i++) {
+      const a = t + (i * Math.PI * 2) / 3;
+      ctx.fillRect(
+        Math.round(cx + Math.cos(a) * 6) - 1,
+        Math.round(top - 3 + Math.sin(a) * 2),
+        1,
+        1,
+      );
+    }
+  }
+
+  /**
+   * Copper benefit: once the player's senses open, every beast's stage is
+   * readable on sight (M2 only labeled foes after trading blows).
+   */
+  private drawStageLabel(ctx: CanvasRenderingContext2D, cx: number, top: number): void {
+    if (this.world.player.stats.stage < Stage.Copper) return;
+    if (this.dissolve >= 0 || this.distToPlayer() > 110) return;
+    ctx.save();
+    ctx.font = "5px Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = "#0b0a10";
+    ctx.fillText(this.displayName, Math.round(cx) + 1, Math.round(top) - 8);
+    const byStage: Partial<Record<Stage, string>> = {
+      [Stage.Foundation]: "#cfc8b4",
+      [Stage.Copper]: "#dba35e",
+      [Stage.Iron]: "#a8bccb",
+    };
+    ctx.fillStyle = byStage[this.stats.stage] ?? "#e0c9a8";
+    ctx.fillText(this.displayName, Math.round(cx), Math.round(top) - 9);
+    ctx.restore();
   }
 
   /** Five HP pips above the beast once it has taken any damage. */

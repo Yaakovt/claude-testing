@@ -115,6 +115,11 @@ export class Input {
     return this.pressedCodes.has(code);
   }
 
+  /** True if ANY key went down this tick ("press any key" screens). */
+  anyPressed(): boolean {
+    return this.pressedCodes.size > 0;
+  }
+
   /** Clear one-tick edges. Call once at the end of every update tick. */
   endFrame(): void {
     this.pressedCodes.clear();

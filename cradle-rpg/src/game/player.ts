@@ -22,6 +22,7 @@ import { Combatant, facingVector, type CombatSystem } from "../systems/combat.js
 import { makeStats, Stage, type Stats } from "../systems/stats.js";
 import type { FxManager } from "../systems/fx.js";
 import { PlayerCombat } from "./playerCombat.js";
+import { PATHS, type OriginId } from "./paths.js";
 
 export const PLAYER_WALK_SPEED = 90; // world px/s
 
@@ -135,10 +136,13 @@ interface FacingSprites {
   flip: boolean;
 }
 
-function makeSprites(): Record<Facing, FacingSprites> {
-  const [dI, dA, dB] = definePixelFrames([downIdle, downWalkA, downWalkB], PAL);
-  const [uI, uA, uB] = definePixelFrames([upIdle, upWalkA, upWalkB], PAL);
-  const [sI, sA, sB] = definePixelFrames([sideIdle, sideWalkA, sideWalkB], PAL);
+/** Iron benefit: the sash darkens to iron-grey — the body remade. */
+const IRON_PAL = { ...PAL, p: "#5a6470", P: "#7d88a0" };
+
+function makeSprites(pal: Record<string, string>): Record<Facing, FacingSprites> {
+  const [dI, dA, dB] = definePixelFrames([downIdle, downWalkA, downWalkB], pal);
+  const [uI, uA, uB] = definePixelFrames([upIdle, upWalkA, upWalkB], pal);
+  const [sI, sA, sB] = definePixelFrames([sideIdle, sideWalkA, sideWalkB], pal);
   return {
     down: { idle: dI!, walk: new Animation([dA!, dB!], 6), flip: false },
     up: { idle: uI!, walk: new Animation([uA!, uB!], 6), flip: false },
@@ -148,14 +152,10 @@ function makeSprites(): Record<Facing, FacingSprites> {
 }
 
 export class Player extends Combatant {
-  stats: Stats = makeStats({
-    maxHealth: 40,
-    maxMadra: 30,
-    attackPower: 6,
-    defense: 1,
-    moveSpeed: PLAYER_WALK_SPEED,
-    stage: Stage.Foundation,
-  });
+  stats: Stats;
+
+  /** Character creation choices (M3). */
+  readonly origin: OriginId;
 
   /** False during the death/respawn sequence (main.ts drives it). */
   controlEnabled = true;
@@ -166,16 +166,36 @@ export class Player extends Combatant {
   private input: Input;
   private map: Tilemap;
   private sprites: Record<Facing, FacingSprites>;
+  /** Recent positions while the White Fox Cloak runs (afterimages). */
+  private trail: { x: number; y: number }[] = [];
 
-  constructor(input: Input, map: Tilemap, x: number, y: number) {
+  constructor(
+    input: Input,
+    map: Tilemap,
+    x: number,
+    y: number,
+    origin: OriginId = "wei",
+    name = "Wei disciple",
+  ) {
     super();
     this.input = input;
     this.map = map;
     this.x = x;
     this.y = y;
+    this.origin = origin;
+    // All starts share a Foundation body; the Unsouled's pure core runs a
+    // little deeper (lore: weak but UNDEVELOPED, not absent — and pure).
+    this.stats = makeStats({
+      maxHealth: 40,
+      maxMadra: PATHS[origin].baseMaxMadra,
+      attackPower: 6,
+      defense: 1,
+      moveSpeed: PLAYER_WALK_SPEED,
+      stage: Stage.Foundation,
+    });
     this.hitbox = { offsetX: -5, offsetY: -8, w: 10, h: 8 };
-    this.sprites = makeSprites();
-    this.displayName = "Wei disciple";
+    this.sprites = makeSprites(PAL);
+    this.displayName = name;
     this.despawnOnDeath = false; // death = fade + respawn, handled in main.ts
     this.leavesRemnant = true; // a sacred artist (unused while we respawn)
     this.resetInterpolation();
@@ -183,7 +203,12 @@ export class Player extends Combatant {
 
   /** Hook up the combat system (call once from main after construction). */
   wireCombat(combat: CombatSystem, entities: EntityManager, fx: FxManager | null): void {
-    this.pc = new PlayerCombat(this, this.input, combat, entities, fx);
+    this.pc = new PlayerCombat(this, this.input, combat, entities, fx, this.map);
+  }
+
+  /** Iron stage-up: rebake the sprite set with the iron-grey sash. */
+  applyIronLook(): void {
+    this.sprites = makeSprites(IRON_PAL);
   }
 
   get cyclingActive(): boolean {
@@ -243,6 +268,14 @@ export class Player extends Combatant {
       this.x = res.x - this.hitbox.offsetX;
       this.y = res.y - this.hitbox.offsetY;
     }
+
+    // White Fox Cloak afterimage trail.
+    if (this.evasionTimer > 0) {
+      this.trail.push({ x: this.x, y: this.y });
+      if (this.trail.length > 12) this.trail.shift();
+    } else if (this.trail.length > 0) {
+      this.trail.length = 0;
+    }
   }
 
   override draw(ctx: CanvasRenderingContext2D, alpha: number): void {
@@ -271,6 +304,48 @@ export class Player extends Combatant {
     // Anchor = center of feet; sprite is 16 wide, feet sit on row 22 of 24.
     const rx = cx - sprite.width / 2;
     const ry = cy - (sprite.height - 1);
+
+    // White Fox Cloak: ghost afterimages trail the true body.
+    if (this.evasionTimer > 0 && this.trail.length > 4) {
+      const ghosts: [number, number][] = [
+        [Math.max(0, this.trail.length - 9), 0.12],
+        [Math.max(0, this.trail.length - 5), 0.22],
+      ];
+      for (const [idx, a] of ghosts) {
+        const g = this.trail[idx];
+        if (!g) continue;
+        ctx.globalAlpha = a;
+        sprite.draw(ctx, g.x - sprite.width / 2, g.y - (sprite.height - 1), set.flip);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Stone Mantle: orbiting Forged stone chips.
+    if (this.armorTimer > 0) {
+      const t = this.armorTimer * 4;
+      ctx.fillStyle = "#8d8e96";
+      for (let i = 0; i < 3; i++) {
+        const a = t + (i * Math.PI * 2) / 3;
+        ctx.fillRect(
+          Math.round(cx + Math.cos(a) * 10) - 1,
+          Math.round(cy - 10 + Math.sin(a) * 4) - 1,
+          2,
+          2,
+        );
+      }
+    }
+
+    // Still Surface: a ring of still water shimmers during the parry stance.
+    if (this.parryTimer > 0) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(191, 227, 242, ${0.5 + 0.4 * Math.sin(this.parryTimer * 40)})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 8, 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     this.drawWithEffects(ctx, sprite, rx, ry, set.flip);
 
     // Short-lived slash arc in front of the player when a swing starts.

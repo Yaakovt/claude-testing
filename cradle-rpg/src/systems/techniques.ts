@@ -11,8 +11,10 @@
  * (K / L / U / I).
  */
 
-import type { Combatant } from "./combat.js";
+import type { Combatant, CombatSystem } from "./combat.js";
 import type { FxManager } from "./fx.js";
+import type { Entity, EntityManager } from "../engine/entity.js";
+import type { Tilemap } from "../engine/tilemap.js";
 
 export type TechniqueType = "Enforcer" | "Striker" | "Ruler" | "Forger";
 
@@ -20,6 +22,13 @@ export interface TechniqueContext {
   /** The caster. */
   user: Combatant;
   fx: FxManager | null;
+  /** World access for Strikers/Rulers/Forgers (M3). Optional so pure
+   *  Enforcer self-buffs stay castable from minimal contexts/tests. */
+  entities?: EntityManager;
+  combat?: CombatSystem;
+  map?: Tilemap;
+  /** Add a spawned technique entity (projectile, zone, wall…) to the world. */
+  spawn?(e: Entity): void;
 }
 
 export interface TechniqueDef {

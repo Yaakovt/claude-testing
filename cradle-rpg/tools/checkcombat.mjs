@@ -4,8 +4,12 @@
 
 import { computeDamage, makeStats, Stage, STAGE_NAMES } from "../dist/systems/stats.js";
 import { getTechnique, registerTechnique, TechniqueCaster } from "../dist/systems/techniques.js";
+import { Combatant, CombatSystem } from "../dist/systems/combat.js";
 import { hasLineOfSight } from "../dist/game/enemies/dreadbeast.js";
 import { createTestValley } from "../dist/game/maps/testValley.js";
+import { registerGameTechniques, ALL_TECHNIQUES } from "../dist/game/techniques.js";
+import { PATHS, ORIGIN_ORDER, slotsFor, kitInfo } from "../dist/game/paths.js";
+import { freshProgress } from "../dist/systems/advancement.js";
 
 let failures = 0;
 const ok = (cond, msg) => {
@@ -117,6 +121,132 @@ ok(computeDamage(0.01, Stage.Foundation, Stage.Gold, 50) === 1, "landed hits alw
   user.stats.madra = 5;
   ok(caster.tryCast(0, { user, fx: null }) === false, "cast blocked without enough madra");
   ok(caster.tryCast(1, { user, fx: null }) === false, "empty slot does nothing");
+}
+
+// ----------------------------------------------------- M3 Path technique data
+
+registerGameTechniques();
+{
+  // Expected kit numbers: id -> [type, madraCost, cooldown].
+  const expected = {
+    "fox-fire": ["Striker", 8, 1.6],
+    "fox-dream": ["Ruler", 10, 8],
+    "white-fox-cloak": ["Enforcer", 14, 12],
+    "crescent-wake": ["Striker", 7, 1.2],
+    "still-surface": ["Enforcer", 6, 5],
+    "evening-tide": ["Ruler", 16, 10],
+    "spine-breaker": ["Enforcer", 9, 2.5],
+    "stone-mantle": ["Forger", 10, 9],
+    "ridgeline": ["Forger", 18, 14],
+    "empty-palm": ["Striker", 8, 4],
+    "burst-of-effort": ["Enforcer", 9, 6],
+  };
+  for (const [id, [type, cost, cd]] of Object.entries(expected)) {
+    const def = getTechnique(id);
+    ok(
+      def && def.type === type && def.madraCost === cost && def.cooldown === cd,
+      `technique ${id}: ${type}, ${cost} madra, ${cd}s cd`,
+    );
+  }
+  ok(ALL_TECHNIQUES.length === Object.keys(expected).length, "no unexpected techniques registered");
+
+  // Every Path kit slot points at a registered technique.
+  for (const origin of ORIGIN_ORDER) {
+    const kit = PATHS[origin].kit;
+    for (const key of ["K", "L", "U", "I"]) {
+      const id = kit[key];
+      if (id !== null) ok(!!getTechnique(id), `${origin} kit ${key} -> ${id} is registered`);
+    }
+  }
+
+  // Slot gating: U seals open at Iron; Unsouled starts with nothing.
+  const fresh = freshProgress();
+  ok(
+    JSON.stringify(slotsFor("wei", Stage.Foundation, fresh)) ===
+      JSON.stringify(["fox-fire", "fox-dream", null, null]),
+    "wei Foundation slots = Fox Fire / Fox Dream / locked / locked",
+  );
+  ok(
+    slotsFor("kazan", Stage.Iron, fresh)[2] === "ridgeline",
+    "kazan U slot unlocks Ridgeline at Iron",
+  );
+  ok(
+    slotsFor("unsouled", Stage.Iron, fresh).every((s) => s === null),
+    "unsouled has NO techniques before the Empty Palm is learned",
+  );
+  const learned = { ...fresh, emptyPalmLearned: true };
+  ok(
+    JSON.stringify(slotsFor("unsouled", Stage.Copper, learned)) ===
+      JSON.stringify(["empty-palm", "burst-of-effort", null, null]),
+    "unsouled learns Empty Palm (K) + Burst of Effort (L) together",
+  );
+  const info = kitInfo("li", Stage.Foundation, fresh);
+  ok(
+    info.length === 4 && info[2].locked && info[3].locked && !info[0].locked,
+    "spirit-panel kit info shows locked U/I slots before Iron",
+  );
+}
+
+// ------------------------------------------- M3 parry / armor / evasion rules
+
+{
+  class Dummy extends Combatant {
+    constructor(stats) {
+      super();
+      this.stats = stats;
+    }
+    update() {}
+    draw() {}
+  }
+  const mk = (atk, def) =>
+    new Dummy(
+      makeStats({ maxHealth: 100, maxMadra: 0, attackPower: atk, defense: def, moveSpeed: 0, stage: Stage.Copper }),
+    );
+  const combat = new CombatSystem();
+
+  // Parry (Still Surface): strike negated, attacker staggered + riposted.
+  {
+    const attacker = mk(10, 2);
+    const target = mk(8, 2);
+    target.parryTimer = 0.4;
+    const dealt = combat.strike(attacker, target, { knockback: 0 });
+    ok(dealt === 0 && target.stats.health === 100, "parry negates the incoming strike");
+    const riposte = computeDamage(8 * 1.5, Stage.Copper, Stage.Copper, 2);
+    ok(
+      attacker.stats.health === 100 - riposte,
+      `parry ripostes for x1.5 attack (${riposte} dmg)`,
+    );
+    ok(attacker.hitstun >= 1, "parried attacker is staggered (>= 1s hitstun)");
+    ok(target.parryTimer === 0, "parry window is consumed");
+  }
+
+  // Armor (Stone Mantle): flat reduction, min 1 chip.
+  {
+    const attacker = mk(10, 0);
+    const plain = mk(0, 2);
+    const armored = mk(0, 2);
+    armored.applyArmor(3, 5);
+    const d0 = combat.strike(attacker, plain, { knockback: 0 });
+    const d1 = combat.strike(attacker, armored, { knockback: 0 });
+    ok(d1 === d0 - 3, `Stone Mantle reduces damage by flat 3 (${d0} -> ${d1})`);
+    const heavyArmor = mk(0, 2);
+    heavyArmor.applyArmor(999, 5);
+    ok(combat.strike(attacker, heavyArmor, { knockback: 0 }) === 1, "armored hits still chip at least 1");
+  }
+
+  // Evasion (White Fox Cloak): rng-gated whiffs (rng injectable).
+  {
+    const attacker = mk(10, 0);
+    const target = mk(0, 0);
+    target.applyEvasion(0.35, 5);
+    combat.rng = () => 0.1; // under 0.35 -> miss
+    ok(combat.strike(attacker, target, { knockback: 0 }) === 0 && target.stats.health === 100,
+      "cloaked target evades when the roll is under the evasion chance");
+    target.iframes = 0;
+    combat.rng = () => 0.9; // over 0.35 -> hit lands
+    ok(combat.strike(attacker, target, { knockback: 0 }) > 0, "cloaked target is still hittable on a failed roll");
+    combat.rng = Math.random;
+  }
 }
 
 // ---------------------------------------------------------- line of sight

@@ -66,6 +66,18 @@ export abstract class Combatant extends Entity {
   /** Knockback impulse velocity, px/s (decays exponentially). */
   kbVx = 0;
   kbVy = 0;
+  /** Chance (0..1) incoming strikes whiff while evasionTimer > 0 (M3:
+   *  White Fox Cloak). */
+  evasion = 0;
+  evasionTimer = 0;
+  /** Flat incoming damage reduction while armorTimer > 0 (M3: Stone
+   *  Mantle). Landed hits still chip at least 1. */
+  armorFlat = 0;
+  armorTimer = 0;
+  /** Parry window seconds remaining (M3: Still Surface). While > 0, a
+   *  strike against this combatant is negated, the attacker is staggered,
+   *  and a riposte lands — resolved in CombatSystem.strike(). */
+  parryTimer = 0;
 
   private buffTimer = 0;
 
@@ -80,6 +92,18 @@ export abstract class Combatant extends Entity {
     this.buffTimer = seconds;
   }
 
+  /** Timed evasion (incoming strikes whiff with `chance`). */
+  applyEvasion(chance: number, seconds: number): void {
+    this.evasion = chance;
+    this.evasionTimer = seconds;
+  }
+
+  /** Timed flat damage reduction (Forged armor coat). */
+  applyArmor(flat: number, seconds: number): void {
+    this.armorFlat = flat;
+    this.armorTimer = seconds;
+  }
+
   /**
    * Tick shared combat state: i-frames, flash, buffs, dissolve, knockback
    * (resolved against the map so knockback respects collision), hit-stun.
@@ -89,6 +113,15 @@ export abstract class Combatant extends Entity {
   protected tickCombat(dt: number, map: Tilemap): boolean {
     this.iframes = Math.max(0, this.iframes - dt);
     this.flash = Math.max(0, this.flash - dt);
+    this.parryTimer = Math.max(0, this.parryTimer - dt);
+    if (this.evasionTimer > 0) {
+      this.evasionTimer -= dt;
+      if (this.evasionTimer <= 0) this.evasion = 0;
+    }
+    if (this.armorTimer > 0) {
+      this.armorTimer -= dt;
+      if (this.armorTimer <= 0) this.armorFlat = 0;
+    }
     if (this.buffTimer > 0) {
       this.buffTimer -= dt;
       if (this.buffTimer <= 0) {
@@ -178,11 +211,18 @@ interface ShakeCamera {
   shake(intensity: number, duration: number): void;
 }
 
+/** Riposte damage multiplier on a successful parry (Still Surface). */
+export const PARRY_RIPOSTE_MULT = 1.5;
+/** Stagger applied to a parried attacker, seconds. */
+export const PARRY_STAGGER = 1.0;
+
 export class CombatSystem {
   /** Frames left of global hit-pause (main loop freezes entities while > 0). */
   hitPauseFrames = 0;
   /** "Copper dreadbeast" — set when the player trades blows with something. */
   noticedLabel: string | null = null;
+  /** Random source for evasion rolls — injectable for headless tests. */
+  rng: () => number = Math.random;
 
   /** Game hook: decide drops/Remnants when something dies. */
   onDeath: ((victim: Combatant, killer: Combatant | null) => void) | null = null;
@@ -241,6 +281,40 @@ export class CombatSystem {
 
   /** Resolve one landed hit: damage, knockback, stun, flash, feel. */
   strike(attacker: Combatant, target: Combatant, opts: StrikeOptions = {}): number {
+    // Parry (Still Surface): the strike is turned on the attacker.
+    if (target.parryTimer > 0 && attacker.alive) {
+      target.parryTimer = 0;
+      const riposte = computeDamage(
+        target.stats.attackPower * PARRY_RIPOSTE_MULT,
+        target.stats.stage,
+        attacker.stats.stage,
+        attacker.stats.defense,
+      );
+      const dx = attacker.x - target.x;
+      const dy = attacker.y - target.y;
+      const len = Math.hypot(dx, dy) || 1;
+      attacker.kbVx = (dx / len) * 200;
+      attacker.kbVy = (dy / len) * 200;
+      attacker.hitstun = Math.max(attacker.hitstun, PARRY_STAGGER);
+      attacker.flash = FLASH_TIME;
+      target.iframes = Math.max(target.iframes, 0.4);
+      this.hitPauseFrames = Math.max(this.hitPauseFrames, 4);
+      if (attacker === this.player || target === this.player) {
+        this.camera?.shake(2, 0.12);
+      }
+      this.fx?.spawnText(target.x, target.y - 24, "parried!", "#bfe3f2", 0.7);
+      this.fx?.spawnText(attacker.x, attacker.y - 18, String(riposte), "#f2ecd8");
+      this.applyDamage(attacker, riposte, target);
+      return 0;
+    }
+
+    // Evasion (White Fox Cloak): the image was never where it seemed.
+    if (target.evasionTimer > 0 && target.evasion > 0 && this.rng() < target.evasion) {
+      target.iframes = Math.max(target.iframes, 0.15);
+      this.fx?.spawnText(target.x, target.y - 20, "miss", "#8d97a8", 0.5);
+      return 0;
+    }
+
     let dmg = computeDamage(
       attacker.stats.attackPower * attacker.damageMult,
       attacker.stats.stage,
@@ -250,6 +324,10 @@ export class CombatSystem {
     );
     if (target.vulnerability !== 1) {
       dmg = Math.max(1, Math.round(dmg * target.vulnerability));
+    }
+    // Forged armor (Stone Mantle): flat reduction, but always chip 1.
+    if (target.armorTimer > 0 && target.armorFlat > 0) {
+      dmg = Math.max(1, dmg - target.armorFlat);
     }
 
     const kb = opts.knockback ?? 140;

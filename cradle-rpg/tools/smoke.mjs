@@ -1,11 +1,14 @@
 // Headless smoke test: boots dist/game/main.js under a minimal DOM shim and
 // drives simulated frames + key input to catch runtime errors AND verify the
-// M2 combat loop end to end:
-//   - player kills a slitherer with J strikes
-//   - scales drop (1-3) and are collectable by walking over them
-//   - cycling (hold C) refills madra and slows movement to ~35%
-//   - player death fades + respawns at the spawn point (full HP, half madra)
-//   - v2 save schema persists health/madra/scales
+// game end to end:
+//   M3 - title -> character creation (Wei) through the REAL UI key path
+//   M3 - Fox Fire (K) drains madra and damages a slitherer
+//   M2 - player kills a slitherer with J strikes; scales drop + collect
+//   M2 - cycling refills madra / slows movement; death + respawn sequence
+//   M3 - Copper advancement end-to-end (cycle-to-full fills + shrine E)
+//   M3 - Iron advancement: elixir offer cancel (refund), channel fail (no
+//        refund), channel success (stat bump + U technique unlock)
+//   M3 - spirit panel toggle; v3 save schema (character + advancement)
 // Usage: npm run build && node tools/smoke.mjs
 
 const noop = () => {};
@@ -84,6 +87,12 @@ function frames(n) {
 const keyDown = (code) =>
   windowListeners.get("keydown")?.({ code, repeat: false, preventDefault: noop });
 const keyUp = (code) => windowListeners.get("keyup")?.({ code, preventDefault: noop });
+const tap = (code, settle = 2) => {
+  keyDown(code);
+  frames(2);
+  keyUp(code);
+  frames(settle);
+};
 
 let failures = 0;
 const ok = (cond, msg) => {
@@ -95,7 +104,41 @@ try {
   await import("../dist/game/main.js");
   const T = globalThis.__poaTest;
   if (!T) throw new Error("main.js did not expose the __poaTest hook");
-  const { player, entities, combat, gameState, spawn, classes } = T;
+  const { classes } = T;
+
+  // ---- title -> creation (the REAL key-driven UI path) ---------------------
+  frames(5);
+  ok(T.world === null, "boot lands on the title screen, not the world");
+  ok(T.screens.state === "title", "title state active");
+  tap("KeyZ"); // press any key
+  ok(T.screens.state === "origin", "no save -> straight to origin choice");
+  tap("ArrowDown"); // wei -> li
+  tap("ArrowDown"); // li -> kazan
+  tap("ArrowUp"); // back to li
+  tap("ArrowUp"); // back to wei
+  tap("KeyE"); // choose the Wei clan
+  ok(T.screens.state === "name", "origin confirmed -> name entry");
+  for (const c of ["KeyK", "KeyA", "KeyE", "KeyL"]) tap(c, 0);
+  tap("Backspace", 0); // "Kael" -> "Kae"
+  tap("KeyL", 0); // back to "Kael"
+  tap("Enter");
+  frames(3);
+  ok(T.world !== null, "creation complete -> world built");
+
+  const player = T.player;
+  const entities = T.entities;
+  const combat = T.combat;
+  const gameState = T.gameState;
+  const advancement = T.advancement;
+  const spawn = T.spawn;
+
+  ok(player.displayName === "Kael", `typed name carried in (got "${player.displayName}")`);
+  ok(player.origin === "wei", "origin carried in");
+  ok(
+    JSON.stringify(player.pc.caster.slots) ===
+      JSON.stringify(["fox-fire", "fox-dream", null, null]),
+    "Wei starts with Fox Fire (K) + Fox Dream (L), U/I locked",
+  );
 
   const teleport = (e, x, y) => {
     e.x = x;
@@ -119,23 +162,45 @@ try {
     beasts.every((b) => !T.map.isSolidAtWorld(b.x, b.y)),
     "all enemy spawn points are walkable",
   );
+  const shrines = entities.all.filter((e) => e instanceof classes.Shrine);
+  ok(shrines.length === 3, `3 meditation shrines placed (got ${shrines.length})`);
 
-  // ---- kill a slitherer with J strikes -------------------------------------
-  // Stage it away from other beasts so the duel is deterministic.
+  // ---- Fox Fire (K): madra drain + slitherer damage -------------------------
   const arena = { x: 18 * 16 + 8, y: 22 * 16 + 8 }; // open path, mid-south
   teleport(player, arena.x, arena.y);
-  const slith = beasts.find((e) => e instanceof classes.Slitherer);
-  const hp0 = slith.stats.health;
-  const scales0 = gameState.scales;
-  // Face right (tap D briefly).
+  const [slithA, slithB] = beasts.filter((e) => e instanceof classes.Slitherer);
+  teleport(slithA, player.x + 14, player.y);
   keyDown("KeyD");
   frames(2);
   keyUp("KeyD");
   frames(2);
+  const madraPreFox = player.stats.madra;
+  const slithHp0 = slithA.stats.health;
+  keyDown("KeyK");
+  frames(2);
+  keyUp("KeyK");
+  frames(10); // bolts fly
+  ok(
+    Math.abs(player.stats.madra - (madraPreFox - 8)) < 0.001,
+    `Fox Fire costs 8 madra (${madraPreFox} -> ${player.stats.madra.toFixed(1)})`,
+  );
+  ok(
+    slithA.stats.health < slithHp0,
+    `Fox Fire bolts hurt the slitherer (${slithHp0} -> ${slithA.stats.health})`,
+  );
+  slithA.dead = true; // clear the singed test subject
+  frames(30); // let any drops from a point-blank fox-fire kill settle...
+  for (const s of entities.all.filter((e) => e instanceof classes.ScalePickup)) s.dead = true;
+  frames(2); // ...and sweep them so the J-kill drop count below is clean
 
+  // ---- kill a slitherer with J strikes -------------------------------------
+  teleport(player, arena.x, arena.y);
+  player.stats.madra = player.stats.maxMadra;
+  const hp0 = slithB.stats.health;
+  const scales0 = gameState.scales;
   let presses = 0;
-  while (slith.stats.health > 0 && presses < 12) {
-    teleport(slith, player.x + 12, player.y); // keep it in arc despite knockback
+  while (slithB.stats.health > 0 && presses < 12) {
+    teleport(slithB, player.x + 12, player.y); // keep it in arc despite knockback
     player.hitstun = 0; // its bites would otherwise eat scripted presses
     keyDown("KeyJ");
     frames(2);
@@ -143,10 +208,11 @@ try {
     frames(30); // swing (13) + recovery (11) + hit-pause (3) + slack
     presses++;
   }
-  ok(slith.stats.health === 0, `J strikes killed the slitherer (hp ${hp0} -> 0 in ${presses} presses)`);
+  ok(slithB.stats.health === 0, `J strikes killed the slitherer (hp ${hp0} -> 0 in ${presses} presses)`);
   ok(presses <= 4, `slitherer died in <= 4 strikes (took ${presses})`);
   frames(30); // dissolve
-  ok(!entities.all.includes(slith), "dead slitherer despawned after dissolve");
+  ok(!entities.all.includes(slithB), "dead slitherer despawned after dissolve");
+  ok(advancement.progress.basicHits >= presses, "basic strikes are counted (practice hook)");
 
   // ---- scales drop + collection --------------------------------------------
   // Some scales may land under the player and auto-collect instantly; the
@@ -223,19 +289,7 @@ try {
   ok(player.stats.madra === player.stats.maxMadra / 2, "respawn grants half madra");
   ok(player.controlEnabled === true, "control returns after respawn");
 
-  // ---- techniques (K = Burst of Effort) + dodge -----------------------------
-  const madraPreCast = player.stats.madra; // 15 after respawn
-  keyDown("KeyK");
-  frames(2);
-  keyUp("KeyK");
-  ok(
-    Math.abs(player.stats.madra - (madraPreCast - 9)) < 0.001,
-    `Burst of Effort costs 9 madra (${madraPreCast} -> ${player.stats.madra.toFixed(1)})`,
-  );
-  ok(player.speedMult === 1.4 && player.damageMult === 1.4, "Burst of Effort buffs speed+damage by 40%");
-  frames(200); // > 3s buff duration
-  ok(player.speedMult === 1 && player.damageMult === 1, "Burst of Effort expires after 3s");
-
+  // ---- dodge ----------------------------------------------------------------
   const madraPreDodge = player.stats.madra;
   keyDown("KeyD");
   keyDown("Space");
@@ -249,19 +303,126 @@ try {
     `dodge costs 5 madra (${madraPreDodge.toFixed(1)} -> ${player.stats.madra.toFixed(1)})`,
   );
 
-  // ---- v2 save schema -------------------------------------------------------
+  // ---- Copper advancement: cycle-to-full x5, then meditate (E) ---------------
+  const fills0 = advancement.progress.madraFills;
+  while (advancement.progress.madraFills < 5) {
+    player.stats.madra = player.stats.maxMadra * 0.3; // re-arm the fill latch
+    frames(2);
+    player.stats.madra = player.stats.maxMadra - 1;
+    keyDown("KeyC");
+    frames(15); // ~0.25 s cycling tops it off
+    keyUp("KeyC");
+    frames(2);
+  }
+  ok(
+    advancement.progress.madraFills >= 5,
+    `cycling to full is tracked (${fills0} -> ${advancement.progress.madraFills} fills)`,
+  );
+
+  const shrine = T.shrines[0];
+  teleport(player, shrine.x, shrine.y + 2);
+  frames(2);
+  ok(advancement.prompt !== null, "standing at a shrine shows a prompt");
+  ok(player.stats.stage === 0, "still Foundation before meditating");
+  tap("KeyE");
+  ok(player.stats.stage === 1, "shrine meditation advances to COPPER");
+  ok(player.stats.maxHealth === 50, `Copper stat bump: maxHealth 50 (got ${player.stats.maxHealth})`);
+  ok(player.stats.maxMadra === 41, `Copper stat bump: maxMadra 41 (got ${player.stats.maxMadra})`);
+  ok(player.stats.health === player.stats.maxHealth, "stage-up refills health");
+  ok(T.world.auraSight.enabled === true, "AURA SIGHT blooms on at Copper");
+  ok(advancement.ceremony !== null, "Copper ceremony banner plays");
+
+  // ---- Iron advancement -------------------------------------------------------
+  // (a) cancel BEFORE the channel: full refund.
+  gameState.scales = 30;
+  tap("KeyE"); // buy the elixir
+  ok(advancement.state === "offer" && gameState.scales === 5, "elixir purchase takes 25 scales");
+  keyDown("KeyA");
+  frames(4);
+  keyUp("KeyA");
+  frames(2);
+  ok(
+    advancement.state === "idle" && gameState.scales === 30,
+    "stepping away before drinking refunds the 25 scales",
+  );
+  teleport(player, shrine.x, shrine.y + 2);
+  frames(2);
+
+  // (b) fail DURING the channel: no refund, damage stays.
+  tap("KeyE"); // buy again (30 -> 5)
+  tap("KeyE"); // drink: the channel begins
+  ok(advancement.state === "channel", "drinking the elixir starts the refining channel");
+  frames(90); // ~1.5 s of agony
+  const hpMidChannel = player.stats.health;
+  ok(hpMidChannel < player.stats.maxHealth, "the refining deals ticking damage");
+  keyDown("KeyD");
+  frames(4);
+  keyUp("KeyD");
+  frames(2);
+  ok(advancement.state === "idle" && player.stats.stage === 1, "moving breaks the channel — still Copper");
+  ok(gameState.scales === 5, "NO refund once the elixir is drunk");
+
+  // (c) endure the full 10 seconds: IRON.
+  player.stats.health = player.stats.maxHealth;
+  gameState.scales = 25;
+  teleport(player, shrine.x, shrine.y + 2);
+  frames(2);
+  tap("KeyE"); // buy (25 -> 0)
+  tap("KeyE"); // drink
+  ok(advancement.state === "channel", "second refining attempt begins");
+  frames(660); // 11 s — outlast the 10 s channel
+  ok(player.stats.stage === 2, "surviving the refining advances to IRON");
+  ok(player.stats.maxHealth === 85, `Iron body: maxHealth 85 (got ${player.stats.maxHealth})`);
+  ok(player.stats.attackPower === 11, `Iron body: attack 11 (got ${player.stats.attackPower})`);
+  ok(player.stats.moveSpeed === 101, `Iron body: speed 101 (got ${player.stats.moveSpeed})`);
+  ok(gameState.scales === 0, "the 25 scales are spent");
+  ok(
+    player.pc.caster.slots[2] === "white-fox-cloak",
+    "Iron unlocks the Path's U technique (White Fox Cloak)",
+  );
+
+  // ---- White Fox Cloak (U) at Iron -------------------------------------------
+  const madraPreCloak = player.stats.madra;
+  tap("KeyU");
+  ok(
+    Math.abs(player.stats.madra - (madraPreCloak - 14)) < 0.001,
+    `White Fox Cloak costs 14 madra (${madraPreCloak} -> ${player.stats.madra.toFixed(1)})`,
+  );
+  ok(player.evasionTimer > 0 && player.evasion === 0.35, "cloak grants 35% evasion");
+  ok(player.speedMult === 1.3, "cloak grants +30% move speed");
+
+  // ---- spirit panel (Tab) ------------------------------------------------------
+  ok(T.world.panelOpen === false, "spirit panel starts closed");
+  tap("Tab");
+  ok(T.world.panelOpen === true, "Tab opens the spirit panel");
+  tap("Tab");
+  ok(T.world.panelOpen === false, "Tab again closes it");
+
+  // ---- v3 save schema ----------------------------------------------------------
   windowListeners.get("pagehide")?.();
   const saved = storage.get("path-of-ascension.save");
   if (!saved) throw new Error("pagehide did not write a save");
   const parsed = JSON.parse(saved);
-  ok(parsed.version === 2, `save is version 2 (got ${parsed.version})`);
+  ok(parsed.version === 3, `save is version 3 (got ${parsed.version})`);
   ok(typeof parsed.player.x === "number", "save has player position");
+  ok(parsed.player.stage === "Iron", `save carries the stage label (got ${parsed.player.stage})`);
   const cs = parsed.systems?.combat;
   ok(
     cs && typeof cs.health === "number" && typeof cs.madra === "number" && typeof cs.scales === "number",
     "save has systems.combat { health, madra, scales }",
   );
   ok(cs.scales === gameState.scales, `saved scales match the counter (${cs.scales})`);
+  const ch = parsed.systems?.character;
+  ok(
+    ch && ch.origin === "wei" && ch.name === "Kael",
+    "save has systems.character { origin, name }",
+  );
+  const adv = parsed.systems?.advancement;
+  ok(
+    adv && adv.stage === 2 && typeof adv.madraFills === "number" &&
+      typeof adv.basicHits === "number" && adv.emptyPalmLearned === false,
+    "save has systems.advancement { stage, madraFills, basicHits, emptyPalmLearned }",
+  );
 
   console.log(failures === 0 ? "\nSmoke test passed." : `\n${failures} check(s) FAILED.`);
   process.exit(failures === 0 ? 0 : 1);

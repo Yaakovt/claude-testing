@@ -8,7 +8,7 @@
     "build": "npx tsc",
     "serve": "node tools/serve.mjs",
     "start": "npx tsc && node tools/serve.mjs",
-    "check": "node tools/checkmap.mjs && node tools/checkcombat.mjs && node tools/smoke.mjs"
+    "check": "node tools/checkmap.mjs && node tools/checkcombat.mjs && node tools/checkadvance.mjs && node tools/smoke.mjs && node tools/smokeUnsouled.mjs && node tools/smokeContinue.mjs"
   },
   "dependencies": {},
   "devDependencies": {}
