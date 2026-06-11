@@ -68,14 +68,6 @@ const FRAME_B = [
 
 const frames = definePixelFrames([FRAME_A, FRAME_B], PAL);
 
-/** Shrine placements on testValley (tile coords; tools/checkmap.mjs asserts
- *  each is walkable and reachable from spawn). */
-export const TEST_VALLEY_SHRINES: { tx: number; ty: number }[] = [
-  { tx: 21, ty: 25 }, // southern trail, near the spawn
-  { tx: 16, ty: 16 }, // the walled courtyard's quiet heart
-  { tx: 30, ty: 9 }, // northeast, in sight of the pond's water aura
-];
-
 export class Shrine extends Entity {
   private anim = new Animation(frames, 2);
 
@@ -101,9 +93,13 @@ export class Shrine extends Entity {
   }
 }
 
-/** Build the testValley shrines (world-pixel placement like spawns.ts). */
-export function spawnTestValleyShrines(add: (s: Shrine) => Shrine): Shrine[] {
-  return TEST_VALLEY_SHRINES.map((p) =>
+/** Build a MapEntry's shrines (tile coords -> world-pixel placement, like
+ *  enemies/spawns.ts; tools/checkworld.mjs asserts each spot is walkable). */
+export function spawnShrines(
+  spots: { tx: number; ty: number }[],
+  add: (s: Shrine) => Shrine,
+): Shrine[] {
+  return spots.map((p) =>
     add(new Shrine(p.tx * TILE_SIZE + TILE_SIZE / 2, p.ty * TILE_SIZE + TILE_SIZE * 0.75)),
   );
 }

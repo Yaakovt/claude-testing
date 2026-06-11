@@ -2,13 +2,19 @@
 // drives simulated frames + key input to catch runtime errors AND verify the
 // game end to end:
 //   M3 - title -> character creation (Wei) through the REAL UI key path
+//   M4a - new game starts in the WEI VILLAGE (safe ground, NPCs, guard)
+//   M4a - seed path: talk to the neighbor (dialogue choice sets the flag),
+//         the gate guard stands down, walk the south-gate transition into
+//         the Valley Wilds, the on-enter cutscene fires once, the quest
+//         completes, the journal page shows it
 //   M3 - Fox Fire (K) drains madra and damages a slitherer
 //   M2 - player kills a slitherer with J strikes; scales drop + collect
 //   M2 - cycling refills madra / slows movement; death + respawn sequence
 //   M3 - Copper advancement end-to-end (cycle-to-full fills + shrine E)
 //   M3 - Iron advancement: elixir offer cancel (refund), channel fail (no
 //        refund), channel success (stat bump + U technique unlock)
-//   M3 - spirit panel toggle; v3 save schema (character + advancement)
+//   M3 - spirit panel toggle; M4a journal page (Q)
+//   M4a - v4 save schema (map id + story flags + systems.story)
 // Usage: npm run build && node tools/smoke.mjs
 
 const noop = () => {};
@@ -130,7 +136,7 @@ try {
   const combat = T.combat;
   const gameState = T.gameState;
   const advancement = T.advancement;
-  const spawn = T.spawn;
+  const story = T.story;
 
   ok(player.displayName === "Kael", `typed name carried in (got "${player.displayName}")`);
   ok(player.origin === "wei", "origin carried in");
@@ -146,24 +152,107 @@ try {
     e.resetInterpolation();
   };
 
-  // ---- boot ---------------------------------------------------------------
+  // ---- M4a boot: the Wei village -------------------------------------------
   frames(5);
+  ok(T.world.mapEntry.id === "weiVillage", `new game starts on weiVillage (got ${T.world.mapEntry.id})`);
   ok(player.stats.health === 40 && player.stats.madra === 30, "player boots with full stats");
+  ok(
+    entities.all.filter((e) => e instanceof classes.Dreadbeast).length === 0,
+    "the village is safe ground — no dreadbeasts",
+  );
+  ok(T.shrines.length === 2, `2 village shrines placed (got ${T.shrines.length})`);
+  ok(T.npcs.length === 2, `2 seed NPCs placed (got ${T.npcs.length})`);
+  ok(story.questsActive.includes("first-steps"), 'tutorial quest "First Steps" auto-started');
+  ok(story.questStatus("first-steps").current === 0, "first objective (talk) is current");
+
+  const mara = T.npcs.find((n) => n.def.id === "seed-mara");
+  const guard = T.npcs.find((n) => n.def.id === "seed-han");
+  ok(mara && guard, "seed NPCs found by id");
+  ok(guard.blocking === true, "the gate guard blocks until vouched for");
+
+  // The guard physically holds the line: walk into him, get pushed back.
+  teleport(player, 22 * 16 + 8, 29 * 16 + 8);
+  keyDown("KeyS");
+  frames(90); // 1.5s of shoving south
+  keyUp("KeyS");
+  frames(2);
+  // The guard stands at (22,31): his hitbox top edge is y=500 — the player's
+  // feet can never pass his center (y=508), let alone reach the zone (y>=528).
+  ok(player.y <= 500.5, `the guard kept the player out of the gate (y=${player.y.toFixed(0)})`);
+  ok(T.world.mapEntry.id === "weiVillage", "no transition fired through the guard");
+
+  // ---- talk to the neighbor (REAL dialogue path) -----------------------------
+  teleport(player, mara.x + 2, mara.y + 8);
+  frames(2);
+  ok(T.dialogueUi.active === false, "no dialogue before E");
+  tap("KeyE"); // E — Talk
+  ok(T.dialogueUi.active === true, "E near the neighbor opens her dialogue");
+  tap("KeyE"); // skip letter reveal of "greet"
+  tap("KeyE"); // advance -> "ask"
+  tap("KeyE"); // skip reveal
+  ok(T.dialogueUi.active === true, "choice node holds the dialogue open");
+  tap("ArrowDown"); // peek the second choice
+  tap("ArrowUp"); // back to the first
+  tap("KeyE"); // pick "I'm ready" -> flag + resolve
+  ok(story.flagTruthy("seed.spokeToNeighbor"), "choice set seed.spokeToNeighbor");
+  ok(story.resolve === 1, `choice granted +1 resolve (got ${story.resolve})`);
+  tap("KeyE"); // skip reveal of "bless"
+  tap("KeyE"); // end
+  ok(T.dialogueUi.active === false, "dialogue closed at the tree's end");
+  ok(story.questStatus("first-steps").current === 1, "journal advanced to the second objective");
+
+  frames(5); // guard notices the flag
+  ok(guard.blocking === false, "the guard stands down once vouched for");
+
+  // ---- south gate -> the Valley Wilds (REAL transition zone) ----------------
+  teleport(player, 22 * 16 + 8, 32 * 16 + 8);
+  keyDown("KeyS");
+  frames(20); // walk into the trigger zone; the fade starts
+  keyUp("KeyS");
+  frames(50); // fade out (0.3s) + swap + fade in (0.3s)
+  ok(T.world.mapEntry.id === "valleyWilds", `south gate leads to valleyWilds (got ${T.world.mapEntry.id})`);
+  ok(
+    Math.abs(player.x - (2 * 16 + 8)) < 2 && Math.abs(player.y - (23 * 16 + 12)) < 2,
+    `arrived at the fromVillage entry (${player.x.toFixed(0)},${player.y.toFixed(0)})`,
+  );
+
+  // ---- the on-enter cutscene fires, once -------------------------------------
+  ok(T.cutscene !== null, "valleyWilds on-enter cutscene is playing");
+  ok(story.flagTruthy("seed.sawWildsIntro"), "its once-flag is set immediately");
+  const xDuringScene = player.x;
+  keyDown("KeyD");
+  frames(30);
+  keyUp("KeyD");
+  ok(player.x === xDuringScene, "the player is frozen while the cutscene runs");
+  frames(70); // camera pan (1.4s total)
+  ok(T.dialogueUi.active === true, "narration line 1 presented");
+  tap("KeyE"); // skip reveal
+  tap("KeyE"); // dismiss line 1
+  tap("KeyE"); // skip reveal
+  tap("KeyE"); // dismiss line 2
+  frames(55); // resetCamera glide
+  ok(T.cutscene === null, "cutscene finished");
+  ok(story.flagTruthy("seed.leftVillage"), "cutscene set seed.leftVillage");
+  ok(story.questsCompleted.includes("first-steps"), '"First Steps" completed');
+  ok(gameState.scales === 3, `quest reward paid out 3 scales (got ${gameState.scales})`);
+  ok(story.resolve === 2, `quest reward granted +1 resolve (total ${story.resolve})`);
+
+  // ---- the wilds are NOT safe ground ----------------------------------------
   const beasts = entities.all.filter((e) => e instanceof classes.Dreadbeast);
-  ok(beasts.length === 7, `7 dreadbeasts spawned (got ${beasts.length})`);
+  ok(beasts.length === 7, `7 dreadbeasts spawned in the wilds (got ${beasts.length})`);
   ok(
     beasts.filter((e) => e instanceof classes.Slitherer).length === 3 &&
       beasts.filter((e) => e instanceof classes.MadBoar).length === 3 &&
       beasts.filter((e) => e instanceof classes.HollowStalker).length === 1,
     "roster: 3 slitherers, 3 boars, 1 stalker",
   );
-  // No beast spawned inside a wall.
   ok(
     beasts.every((b) => !T.map.isSolidAtWorld(b.x, b.y)),
     "all enemy spawn points are walkable",
   );
-  const shrines = entities.all.filter((e) => e instanceof classes.Shrine);
-  ok(shrines.length === 3, `3 meditation shrines placed (got ${shrines.length})`);
+  ok(T.shrines.length === 3, `3 meditation shrines placed (got ${T.shrines.length})`);
+  const spawn = T.spawn;
+  ok(spawn.x === 18 * 16 + 8 && spawn.y === 26 * 16 + 12, "respawn point is the wilds trailhead now");
 
   // ---- Fox Fire (K): madra drain + slitherer damage -------------------------
   const arena = { x: 18 * 16 + 8, y: 22 * 16 + 8 }; // open path, mid-south
@@ -283,7 +372,7 @@ try {
   frames(220); // fade out, respawn, fade in (~3.2s + slack)
   ok(
     Math.abs(player.x - spawn.x) < 1 && Math.abs(player.y - spawn.y) < 1,
-    "player respawned at the spawn point",
+    "player respawned at the CURRENT map's spawn point",
   );
   ok(player.stats.health === player.stats.maxHealth, "respawn restores full health");
   ok(player.stats.madra === player.stats.maxMadra / 2, "respawn grants half madra");
@@ -391,21 +480,38 @@ try {
   ok(player.evasionTimer > 0 && player.evasion === 0.35, "cloak grants 35% evasion");
   ok(player.speedMult === 1.3, "cloak grants +30% move speed");
 
-  // ---- spirit panel (Tab) ------------------------------------------------------
+  // ---- spirit panel (Tab) + journal page (Q) -----------------------------------
   ok(T.world.panelOpen === false, "spirit panel starts closed");
   tap("Tab");
   ok(T.world.panelOpen === true, "Tab opens the spirit panel");
+  ok(T.world.panelPage === "spirit", "panel opens on the spirit page");
+  tap("KeyQ");
+  ok(T.world.panelPage === "journal", "Q flips to the journal page");
+  ok(story.activeStatuses().length === 0, "journal: no active quests left");
+  ok(
+    story.completedDefs().map((d) => d.title).includes("First Steps"),
+    "journal: First Steps listed as completed",
+  );
+  tap("KeyQ");
+  ok(T.world.panelPage === "spirit", "Q flips back to the spirit page");
   tap("Tab");
   ok(T.world.panelOpen === false, "Tab again closes it");
 
-  // ---- v3 save schema ----------------------------------------------------------
+  // ---- v4 save schema ----------------------------------------------------------
   windowListeners.get("pagehide")?.();
   const saved = storage.get("path-of-ascension.save");
   if (!saved) throw new Error("pagehide did not write a save");
   const parsed = JSON.parse(saved);
-  ok(parsed.version === 3, `save is version 3 (got ${parsed.version})`);
+  ok(parsed.version === 4, `save is version 4 (got ${parsed.version})`);
   ok(typeof parsed.player.x === "number", "save has player position");
+  ok(parsed.player.map === "valleyWilds", `save carries the map id (got ${parsed.player.map})`);
   ok(parsed.player.stage === "Iron", `save carries the stage label (got ${parsed.player.stage})`);
+  ok(
+    parsed.flags["seed.spokeToNeighbor"] === true &&
+      parsed.flags["seed.leftVillage"] === true &&
+      parsed.flags["seed.sawWildsIntro"] === true,
+    "save carries the story flags",
+  );
   const cs = parsed.systems?.combat;
   ok(
     cs && typeof cs.health === "number" && typeof cs.madra === "number" && typeof cs.scales === "number",
@@ -422,6 +528,12 @@ try {
     adv && adv.stage === 2 && typeof adv.madraFills === "number" &&
       typeof adv.basicHits === "number" && adv.emptyPalmLearned === false,
     "save has systems.advancement { stage, madraFills, basicHits, emptyPalmLearned }",
+  );
+  const st = parsed.systems?.story;
+  ok(
+    st && st.questsCompleted.includes("first-steps") && st.questsActive.length === 0 &&
+      st.resolve === 2 && typeof st.knowledge === "number" && typeof st.reputation === "object",
+    "save has systems.story { reputation, resolve, knowledge, quests }",
   );
 
   console.log(failures === 0 ? "\nSmoke test passed." : `\n${failures} check(s) FAILED.`);

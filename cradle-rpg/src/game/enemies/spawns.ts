@@ -1,11 +1,12 @@
 /**
- * Enemy placement for the testValley map.
+ * Enemy spawning from map-registry data (M4a).
  *
- * Zones (see maps/testValley.ts ASCII):
- *  - Slitherers haunt the southern fields near the player spawn — fodder.
- *  - Mad boars roam mid-map open ground — the positioning lesson.
- *  - ONE hollow stalker guards the northern building's courtyard. At
- *    Foundation it says, clearly: RUN.
+ * Each MapEntry carries an EnemySpawn[] (kind + tile coords); World calls
+ * spawnEnemies() on every map entry — enemies are PER-MAP state and respawn
+ * on re-entry by design (story flags do not; see maps/registry.ts).
+ *
+ * Roster: slitherers are fodder, mad boars teach positioning, hollow
+ * stalkers say RUN (until Iron).
  */
 
 import { TILE_SIZE } from "../../engine/tilemap.js";
@@ -18,27 +19,15 @@ export type EnemyKind = "slitherer" | "boar" | "stalker";
 
 export interface EnemySpawn {
   kind: EnemyKind;
-  /** Tile coordinates (must be walkable — asserted by tools/smoke.mjs). */
+  /** Tile coordinates (must be walkable — asserted by tools/checkworld.mjs). */
   tx: number;
   ty: number;
 }
 
-export const TEST_VALLEY_ENEMIES: EnemySpawn[] = [
-  // Southern fields, near the trailhead spawn.
-  { kind: "slitherer", tx: 10, ty: 25 },
-  { kind: "slitherer", tx: 24, ty: 24 },
-  { kind: "slitherer", tx: 30, ty: 26 },
-  // Mid-map open ground.
-  { kind: "boar", tx: 9, ty: 11 },
-  { kind: "boar", tx: 24, ty: 9 },
-  { kind: "boar", tx: 30, ty: 20 },
-  // The northern building's doorstep. One is enough.
-  { kind: "stalker", tx: 9, ty: 8 },
-];
-
-export function spawnTestValleyEnemies(world: EnemyContext): Dreadbeast[] {
+/** Build + register every enemy in a MapEntry's spawn table. */
+export function spawnEnemies(spawns: EnemySpawn[], world: EnemyContext): Dreadbeast[] {
   const out: Dreadbeast[] = [];
-  for (const s of TEST_VALLEY_ENEMIES) {
+  for (const s of spawns) {
     const x = s.tx * TILE_SIZE + TILE_SIZE / 2;
     const y = s.ty * TILE_SIZE + TILE_SIZE * 0.75;
     let beast: Dreadbeast;

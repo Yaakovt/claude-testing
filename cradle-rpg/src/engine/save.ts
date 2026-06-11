@@ -18,8 +18,12 @@ const STORAGE_KEY = "path-of-ascension.save";
  * v3: M3 — systems.character = { origin, name } and systems.advancement =
  *     { stage, madraFills, basicHits, emptyPalmLearned } (migration in
  *     src/game/main.ts; an M2 save becomes a Wei-clan character).
+ * v4: M4a — player.map is a map-registry id (the renamed "testValley"
+ *     becomes "valleyWilds"), flags carries story flags, and systems.story =
+ *     StorySave { reputation, resolve, knowledge, questsActive,
+ *     questsCompleted } (migration in src/game/main.ts).
  */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveData {
   version: number;
@@ -43,7 +47,7 @@ export function defaultSave(): SaveData {
   return {
     version: SAVE_VERSION,
     savedAt: new Date().toISOString(),
-    player: { x: 0, y: 0, map: "testValley", facing: "down", stage: "Foundation" },
+    player: { x: 0, y: 0, map: "", facing: "down", stage: "Foundation" },
     flags: {},
     systems: {},
   };

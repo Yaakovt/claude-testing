@@ -112,6 +112,15 @@ try {
   frames(3);
   ok(T.world !== null, "world built");
 
+  // M4a: creation lands in the safe Wei village. This test is about the
+  // spirit, not the seed story — suppress the on-enter cutscene via its
+  // once-flag and warp to the wilds through the test hook.
+  T.story.setFlag("seed.sawWildsIntro");
+  T.warp("valleyWilds");
+  frames(3);
+  ok(T.world.mapEntry.id === "valleyWilds", "warped to the Valley Wilds (test hook)");
+  ok(T.cutscene === null, "once-flag suppressed the on-enter cutscene");
+
   const player = T.player;
   const entities = T.entities;
   const advancement = T.advancement;
@@ -216,7 +225,9 @@ try {
   // ---- save carries the learned palm -------------------------------------------
   windowListeners.get("pagehide")?.();
   const parsed = JSON.parse(storage.get("path-of-ascension.save"));
-  ok(parsed.version === 3, "save is version 3");
+  ok(parsed.version === 4, "save is version 4");
+  ok(parsed.player.map === "valleyWilds", "save carries the warped map id");
+  ok(parsed.flags["seed.sawWildsIntro"] === true, "save carries story flags");
   ok(
     parsed.systems?.character?.origin === "unsouled" &&
       parsed.systems?.character?.name === "Lindon",

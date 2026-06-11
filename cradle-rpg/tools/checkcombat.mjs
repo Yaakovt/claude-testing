@@ -6,7 +6,9 @@ import { computeDamage, makeStats, Stage, STAGE_NAMES } from "../dist/systems/st
 import { getTechnique, registerTechnique, TechniqueCaster } from "../dist/systems/techniques.js";
 import { Combatant, CombatSystem } from "../dist/systems/combat.js";
 import { hasLineOfSight } from "../dist/game/enemies/dreadbeast.js";
-import { createTestValley } from "../dist/game/maps/testValley.js";
+import { getMap } from "../dist/game/maps/registry.js";
+import { Tilemap } from "../dist/engine/tilemap.js";
+import { TILESET } from "../dist/game/tiles.js";
 import { registerGameTechniques, ALL_TECHNIQUES } from "../dist/game/techniques.js";
 import { PATHS, ORIGIN_ORDER, slotsFor, kitInfo } from "../dist/game/paths.js";
 import { freshProgress } from "../dist/systems/advancement.js";
@@ -252,7 +254,7 @@ registerGameTechniques();
 // ---------------------------------------------------------- line of sight
 
 {
-  const map = createTestValley();
+  const map = new Tilemap(getMap("valleyWilds").build(), TILESET);
   // Open grass near spawn: clear sight.
   ok(hasLineOfSight(map, 18 * 16, 26 * 16, 22 * 16, 26 * 16), "LOS clear across open ground");
   // Across the courtyard's solid wall (column 13, rows 12-18): blocked.

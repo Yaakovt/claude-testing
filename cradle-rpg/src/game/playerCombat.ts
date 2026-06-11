@@ -77,6 +77,11 @@ export class PlayerCombat {
     this.caster.slots = [...slots];
   }
 
+  /** Map transitions (M4a): casts must collide against the current map. */
+  setMap(map: Tilemap): void {
+    this.map = map;
+  }
+
   /** Movement speed factor from combat state (cycling roots you; a parry
    *  stance — Still Surface — roots you completely). */
   get speedFactor(): number {

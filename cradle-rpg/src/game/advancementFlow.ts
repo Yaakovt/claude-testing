@@ -309,6 +309,32 @@ export class AdvancementFlow {
 
   // ------------------------------------------------------------- stage-ups
 
+  /**
+   * STORY-GATED ADVANCEMENT (M4a): grant stages up to `stage` with the full
+   * ceremony path (stats, slots, Iron look, ring + shake, banner). This is
+   * how the Jade/Gold "giveStage" story Effect lands — the same benefits as
+   * a shrine advancement, awarded by narrative instead of a shrine.
+   */
+  giveStage(stage: Stage, title?: string, sub?: string): void {
+    const p = this.o.player;
+    const target = Math.min(Math.max(stage, Stage.Foundation), Stage.Gold);
+    if (target <= p.stats.stage) return;
+    while (p.stats.stage < target) {
+      applyStageUp(p.stats, p.stats.stage + 1);
+    }
+    this.assignSlots();
+    if (p.stats.stage >= Stage.Iron) p.applyIronLook();
+    this.o.camera?.shake(4, 0.5);
+    this.o.spawn(new ExpandingRing(p.x, p.y, "#dba35e", 6, 60, 0.9));
+    this.ceremony = {
+      title: title ?? STAGE_NAMES[target as Stage].toUpperCase(),
+      sub: sub ?? "You advance.",
+      t: 0,
+    };
+    this.maybeLearnEmptyPalm();
+    this.o.onStageUp?.(target);
+  }
+
   private advanceTo(stage: Stage): void {
     const p = this.o.player;
     applyStageUp(p.stats, stage);

@@ -75,6 +75,13 @@ export class EntityManager {
     e.dead = true;
   }
 
+  /** Immediately drop every entity matching the filter (map changes). */
+  purge(filter: (e: Entity) => boolean): void {
+    for (let i = this.entities.length - 1; i >= 0; i--) {
+      if (filter(this.entities[i]!)) this.entities.splice(i, 1);
+    }
+  }
+
   get all(): readonly Entity[] {
     return this.entities;
   }

@@ -1,12 +1,16 @@
 // Headless smoke test for CONTINUE + save migration:
 //   - seeds localStorage with an M2-era v2 save (pre-character-creation)
-//     whose stage label is "Iron"
+//     whose stage label is "Iron" and whose map is the old "testValley"
 //   - boots main.js: the v2 -> v3 migration must mint a Wei character and
-//     carry the stage into systems.advancement
+//     carry the stage into systems.advancement; the v3 -> v4 migration must
+//     land the old map id on "valleyWilds" (same layout/coordinates) and
+//     mint an empty story bucket
 //   - title shows the menu; New Game's confirm step is visited and backed
 //     out of (nothing wiped); Continue then builds the world
 //   - the world restores stage (Iron stats + U technique + position +
-//     health/madra/scales clamped to the rescaled maxima)
+//     health/madra/scales clamped to the rescaled maxima); the valleyWilds
+//     on-enter cutscene greets the migrated save ONCE (its flag was never
+//     set) and is driven to completion
 // Usage: npm run build && node tools/smokeContinue.mjs
 
 const noop = () => {};
@@ -128,6 +132,8 @@ try {
   ok(T.world !== null, "Continue builds the world");
 
   const player = T.player;
+  ok(T.world.mapEntry.id === "valleyWilds",
+    `v3 -> v4 migration lands the old testValley save on valleyWilds (got ${T.world.mapEntry.id})`);
   ok(player.origin === "wei" && player.displayName === "Shen",
     "v2 -> v3 migration mints a Wei character named Shen");
   ok(player.stats.stage === 2, "stage restored from the migrated save (Iron)");
@@ -140,12 +146,30 @@ try {
     "position restored");
   ok(player.pc.caster.slots[2] === "white-fox-cloak", "Iron U technique available after load");
 
-  // Re-save: must come out as v3 with everything intact.
+  // The wilds' on-enter cutscene greets the migrated save (flag never set).
+  ok(T.cutscene !== null, "valleyWilds on-enter cutscene fires for the migrated save");
+  ok(T.story.flagTruthy("seed.sawWildsIntro"), "its once-flag is set so it never refires");
+  frames(90); // camera pan
+  tap("KeyE"); // skip reveal, line 1
+  tap("KeyE"); // dismiss
+  tap("KeyE"); // skip reveal, line 2
+  tap("KeyE"); // dismiss
+  frames(60); // resetCamera glide
+  ok(T.cutscene === null, "cutscene driven to completion");
+  ok(T.story.flagTruthy("seed.leftVillage"), "cutscene effects applied");
+  ok(Math.abs(player.x - SEED.player.x) < 1, "the cutscene moved the camera, not the player");
+
+  // Re-save: must come out as v4 with everything intact.
   windowListeners.get("pagehide")?.();
   const parsed = JSON.parse(storage.get("path-of-ascension.save"));
-  ok(parsed.version === 3, `re-saved as version 3 (got ${parsed.version})`);
+  ok(parsed.version === 4, `re-saved as version 4 (got ${parsed.version})`);
+  ok(parsed.player.map === "valleyWilds", "player.map persists the registry id");
   ok(parsed.systems?.advancement?.stage === 2, "advancement bucket persists the stage");
   ok(parsed.systems?.character?.origin === "wei", "character bucket persists");
+  ok(parsed.flags["seed.sawWildsIntro"] === true, "story flags persist");
+  const st = parsed.systems?.story;
+  ok(st && Array.isArray(st.questsActive) && Array.isArray(st.questsCompleted),
+    "systems.story bucket persists");
 
   console.log(failures === 0 ? "\nContinue/migration smoke test passed." : `\n${failures} check(s) FAILED.`);
   process.exit(failures === 0 ? 0 : 1);

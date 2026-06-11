@@ -7,6 +7,10 @@
  * M3 additions: title/creation screens, the four origins + Path kits,
  * advancement (Foundation -> Copper -> Iron), shrines, aura sight, spirit
  * panel, and the v3 save schema (character + advancement buckets).
+ *
+ * M4a additions: the map registry (new games start on START_MAP), seed
+ * narrative content (src/content/seed.ts), and the v4 save schema
+ * (player.map is a registry id, flags = story flags, systems.story).
  */
 
 import { GameLoop } from "../engine/loop.js";
@@ -19,6 +23,7 @@ import {
   type SaveData,
 } from "../engine/save.js";
 import { registerGameTechniques } from "./techniques.js";
+import { registerSeedContent } from "../content/seed.js";
 import { Screens, type ScreenResult } from "./screens.js";
 import { World, type CharacterInfo } from "./world.js";
 import { Player } from "./player.js";
@@ -29,8 +34,9 @@ import { HollowStalker } from "./enemies/stalker.js";
 import { ScalePickup } from "./pickups.js";
 import { RemnantStub } from "./remnantStub.js";
 import { Shrine } from "./shrine.js";
+import { Npc } from "./npc.js";
 import { MadraBolt, SlowPool, StoneWallSegment } from "./techniqueEntities.js";
-import { TEST_VALLEY_SPAWN } from "./maps/testValley.js";
+import { getMap } from "./maps/registry.js";
 import { PATHS, type OriginId } from "./paths.js";
 import { STAGE_NAMES } from "../systems/stats.js";
 
@@ -64,7 +70,25 @@ registerMigration(3, (old) => {
   };
 });
 
+// v3 -> v4 (M4a): "testValley" was renamed valleyWilds (same layout, same
+// coordinates), flags become story flags (kept as-is), and the story bucket
+// appears with fresh-start defaults.
+registerMigration(4, (old) => {
+  const player = { ...((old.player as Record<string, unknown> | undefined) ?? {}) };
+  if (typeof player.map !== "string" || !getMap(player.map)) player.map = "valleyWilds";
+  return {
+    ...old,
+    player,
+    flags: typeof old.flags === "object" && old.flags !== null ? old.flags : {},
+    systems: {
+      ...((old.systems as Record<string, unknown> | undefined) ?? {}),
+      story: { reputation: {}, resolve: 0, knowledge: 0, questsActive: [], questsCompleted: [] },
+    },
+  };
+});
+
 registerGameTechniques();
+registerSeedContent();
 
 // ----------------------------------------------------------------- canvas
 
@@ -188,7 +212,26 @@ loop.start();
   get shrines() {
     return world?.shrines;
   },
-  spawn: TEST_VALLEY_SPAWN,
+  get npcs() {
+    return world?.npcs;
+  },
+  get story() {
+    return world?.story;
+  },
+  get dialogueUi() {
+    return world?.dialogueUi;
+  },
+  get cutscene() {
+    return world?.cutscene;
+  },
+  /** Current map's spawn point (the active respawn spot). */
+  get spawn() {
+    return world?.spawn;
+  },
+  /** Instant map swap for the harnesses (no fade). */
+  warp(mapId: string, entry?: string) {
+    world?.debugWarp(mapId, entry);
+  },
   classes: {
     ScalePickup,
     Dreadbeast,
@@ -197,6 +240,7 @@ loop.start();
     HollowStalker,
     RemnantStub,
     Shrine,
+    Npc,
     Player,
     MadraBolt,
     SlowPool,

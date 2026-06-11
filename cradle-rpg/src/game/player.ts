@@ -206,6 +206,12 @@ export class Player extends Combatant {
     this.pc = new PlayerCombat(this, this.input, combat, entities, fx, this.map);
   }
 
+  /** Point movement/techniques at a new Tilemap (M4a map transitions). */
+  setMap(map: Tilemap): void {
+    this.map = map;
+    this.pc?.setMap(map);
+  }
+
   /** Iron stage-up: rebake the sprite set with the iron-grey sash. */
   applyIronLook(): void {
     this.sprites = makeSprites(IRON_PAL);
