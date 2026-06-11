@@ -6,7 +6,7 @@
  *   { id: "ren", name: "Auntie Ren", tx: 9, ty: 12,
  *     sprite: { hair: "#3a3142", robe: "#b04a8a", trim: "#efece4", skin: "#e6b48d" },
  *     behavior: { wanderRadius: 14 },            // omit = stand still
- *     facing: "down", dialogueId: "seed-ren" }
+ *     facing: "down", dialogueId: "a1-ren", ifFlag: "a1.someFlag" }
  *
  * - The sprite is parameterized (hair/robe/trim/skin) so distinct villagers
  *   are cheap; frame sets are cached per palette.
@@ -207,6 +207,10 @@ export interface NpcDef {
   /** Dialogue tree id ("E — Talk"); omit for scenery people. */
   dialogueId?: string;
   guard?: NpcGuardConfig;
+  /** M4b story-conditional presence: only placed while this flag is truthy… */
+  ifFlag?: string;
+  /** …and while this one is NOT (World filters on every map build). */
+  unlessFlag?: string;
 }
 
 export interface NpcContext {

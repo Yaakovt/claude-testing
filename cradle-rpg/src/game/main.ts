@@ -8,9 +8,14 @@
  * advancement (Foundation -> Copper -> Iron), shrines, aura sight, spirit
  * panel, and the v3 save schema (character + advancement buckets).
  *
- * M4a additions: the map registry (new games start on START_MAP), seed
- * narrative content (src/content/seed.ts), and the v4 save schema
- * (player.map is a registry id, flags = story flags, systems.story).
+ * M4a additions: the map registry (new games start on START_MAP) and the v4
+ * save schema (player.map is a registry id, flags = story flags,
+ * systems.story).
+ *
+ * M4b additions: the full Unsouled-arc story content (src/content/index.ts)
+ * and the ENDING FLOW — a finale cutscene sets the numeric "ending.played"
+ * flag; main persists, shows the EndingScreen card, and returns to the
+ * title ("ending.acknowledged" keeps a continued save from re-showing it).
  */
 
 import { GameLoop } from "../engine/loop.js";
@@ -23,8 +28,10 @@ import {
   type SaveData,
 } from "../engine/save.js";
 import { registerGameTechniques } from "./techniques.js";
-import { registerSeedContent } from "../content/seed.js";
+import { registerStoryContent } from "../content/index.js";
+import { ENDINGS, endingSummary } from "../content/endings.js";
 import { Screens, type ScreenResult } from "./screens.js";
+import { EndingScreen } from "./endingScreen.js";
 import { World, type CharacterInfo } from "./world.js";
 import { Player } from "./player.js";
 import { Dreadbeast } from "./enemies/dreadbeast.js";
@@ -88,7 +95,7 @@ registerMigration(4, (old) => {
 });
 
 registerGameTechniques();
-registerSeedContent();
+registerStoryContent();
 
 // ----------------------------------------------------------------- canvas
 
@@ -99,10 +106,11 @@ if (!maybeCtx) throw new Error("no 2d context");
 const ctx = maybeCtx;
 
 const input = new Input(canvas);
-const existing = load();
+let existing = load();
 
 let world: World | null = null;
-const screens = new Screens(input, existing !== null);
+let screens = new Screens(input, existing !== null);
+let endingScreen: EndingScreen | null = null;
 
 function resizeCanvas(): void {
   canvas!.width = Math.floor(window.innerWidth);
@@ -157,12 +165,46 @@ function persist(): void {
 window.addEventListener("pagehide", persist);
 setInterval(persist, 10_000);
 
+// ---------------------------------------------------------------- endings
+
+/**
+ * M4b: a finale cutscene sets the numeric "ending.played" flag (1..3).
+ * Once it (and any dialogue) has fully played out, tear the world down,
+ * show the ending card, and return to the title. "ending.acknowledged"
+ * keeps a continued post-ending save from re-triggering the card.
+ */
+function maybeBeginEnding(): void {
+  if (!world || endingScreen) return;
+  const n = world.story.getFlag("ending.played");
+  if (typeof n !== "number" || n <= 0) return;
+  if (world.cutscene || world.dialogueUi.active) return; // let the finale finish
+  if (world.story.flagTruthy("ending.acknowledged")) return;
+  world.story.setFlag("ending.acknowledged");
+  persist();
+  const def = ENDINGS.find((e) => e.n === n) ?? ENDINGS[0]!;
+  endingScreen = new EndingScreen(input, {
+    title: def.title,
+    epilogue: def.epilogue,
+    summary: endingSummary(world.story),
+  });
+  world = null;
+}
+
 // ------------------------------------------------------------------- loop
 
 const loop = new GameLoop({
   update(dt: number): void {
-    if (world) {
+    if (endingScreen) {
+      endingScreen.update(dt);
+      if (endingScreen.done) {
+        endingScreen = null;
+        existing = load(); // the post-ending save backs Continue
+        saveBase = existing;
+        screens = new Screens(input, existing !== null);
+      }
+    } else if (world) {
       world.update(dt);
+      maybeBeginEnding();
     } else {
       screens.update(dt);
       if (screens.result) beginWorld(screens.result);
@@ -171,7 +213,8 @@ const loop = new GameLoop({
   },
 
   render(alpha: number): void {
-    if (world) world.render(alpha);
+    if (endingScreen) endingScreen.draw(ctx, canvas!.width, canvas!.height);
+    else if (world) world.render(alpha);
     else screens.draw(ctx, canvas!.width, canvas!.height);
   },
 });
@@ -183,7 +226,12 @@ loop.start();
 // World-dependent fields are getters because the world only exists after
 // the title/creation flow completes.
 (globalThis as unknown as Record<string, unknown>)["__poaTest"] = {
-  screens,
+  get screens() {
+    return screens;
+  },
+  get endingScreen() {
+    return endingScreen;
+  },
   input,
   get world() {
     return world;

@@ -60,6 +60,9 @@ export abstract class Dreadbeast extends Combatant {
   readonly homeY: number;
   state: BeastState = "idle";
 
+  /** M4b: story flag World sets when this beast dies (spawn-table data). */
+  storyDeathFlag: string | null = null;
+
   protected stateTime = 0;
   protected world: EnemyContext;
   protected moved = false;

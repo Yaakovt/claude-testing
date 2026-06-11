@@ -1,12 +1,13 @@
-# Architecture (as of M4a — narrative machinery & the multi-map world)
+# Architecture (as of M4b — the full Unsouled-arc story as content)
 
 Zero-dependency TypeScript + Canvas. `npm run build` (strict tsc) compiles
 `src/` to `dist/`; `index.html` loads `dist/game/main.js` as a native ES
 module — **all imports must use explicit `.js` extensions**. `npm run check`
 runs headless sanity tests (map integrity, world-graph integrity, collision,
-combat math, advancement math, narrative-system unit tests, boot + seed-story
-+ combat + advancement smoke tests, the Unsouled learn path, and
-continue/migration) — keep it green (425 assertions as of M4a).
+combat math, advancement math, narrative-system unit tests, narrative-REGISTRY
+static integrity, boot + Act-1-story + combat + advancement smoke tests, the
+Unsouled learn path, continue/migration, and the three endings driven through
+the real runtime) — keep it green (765 assertions as of M4b).
 
 ## Module map
 
@@ -59,10 +60,13 @@ src/game/              this game
                        stone, lantern, cloud, snow, cliff, orchard, dummy, rope…)
   maps/builder.ts      shared ASCII -> TilemapData builder (one char per tile, legend
                        overridable per map; collision derives from TILESET solidity)
-  maps/registry.ts     M4a: MapEntry registry — id/name/build()/spawn/named entries/
+  maps/registry.ts     MapEntry registry — id/name/build()/spawn/named entries/
                        transitions (tile-rect trigger zones)/enemies/shrines/npcs/
-                       hostileFlag/onEnter cutscene/ringGlow; START_MAP; the
-                       addMapNpcs()/setMapOnEnter() content hooks
+                       hostileFlag/onEnter list/ringGlow; START_MAP; M4b content
+                       hooks: addMapNpcs() / addMapEnemies() / addMapEntries() /
+                       addMapOnEnter() (onEnter is now a LIST of
+                       { cutscene, onceFlag, when?: Condition[] } — first
+                       eligible entry plays; failing `when` leaves it unfired)
   maps/weiVillage.ts   45x35 START_MAP: family courtyard, festival arena, elder's
                        hall, the guarded south gate (safe ground — no enemies)
   maps/valleyWilds.ts  40x30 — the old testValley layout, same coordinates, plus a
@@ -71,8 +75,14 @@ src/game/              this game
   maps/heavensGlory.ts 45x30 school on the peak: orchard, sanctum, hostileFlag
                        machinery ("heavensGlory.hostile") + ringGlow horizon band
   main.ts              boot + GAME FLOW: save migrations (v2..v4), canvas/input,
-                       title -> (creation | continue) -> world; autosave; __poaTest hook
+                       title -> (creation | continue) -> world; autosave; __poaTest
+                       hook; M4b ENDING FLOW: a finale cutscene sets the numeric
+                       "ending.played" flag (1..3) -> main persists, tears the
+                       world down, shows the EndingScreen, returns to the title
+                       ("ending.acknowledged" stops a continued save re-showing it)
   screens.ts           title + character creation (in-canvas, keyboard-driven)
+  endingScreen.ts      M4b: the finale card — ending title + epilogue + the
+                       axes/choice summary (data from content/endings.ts)
   world.ts             World class: built from a MapEntry. Owns map/player/enemies/
                        shrines/NPCs, combat wiring, HUD, death/respawn (CURRENT map's
                        spawn), aura sight, spirit panel + journal page, StoryState,
@@ -83,10 +93,12 @@ src/game/              this game
   dialogueUi.ts        M4a: text box presentation over systems/dialogue.ts — letter
                        reveal (E skips), W/S+E choices; also the cutscene "say" mode
                        (say()/sayConfirmed()). World freezes the sim while active.
-  npc.ts               M4a: NpcDef-driven NPC entity — parameterized palettes
+  npc.ts               NpcDef-driven NPC entity — parameterized palettes
                        (NPC_PALETTES), stand/wander/face-player, name label data,
                        GUARD variant (solid blocker until a story flag, one-time
-                       step-aside). World draws prompts and starts dialogueId.
+                       step-aside). M4b: ifFlag/unlessFlag — story-conditional
+                       presence, filtered by World on every map build.
+                       World draws prompts and starts dialogueId.
   paths.ts             the four origins as DATA (kits, lore, placeholder names)
   player.ts            Player (a Combatant): origin-aware stats, 8-dir movement,
                        cycling aura, cloak/mantle/parry visuals, setMap() for swaps
@@ -105,22 +117,47 @@ src/game/              this game
   remnantStub.ts       RemnantStub — TODO(M5) real Remnant system
   enemies/dreadbeast.ts  AI base (aggro/leash/separation/daze/madra-lock/slow)
   enemies/slitherer.ts boar.ts stalker.ts   the three beasts
-  enemies/spawns.ts    spawnEnemies(MapEntry.enemies) — generic, registry-driven
+  enemies/spawns.ts    spawnEnemies(MapEntry.enemies) — generic, registry-driven.
+                       M4b EnemySpawn extras: ifFlag/unlessFlag (story-conditional
+                       spawns, checked on every map build), onDeathFlag (World
+                       sets it when the beast dies — duel wins, hunt targets,
+                       waves), sealed (permanent madra-lock: the halfsilver
+                       trick), name (displayName override, "Wei Jin Amon")
 
-src/content/           narrative CONTENT (authoring layer; M4b owns this)
-  seed.ts              // SEED — placeholder quest/dialogues/NPCs/cutscene proving
-                       the machinery; M4b REPLACES it. registerSeedContent() is
-                       called once from main.ts.
+src/content/           the STORY as DATA (M4b) — registerStoryContent() is called
+                       once from main.ts; only the public authoring surface is used
+  index.ts             registerStoryContent() -> the four act registrars
+  act1.ts              THE FESTIVAL: the family (Seisha/Jaran/Kelsa, origin-
+                       mirrored framing), Patriarch Sairus, the exhibition duel
+                       (trick/honest/refuse/sabotage), Li Markuth's descent,
+                       Suriel's warning (accept/reject/tell-family)
+  act2.ts              THE DISCIPLE: Yerin's trust/rival/betray stances, the
+                       "Blood on the Snow" hunt, Disciple Verren (the bribe),
+                       the Jade-granting cutscene (giveStage gated stageGte Iron)
+                       + the "Temper Your Body" shrine quest below Iron
+  act3.ts              HEAVEN'S GLORY: orchard + ancestor's hall quests, Elder
+                       Whitehall's TURN (hostileFlag + friendly-NPC despawn +
+                       enforcer spawns via the content hooks), the Treasure-Hall
+                       theft (item flags), the flight down Mount Samara
+  endings.ts           the "Leave the Valley" gate choice + three endings
+                       (E1 road-with-Yerin / E2 gate-defense wave -> Gold /
+                       E3 alone), ENDINGS cards + endingSummary() for the screen
 
 tools/                 serve.mjs (static server); npm run check =
                        checkmap.mjs (valleyWilds layout + collision, via registry) +
                        checkworld.mjs (registry/transition graph integrity) +
                        checkcombat.mjs + checkadvance.mjs +
                        checkstory.mjs (dialogue/quest/cutscene unit tests) +
-                       smoke.mjs (creation -> village seed story -> transition ->
-                       combat -> Copper -> Iron, save v4) +
+                       checknarrative.mjs (M4b: static integrity of the WHOLE
+                       story registry — graph targets, effect refs, objective-
+                       flag coverage, cutscene entity refs, ending reachability) +
+                       smoke.mjs (creation -> ACT 1: opening, family quest, the
+                       honest duel, Markuth/Suriel, Act-2 quest start ->
+                       transition -> combat -> Copper -> Iron, save v4) +
                        smokeUnsouled.mjs (Empty Palm learn path) +
-                       smokeContinue.mjs (v2->v4 migration + Continue restore)
+                       smokeContinue.mjs (v2->v4 migration + Continue restore) +
+                       smokeEndings.mjs x3 (ENDING=1|2|3: Acts 2-3 + each
+                       ending through the real runtime, to the title card)
 ```
 
 Render order each frame: ground+flat decor → y-sorted (entities merged with
@@ -166,8 +203,8 @@ unseen scene exactly once).
 
 ## Authoring narrative content (the M4b how-to)
 
-Everything below lives in `src/content/*` (see seed.ts for working
-examples) and uses only registries + the two map hooks — no engine edits.
+Everything below lives in `src/content/*` (act1.ts is the richest working
+example) and uses only registries + the map content hooks — no engine edits.
 
 **Quest** — `registerQuest({ id, title, description, objectives, reward?,
 autoStart? })`. Each objective has a `flag`: setting that flag (from any
@@ -190,22 +227,58 @@ end), `branches` (condition-routed, checked before `next`). Conditions:
 that runs the real ceremony path (this is how Jade/Gold land).
 
 **NPC** — `addMapNpcs(mapId, [{ id, name, tx, ty, sprite, facing?,
-behavior?, dialogueId?, guard? }])`. `sprite` is a palette (use
-`NPC_PALETTES.villagerA…` or raw hex); `behavior.wanderRadius` makes them
-stroll; `guard: { untilFlag, stepAside? }` makes a solid blocker that stands
-down (and sidesteps once) when the flag turns truthy. World draws the name
+behavior?, dialogueId?, guard?, ifFlag?, unlessFlag? }])`. `sprite` is a
+palette (use `NPC_PALETTES.villagerA…` or raw hex); `behavior.wanderRadius`
+makes them stroll; `guard: { untilFlag, stepAside? }` makes a solid blocker
+that stands down (and sidesteps once) when the flag turns truthy;
+`ifFlag`/`unlessFlag` make presence story-conditional (filtered on every map
+build — pair with a `moveMap` back onto the same map to "re-cast" a scene
+mid-story, the way the duel and the hostile turn do). World draws the name
 label and "E — Talk" and starts `dialogueId` on E.
 
-**Cutscene** — `registerCutscene(id, steps)` then either
-`setMapOnEnter(mapId, { cutscene, onceFlag })` or a `{ kind: "cutscene" }`
-effect. Steps (see systems/cutscene.ts): `walk` (collision-aware),
-`face`, `say` (waits for E), `wait`, `fadeOut/fadeIn`, `shake`,
-`spawn/despawn` (def = an NpcDef), `panCamera/resetCamera` (camera glides on
-its follow lerp), `effect`, plus `setFlag/giveStage/moveMap` sugar.
+**Enemy spawns** — `addMapEnemies(mapId, spawns)` appends to the map's
+table. Beyond kind/tx/ty a spawn may carry `ifFlag`/`unlessFlag`
+(conditional, e.g. the duel rival or the hostile-school enforcers),
+`onDeathFlag` (World sets it on the kill — quest objectives), `sealed`
+(spawn with madra permanently locked — the halfsilver trick) and `name`.
+Spawns are evaluated on map (re)build, so a flag flipped mid-map needs a
+`moveMap` rebuild to take effect.
 
-After authoring, run `node tools/checkworld.mjs` — it asserts NPC spots are
-walkable, dialogueIds resolve, onEnter cutscenes exist, and quest objective
-flags are present.
+**Entries** — `addMapEntries(mapId, { arena: { x, y, facing } })` adds named
+arrival points (cutscene `moveMap` targets) without touching map modules.
+
+**Cutscene** — `registerCutscene(id, steps)` then either
+`addMapOnEnter(mapId, { cutscene, onceFlag, when? })` or a
+`{ kind: "cutscene" }` effect. A map's onEnter list is checked in order;
+the first entry whose `onceFlag` is unset and whose `when` conditions pass
+fires (and burns its onceFlag) — a failing `when` leaves it armed for later
+(this is how the Act-3 flight variants share "a3.sawFlight"). Steps (see
+systems/cutscene.ts): `walk` (collision-aware), `face`, `say` (waits for E),
+`wait`, `fadeOut/fadeIn`, `shake`, `spawn/despawn` (def = an NpcDef;
+`despawn` also removes map NPCs by def id), `panCamera/resetCamera`,
+`effect`, plus `setFlag/giveStage/moveMap` sugar.
+
+**Flags the GAME sets** (the documented game events; everything else is
+content data): `reached.<stage>` (World.onStageUp — "reach Iron"
+objectives), spawn-table `onDeathFlag`s (World.combat.onDeath), and the axis
+mirrors `axis.resolve` / `axis.knowledge` / `axis.rep.<faction>` (World
+keeps them equal to the running axis totals so dialogue conditions can gate
+on `{ kind: "flag", key: "axis.knowledge", gte: 1 }`).
+
+**Endings** — a finale cutscene sets `{ kind: "setFlag", key:
+"ending.played", value: 1|2|3 }`; once the scene ends, main.ts persists,
+shows the matching ENDINGS card from `content/endings.ts` (title + epilogue
++ `endingSummary()`), and returns to the title.
+
+After authoring, run `node tools/checkworld.mjs` (spots walkable,
+dialogueIds resolve, onEnter cutscenes exist, objective flags present) AND
+`node tools/checknarrative.mjs` — the deep static pass: every dialogue
+next/branch/choice target exists and is reachable (trees capped at 12
+nodes), every effect's quest/cutscene/map+entry reference resolves, every
+quest objective flag is set somewhere (content data, spawn-table death
+flags, or the documented game-event allowlist), every cutscene entity ref is
+player/an NPC/a scene spawn, and all three endings stay REACHABLE via a
+fixpoint walk over the declared flag effects.
 
 ## How to add a tile / map
 
@@ -258,8 +331,14 @@ migration. `main.ts` autosaves every 10s and on pagehide.
   story-gated entry point is `AdvancementFlow.giveStage()`.
 - Stage-gap balance: ALL math in `computeDamage()` (src/systems/stats.ts).
 - Headless testing: `main.ts` exposes `globalThis.__poaTest` (screens,
-  world getters, story/dialogueUi/cutscene/npcs, `warp()`, classes…) for
-  tools/smoke*.mjs; drive the real title/creation UI with key events before
-  touching world internals. Harness counts (M4a): checkmap 25, checkworld
-  86, checkcombat 61, checkadvance 38, checkstory 54, smoke 108,
-  smokeUnsouled 29, smokeContinue 24 — 425 total.
+  endingScreen, world getters, story/dialogueUi/cutscene/npcs, `warp()`,
+  classes…) for tools/smoke*.mjs; drive the real title/creation UI with key
+  events before touching world internals. Harness counts (M4b): checkmap 25,
+  checkworld 142, checkcombat 61, checkadvance 38, checkstory 54,
+  checknarrative 139, smoke 136, smokeUnsouled 31, smokeContinue 24,
+  smokeEndings 40+43+32 — 765 total. Smoke coverage note: smoke.mjs drives
+  ACT 1 end-to-end through the real UI (opening, family, the honest-duel
+  branch, Markuth/Suriel, the Act-2 quest start); smokeEndings.mjs drives
+  Acts 2-3 and each ending at runtime (Act 1 fast-forwarded by flag);
+  branch COMBINATIONS beyond those four routes are covered by
+  checknarrative's static reachability walk — by design, not omission.

@@ -112,10 +112,26 @@ try {
   frames(3);
   ok(T.world !== null, "world built");
 
-  // M4a: creation lands in the safe Wei village. This test is about the
-  // spirit, not the seed story — suppress the on-enter cutscene via its
-  // once-flag and warp to the wilds through the test hook.
-  T.story.setFlag("seed.sawWildsIntro");
+  // M4b: creation lands in the Wei village and the festival-morning opening
+  // cutscene plays. This test is about the spirit, not the story — drive the
+  // opening to its end, suppress the wilds on-enter scene via its once-flag,
+  // and warp to the wilds through the test hook.
+  frames(5);
+  ok(T.cutscene !== null, "the opening cutscene plays for the Unsouled too");
+  {
+    let spent = 0;
+    while (T.cutscene && spent < 4000) {
+      if (T.dialogueUi.active) {
+        tap("KeyE", 1);
+        spent += 5;
+      } else {
+        frames(1);
+        spent += 1;
+      }
+    }
+  }
+  ok(T.cutscene === null, "opening cutscene driven to completion");
+  T.story.setFlag("a2.sawWildsIntro");
   T.warp("valleyWilds");
   frames(3);
   ok(T.world.mapEntry.id === "valleyWilds", "warped to the Valley Wilds (test hook)");
@@ -227,7 +243,7 @@ try {
   const parsed = JSON.parse(storage.get("path-of-ascension.save"));
   ok(parsed.version === 4, "save is version 4");
   ok(parsed.player.map === "valleyWilds", "save carries the warped map id");
-  ok(parsed.flags["seed.sawWildsIntro"] === true, "save carries story flags");
+  ok(parsed.flags["a2.sawWildsIntro"] === true, "save carries story flags");
   ok(
     parsed.systems?.character?.origin === "unsouled" &&
       parsed.systems?.character?.name === "Lindon",

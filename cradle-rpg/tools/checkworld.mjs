@@ -4,15 +4,16 @@
 //   - every transition's destination map AND entry exist; both sides'
 //     zones/entries are walkable
 //   - every transition zone is REACHABLE from that map's spawn (flood fill)
-//   - seed content wiring: NPC dialogueIds resolve, onEnter cutscenes are
+//   - story content wiring: NPC dialogueIds resolve, onEnter cutscenes are
 //     registered, quest objective flags are non-empty
+//     (deep registry integrity lives in tools/checknarrative.mjs)
 // Usage: npm run build && node tools/checkworld.mjs
 
 import { allMaps, getMap, START_MAP } from "../dist/game/maps/registry.js";
 import { Tilemap } from "../dist/engine/tilemap.js";
 import { TILESET } from "../dist/game/tiles.js";
 import { overlapsSolid } from "../dist/engine/collision.js";
-import { registerSeedContent } from "../dist/content/seed.js";
+import { registerStoryContent } from "../dist/content/index.js";
 import { getDialogue } from "../dist/systems/dialogue.js";
 import { getCutscene } from "../dist/systems/cutscene.js";
 import { allQuests } from "../dist/systems/story.js";
@@ -23,7 +24,7 @@ const ok = (cond, msg) => {
   if (!cond) failures++;
 };
 
-registerSeedContent(); // the world ships with its seed people/cutscenes
+registerStoryContent(); // the world ships with the full M4b story registry
 
 ok(getMap(START_MAP) !== undefined, `START_MAP "${START_MAP}" is registered`);
 ok(allMaps().length === 4, `4 maps registered (got ${allMaps().length})`);
@@ -116,13 +117,13 @@ for (const entry of allMaps()) {
     ok(zoneReachable, `${id} -> ${tr.to}: trigger zone is reachable from spawn`);
   }
 
-  // On-enter cutscene must exist (seed wires valleyWilds).
-  if (entry.onEnter) {
+  // On-enter cutscenes must exist (M4b: a per-map list, condition-gated).
+  for (const oe of entry.onEnter ?? []) {
     ok(
-      getCutscene(entry.onEnter.cutscene) !== undefined,
-      `${id}: onEnter cutscene "${entry.onEnter.cutscene}" is registered`,
+      getCutscene(oe.cutscene) !== undefined,
+      `${id}: onEnter cutscene "${oe.cutscene}" is registered`,
     );
-    ok(entry.onEnter.onceFlag.length > 0, `${id}: onEnter has a once-flag`);
+    ok(oe.onceFlag.length > 0, `${id}: onEnter "${oe.cutscene}" has a once-flag`);
   }
 }
 
@@ -136,7 +137,7 @@ for (const entry of allMaps()) {
   }
 }
 
-// Quest data sanity (the seed quest at minimum).
+// Quest data sanity (the opening quest at minimum).
 const quests = allQuests();
 ok(quests.length >= 1, `at least one quest registered (got ${quests.length})`);
 for (const q of quests) {
@@ -146,7 +147,10 @@ for (const q of quests) {
     `quest "${q.id}" objectives all have completion flags`,
   );
 }
-ok(quests.some((q) => q.autoStart && q.id === "first-steps"), 'seed quest "first-steps" auto-starts');
+ok(
+  quests.some((q) => q.autoStart && q.id === "the-seven-year-festival"),
+  'opening quest "the-seven-year-festival" auto-starts',
+);
 
 console.log(failures === 0 ? "\nAll world-graph checks passed." : `\n${failures} check(s) FAILED.`);
 process.exit(failures === 0 ? 0 : 1);

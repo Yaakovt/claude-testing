@@ -12,14 +12,26 @@
  *  - story flags/quests NEVER reset (src/systems/story.ts) and the save
  *    records current map + position.
  *
- * Content agents (M4b): author people and entry hooks with addMapNpcs() and
- * setMapOnEnter() from src/content/* — don't edit the map modules for that.
+ * Content agents (M4b): author people, conditional enemy spawns, named
+ * entries, and on-enter cutscenes with addMapNpcs() / addMapEnemies() /
+ * addMapEntries() / addMapOnEnter() from src/content/* — don't edit the map
+ * modules for that.
  */
 
 import type { TilemapData } from "../../engine/tilemap.js";
 import type { Facing } from "../../engine/entity.js";
+import type { Condition } from "../../systems/story.js";
 import type { EnemySpawn } from "../enemies/spawns.js";
 import type { NpcDef } from "../npc.js";
+
+/** A cutscene that fires when the player enters the map. */
+export interface OnEnterDef {
+  cutscene: string;
+  /** Fires once, ever — set when fired (survives saves). */
+  onceFlag: string;
+  /** Optional story conditions; if they fail the entry stays "unfired". */
+  when?: Condition[];
+}
 
 export interface TransitionDef {
   /** Trigger zone in tile coordinates (player center entering it fires). */
@@ -45,8 +57,8 @@ export interface MapEntry {
   npcs: NpcDef[];
   /** Story flag marking this zone hostile (story-controlled; HUD shows it). */
   hostileFlag?: string;
-  /** Cutscene to play on entry, once (guarded by the flag). */
-  onEnter?: { cutscene: string; onceFlag: string };
+  /** On-enter cutscenes, checked in order; the first eligible one plays. */
+  onEnter?: OnEnterDef[];
   /** Samara's Ring on the horizon: draw the white glow band (the peak). */
   ringGlow?: boolean;
 }
@@ -75,14 +87,28 @@ export function addMapNpcs(mapId: string, defs: NpcDef[]): void {
   entry.npcs.push(...defs);
 }
 
-/** Content hook: attach/replace a map's on-enter cutscene. */
-export function setMapOnEnter(
+/** Content hook: append an on-enter cutscene (checked in registration order). */
+export function addMapOnEnter(mapId: string, def: OnEnterDef): void {
+  const entry = maps.get(mapId);
+  if (!entry) throw new Error(`addMapOnEnter: unknown map "${mapId}"`);
+  entry.onEnter = [...(entry.onEnter ?? []), def];
+}
+
+/** Content hook: add story-conditional enemy spawns to a map's table. */
+export function addMapEnemies(mapId: string, spawns: EnemySpawn[]): void {
+  const entry = maps.get(mapId);
+  if (!entry) throw new Error(`addMapEnemies: unknown map "${mapId}"`);
+  entry.enemies.push(...spawns);
+}
+
+/** Content hook: add named entry points (cutscene moveMap targets). */
+export function addMapEntries(
   mapId: string,
-  onEnter: { cutscene: string; onceFlag: string } | undefined,
+  entries: Record<string, { x: number; y: number; facing?: Facing }>,
 ): void {
   const entry = maps.get(mapId);
-  if (!entry) throw new Error(`setMapOnEnter: unknown map "${mapId}"`);
-  entry.onEnter = onEnter;
+  if (!entry) throw new Error(`addMapEntries: unknown map "${mapId}"`);
+  Object.assign(entry.entries, entries);
 }
 
 // ----------------------------------------------------- the world's maps

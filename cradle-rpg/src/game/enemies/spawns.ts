@@ -22,12 +22,30 @@ export interface EnemySpawn {
   /** Tile coordinates (must be walkable — asserted by tools/checkworld.mjs). */
   tx: number;
   ty: number;
+  /** M4b story-conditional spawns: only spawn while this flag is truthy… */
+  ifFlag?: string;
+  /** …and while this one is NOT (e.g. a story foe that stays dead). */
+  unlessFlag?: string;
+  /** Story flag set when this enemy dies (duel wins, hunt targets, waves). */
+  onDeathFlag?: string;
+  /** Spawn with madra permanently sealed (the halfsilver trick: no specials). */
+  sealed?: boolean;
+  /** Display-name override ("Wei Jin Amon" instead of "Iron dreadbeast"). */
+  name?: string;
 }
 
 /** Build + register every enemy in a MapEntry's spawn table. */
-export function spawnEnemies(spawns: EnemySpawn[], world: EnemyContext): Dreadbeast[] {
+export function spawnEnemies(
+  spawns: EnemySpawn[],
+  world: EnemyContext,
+  flagTruthy?: (key: string) => boolean,
+): Dreadbeast[] {
   const out: Dreadbeast[] = [];
   for (const s of spawns) {
+    if (flagTruthy) {
+      if (s.ifFlag && !flagTruthy(s.ifFlag)) continue;
+      if (s.unlessFlag && flagTruthy(s.unlessFlag)) continue;
+    }
     const x = s.tx * TILE_SIZE + TILE_SIZE / 2;
     const y = s.ty * TILE_SIZE + TILE_SIZE * 0.75;
     let beast: Dreadbeast;
@@ -42,6 +60,9 @@ export function spawnEnemies(spawns: EnemySpawn[], world: EnemyContext): Dreadbe
         beast = new HollowStalker(world, x, y);
         break;
     }
+    if (s.onDeathFlag) beast.storyDeathFlag = s.onDeathFlag;
+    if (s.sealed) beast.madraLockTimer = Number.POSITIVE_INFINITY;
+    if (s.name) beast.displayName = s.name;
     out.push(world.entities.add(beast));
   }
   return out;

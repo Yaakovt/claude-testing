@@ -27,6 +27,7 @@ import { FxManager } from "../systems/fx.js";
 import { Stage, STAGE_NAMES } from "../systems/stats.js";
 import {
   StoryState,
+  checkConditions,
   getQuest,
   runEffects,
   type Effect,
@@ -207,6 +208,11 @@ export class World {
       camera: this.camera,
       onStageUp: (to) => {
         if (to >= Stage.Copper) this.auraSight.enabled = true;
+        // M4b documented game event: "reached.<stage>" flags for quest
+        // objectives ("Temper your body — reach Iron").
+        for (let s = Stage.Copper; s <= to; s++) {
+          this.story.setFlag(`reached.${STAGE_NAMES[s as Stage].toLowerCase()}`);
+        }
       },
     });
     this.player.pc!.onBasicHit = (n) => this.advancement.recordBasicHits(n);
@@ -218,6 +224,11 @@ export class World {
       | undefined;
     this.advancement.restore(adv ?? {});
     this.auraSight.enabled = this.player.stats.stage >= Stage.Copper;
+    // Restored saves keep their reached.<stage> flags consistent (restore()
+    // skips the ceremonies and therefore the onStageUp hook).
+    for (let s = Stage.Copper; s <= this.player.stats.stage; s++) {
+      this.story.setFlag(`reached.${STAGE_NAMES[s as Stage].toLowerCase()}`);
+    }
 
     const cs = existing?.systems["combat"] as Partial<CombatSave> | undefined;
     if (cs) {
@@ -237,6 +248,9 @@ export class World {
     this.combat.onDeath = (victim) => {
       if (victim === this.player) return; // respawn sequence handles the player
       if (victim instanceof Dreadbeast) {
+        // M4b documented game event: spawn-table onDeathFlag (duel wins,
+        // hunt targets, the gate-defense wave).
+        if (victim.storyDeathFlag) this.story.setFlag(victim.storyDeathFlag);
         // Dreadbeasts leave no Remnant (lore §6.3) — render down to scales.
         this.dropScales(victim.x, victim.y, 1 + Math.floor(Math.random() * 3));
       } else if (victim.leavesRemnant) {
@@ -257,16 +271,23 @@ export class World {
 
   /** Build the current MapEntry's per-map state (everything but the player). */
   private populateMap(): void {
-    spawnEnemies(this.mapEntry.enemies, {
-      map: this.map,
-      combat: this.combat,
-      player: this.player,
-      entities: this.entities,
-    });
+    const truthy = (key: string): boolean => this.story.flagTruthy(key);
+    spawnEnemies(
+      this.mapEntry.enemies,
+      {
+        map: this.map,
+        combat: this.combat,
+        player: this.player,
+        entities: this.entities,
+      },
+      truthy,
+    );
     this.shrines.length = 0;
     this.shrines.push(...spawnShrines(this.mapEntry.shrines, (s) => this.entities.add(s)));
     const ctx = this.npcContext();
-    this.npcs = this.mapEntry.npcs.map((def) => this.entities.add(new Npc(def, ctx)));
+    this.npcs = this.mapEntry.npcs
+      .filter((def) => (!def.ifFlag || truthy(def.ifFlag)) && (!def.unlessFlag || !truthy(def.unlessFlag)))
+      .map((def) => this.entities.add(new Npc(def, ctx)));
   }
 
   private npcContext(): NpcContext {
@@ -315,11 +336,14 @@ export class World {
   }
 
   private maybeFireOnEnter(): void {
-    const oe = this.mapEntry.onEnter;
-    if (!oe || this.story.flagTruthy(oe.onceFlag)) return;
-    if (!getCutscene(oe.cutscene)) return;
-    this.story.setFlag(oe.onceFlag); // fire once, ever
-    this.startCutscene(oe.cutscene);
+    for (const oe of this.mapEntry.onEnter ?? []) {
+      if (this.story.flagTruthy(oe.onceFlag)) continue;
+      if (!checkConditions(oe.when, this.query)) continue; // stays unfired
+      if (!getCutscene(oe.cutscene)) continue;
+      this.story.setFlag(oe.onceFlag); // fire once, ever
+      this.startCutscene(oe.cutscene);
+      return;
+    }
   }
 
   // ------------------------------------------------------------ transitions
@@ -377,13 +401,18 @@ export class World {
         this.story.setFlag(e.key, e.value ?? true);
         break;
       case "reputation":
+        // Axis totals are mirrored into flags ("axis.*") so dialogue
+        // conditions can gate on them ({ kind:"flag", key, gte }).
         this.story.addReputation(e.faction, e.amount);
+        this.story.setFlag(`axis.rep.${e.faction}`, this.story.reputation[e.faction] ?? 0);
         break;
       case "resolve":
         this.story.addResolve(e.amount);
+        this.story.setFlag("axis.resolve", this.story.resolve);
         break;
       case "knowledge":
         this.story.addKnowledge(e.amount);
+        this.story.setFlag("axis.knowledge", this.story.knowledge);
         break;
       case "giveScales":
         this.gameState.scales += e.amount;

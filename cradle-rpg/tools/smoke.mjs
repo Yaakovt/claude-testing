@@ -3,10 +3,13 @@
 // game end to end:
 //   M3 - title -> character creation (Wei) through the REAL UI key path
 //   M4a - new game starts in the WEI VILLAGE (safe ground, NPCs, guard)
-//   M4a - seed path: talk to the neighbor (dialogue choice sets the flag),
-//         the gate guard stands down, walk the south-gate transition into
-//         the Valley Wilds, the on-enter cutscene fires once, the quest
-//         completes, the journal page shows it
+//   M4b - ACT 1 story path, driven through the real UI: the opening
+//         cutscene, the family round (quest objectives via dialogue), the
+//         Patriarch's exhibition offer, the HONEST duel branch (a real
+//         fight in the ring; victory sets a1.duelWon), Li Markuth's descent
+//         + Suriel cutscene chain, accepting the heavens' warning (marble +
+//         the Act-2 quest starts), the gate guard stands down, the walk
+//         into the Valley Wilds + its on-enter scene
 //   M3 - Fox Fire (K) drains madra and damages a slitherer
 //   M2 - player kills a slitherer with J strikes; scales drop + collect
 //   M2 - cycling refills madra / slows movement; death + respawn sequence
@@ -152,7 +155,33 @@ try {
     e.resetInterpolation();
   };
 
-  // ---- M4a boot: the Wei village -------------------------------------------
+  // Drive any active cutscene to its end: dismiss "say" lines with E, let
+  // timed steps (pans, fades, waits, map swaps) elapse.
+  const driveCutscene = (maxFrames = 4000) => {
+    let spent = 0;
+    while (T.cutscene && spent < maxFrames) {
+      if (T.dialogueUi.active) {
+        tap("KeyE", 1);
+        spent += 5;
+      } else {
+        frames(1);
+        spent += 1;
+      }
+    }
+  };
+  // Skip the letter reveal of the current line, then advance past it.
+  const nextLine = () => {
+    tap("KeyE");
+    tap("KeyE");
+  };
+  const npcById = (id) => T.npcs.find((n) => n.def.id === id);
+  const talkTo = (npc) => {
+    teleport(player, npc.x + 2, npc.y + 8);
+    frames(2);
+    tap("KeyE");
+  };
+
+  // ---- M4b boot: festival morning in the Wei village ------------------------
   frames(5);
   ok(T.world.mapEntry.id === "weiVillage", `new game starts on weiVillage (got ${T.world.mapEntry.id})`);
   ok(player.stats.health === 40 && player.stats.madra === 30, "player boots with full stats");
@@ -161,14 +190,25 @@ try {
     "the village is safe ground — no dreadbeasts",
   );
   ok(T.shrines.length === 2, `2 village shrines placed (got ${T.shrines.length})`);
-  ok(T.npcs.length === 2, `2 seed NPCs placed (got ${T.npcs.length})`);
-  ok(story.questsActive.includes("first-steps"), 'tutorial quest "First Steps" auto-started');
-  ok(story.questStatus("first-steps").current === 0, "first objective (talk) is current");
+  ok(T.cutscene !== null, "the festival-morning opening cutscene plays at boot");
+  const xAtBoot = player.x;
+  keyDown("KeyD");
+  frames(30);
+  keyUp("KeyD");
+  ok(player.x === xAtBoot, "the player is frozen while the opening runs");
+  driveCutscene();
+  ok(T.cutscene === null, "opening cutscene finished");
+  ok(story.flagTruthy("a1.sawOpening"), "its once-flag is set");
+  ok(T.npcs.length === 6, `6 Act-1 NPCs placed (got ${T.npcs.length})`);
+  ok(
+    story.questsActive.includes("the-seven-year-festival"),
+    'opening quest "The Seven-Year Festival" auto-started',
+  );
+  ok(story.questStatus("the-seven-year-festival").current === 0, "first objective (mother) is current");
 
-  const mara = T.npcs.find((n) => n.def.id === "seed-mara");
-  const guard = T.npcs.find((n) => n.def.id === "seed-han");
-  ok(mara && guard, "seed NPCs found by id");
-  ok(guard.blocking === true, "the gate guard blocks until vouched for");
+  const guard = npcById("a1-gate-guard");
+  ok(npcById("a1-mother") && npcById("a1-sairus") && guard, "Act-1 NPCs found by id");
+  ok(guard.blocking === true, "the gate guard blocks the south gate during the festival");
 
   // The guard physically holds the line: walk into him, get pushed back.
   teleport(player, 22 * 16 + 8, 29 * 16 + 8);
@@ -181,28 +221,108 @@ try {
   ok(player.y <= 500.5, `the guard kept the player out of the gate (y=${player.y.toFixed(0)})`);
   ok(T.world.mapEntry.id === "weiVillage", "no transition fired through the guard");
 
-  // ---- talk to the neighbor (REAL dialogue path) -----------------------------
-  teleport(player, mara.x + 2, mara.y + 8);
-  frames(2);
+  // ---- the family round (REAL dialogue path) ---------------------------------
   ok(T.dialogueUi.active === false, "no dialogue before E");
-  tap("KeyE"); // E — Talk
-  ok(T.dialogueUi.active === true, "E near the neighbor opens her dialogue");
-  tap("KeyE"); // skip letter reveal of "greet"
-  tap("KeyE"); // advance -> "ask"
-  tap("KeyE"); // skip reveal
+  talkTo(npcById("a1-mother"));
+  ok(T.dialogueUi.active === true, "E near your mother opens her dialogue");
+  nextLine(); // greet
+  nextLine(); // expectation framing (Wei origin)
+  tap("KeyE"); // skip reveal of the choice node
   ok(T.dialogueUi.active === true, "choice node holds the dialogue open");
-  tap("ArrowDown"); // peek the second choice
-  tap("ArrowUp"); // back to the first
-  tap("KeyE"); // pick "I'm ready" -> flag + resolve
-  ok(story.flagTruthy("seed.spokeToNeighbor"), "choice set seed.spokeToNeighbor");
-  ok(story.resolve === 1, `choice granted +1 resolve (got ${story.resolve})`);
-  tap("KeyE"); // skip reveal of "bless"
-  tap("KeyE"); // end
+  tap("ArrowDown"); // -> "Thank her and go."
+  tap("KeyE");
   ok(T.dialogueUi.active === false, "dialogue closed at the tree's end");
-  ok(story.questStatus("first-steps").current === 1, "journal advanced to the second objective");
+  ok(story.flagTruthy("a1.metMother"), "mother objective flag set");
+  ok(story.questStatus("the-seven-year-festival").current === 1, "journal advanced to the father");
 
-  frames(5); // guard notices the flag
-  ok(guard.blocking === false, "the guard stands down once vouched for");
+  talkTo(npcById("a1-father"));
+  nextLine(); // greet
+  nextLine(); // expectation framing
+  nextLine(); // advice
+  ok(story.flagTruthy("a1.metFather"), "father objective flag set");
+
+  talkTo(npcById("a1-kelsa"));
+  nextLine(); // greet
+  tap("KeyE"); // skip reveal of "main" (choice node)
+  tap("KeyE"); // pick "Spar with me" (knowledge +1 — unlocks the trick branch)
+  nextLine(); // spar narration
+  ok(story.flagTruthy("a1.metKelsa") && story.flagTruthy("a1.sparredKelsa"), "Kelsa talked + sparred");
+  ok(story.knowledge === 1, `the spar granted +1 knowledge (got ${story.knowledge})`);
+
+  // ---- the Patriarch: the exhibition offer -> the HONEST duel branch ---------
+  talkTo(npcById("a1-sairus"));
+  nextLine(); // greet (entry effect completes the festival quest)
+  ok(story.questsCompleted.includes("the-seven-year-festival"), "festival quest completed at the ring");
+  ok(gameState.scales === 2, `festival reward paid 2 scales (got ${gameState.scales})`);
+  ok(story.questsActive.includes("the-exhibition-match"), 'reward chained into "The Exhibition Match"');
+  nextLine(); // the offer
+  tap("KeyE"); // skip reveal of "choose"
+  ok(T.dialogueUi.active === true, "duel choice node open");
+  tap("ArrowDown"); // trick (visible: knowledge >= 1) -> honest
+  tap("KeyE"); // pick "Fight him honestly"
+  ok(story.flagTruthy("a1.duel.honest") && story.flagTruthy("a1.duelChosen"), "honest branch chosen");
+  ok(T.cutscene !== null, "the duel-begin cutscene takes over");
+  driveCutscene(); // fade out -> moveMap into the ring -> fade in -> two lines
+  ok(T.world.mapEntry.id === "weiVillage", "the ring is on the village map");
+  ok(
+    Math.abs(player.x - (22 * 16 + 8)) < 2 && Math.abs(player.y - (20 * 16 + 12)) < 2,
+    `placed at the arena entry (${player.x.toFixed(0)},${player.y.toFixed(0)})`,
+  );
+
+  // ---- the duel: a REAL fight in the ring ------------------------------------
+  const rival = entities.all.find((e) => e instanceof classes.HollowStalker);
+  ok(rival !== undefined, "Wei Jin Amon spawned in the ring (Iron statline — two stages up)");
+  ok(rival.displayName === "Wei Jin Amon", `rival carries his name (got "${rival?.displayName}")`);
+  ok(npcById("a1-amon") === undefined, "the NPC Amon left the square (he's in the ring)");
+  // Two stages up is a brutal fight; the smoke stages the killing blow.
+  rival.stats.health = 1;
+  rival.hitstun = 1;
+  rival.iframes = 0;
+  teleport(rival, player.x + 12, player.y);
+  keyDown("KeyD");
+  frames(2);
+  keyUp("KeyD");
+  frames(2);
+  tap("KeyJ");
+  frames(40); // swing + hit + death
+  ok(rival.stats.health === 0, "the duel is won by a real strike");
+  ok(story.flagTruthy("a1.duelWon"), "victory set a1.duelWon (spawn-table onDeathFlag)");
+  frames(30); // dissolve
+
+  // ---- settle the match -> Li Markuth descends, Suriel intervenes ------------
+  talkTo(npcById("a1-sairus"));
+  nextLine(); // greet -> branches to the honest-victory node
+  tap("KeyE"); // skip reveal
+  tap("KeyE"); // pick "Bow, and step out of the sand."
+  ok(story.flagTruthy("a1.duelResolved"), "the exhibition is settled");
+  ok(story.resolve === 1, `honest victory granted +1 resolve (got ${story.resolve})`);
+  ok(T.cutscene !== null, "the Markuth descent fires as the quest reward");
+  driveCutscene(); // shake/spawn/pan, death + restoration, map rebuild
+  ok(T.cutscene === null, "descent cutscene finished");
+  ok(story.flagTruthy("a1.markuthSeen"), "the descent is remembered");
+  ok(story.questsCompleted.includes("the-exhibition-match"), '"The Exhibition Match" completed');
+  ok(story.reputation["heavensGlory"] === -2, "Heaven's Glory was NOT soothed (rep -2)");
+
+  // ---- Suriel: accept the warning + the marble --------------------------------
+  const suriel = npcById("a1-suriel");
+  ok(suriel !== undefined, "Suriel waits in the ring after the rebuild");
+  talkTo(suriel);
+  nextLine(); // "You died well."
+  nextLine(); // the vision + the charge
+  tap("KeyE"); // skip reveal of the choice
+  tap("KeyE"); // pick "Take the marble. Find the disciple."
+  ok(story.flagTruthy("item.surielsMarble"), "the marble is yours (item flag)");
+  ok(story.flagTruthy("a1.suriel.accepted") && story.flagTruthy("a1.surielResolved"), "warning accepted");
+  ok(story.knowledge === 3, `acceptance granted +2 knowledge (total ${story.knowledge})`);
+  ok(
+    story.questsActive.includes("the-swordsages-disciple"),
+    'ACT 2 quest "The Sword Sage\'s Disciple" started',
+  );
+  driveCutscene(); // her departure
+  ok(npcById("a1-suriel") === undefined, "Suriel despawned on departure");
+
+  frames(5); // the guard notices the resolution flag
+  ok(guard.blocking === false, "the gate guard stands down after the heavens' visit");
 
   // ---- south gate -> the Valley Wilds (REAL transition zone) ----------------
   teleport(player, 22 * 16 + 8, 32 * 16 + 8);
@@ -216,26 +336,17 @@ try {
     `arrived at the fromVillage entry (${player.x.toFixed(0)},${player.y.toFixed(0)})`,
   );
 
-  // ---- the on-enter cutscene fires, once -------------------------------------
+  // ---- the wilds on-enter cutscene fires, once -------------------------------
   ok(T.cutscene !== null, "valleyWilds on-enter cutscene is playing");
-  ok(story.flagTruthy("seed.sawWildsIntro"), "its once-flag is set immediately");
+  ok(story.flagTruthy("a2.sawWildsIntro"), "its once-flag is set immediately");
   const xDuringScene = player.x;
   keyDown("KeyD");
   frames(30);
   keyUp("KeyD");
   ok(player.x === xDuringScene, "the player is frozen while the cutscene runs");
-  frames(70); // camera pan (1.4s total)
-  ok(T.dialogueUi.active === true, "narration line 1 presented");
-  tap("KeyE"); // skip reveal
-  tap("KeyE"); // dismiss line 1
-  tap("KeyE"); // skip reveal
-  tap("KeyE"); // dismiss line 2
-  frames(55); // resetCamera glide
+  driveCutscene();
   ok(T.cutscene === null, "cutscene finished");
-  ok(story.flagTruthy("seed.leftVillage"), "cutscene set seed.leftVillage");
-  ok(story.questsCompleted.includes("first-steps"), '"First Steps" completed');
-  ok(gameState.scales === 3, `quest reward paid out 3 scales (got ${gameState.scales})`);
-  ok(story.resolve === 2, `quest reward granted +1 resolve (total ${story.resolve})`);
+  ok(story.flagTruthy("a2.enteredWilds"), "cutscene set a2.enteredWilds");
 
   // ---- the wilds are NOT safe ground ----------------------------------------
   const beasts = entities.all.filter((e) => e instanceof classes.Dreadbeast);
@@ -487,10 +598,14 @@ try {
   ok(T.world.panelPage === "spirit", "panel opens on the spirit page");
   tap("KeyQ");
   ok(T.world.panelPage === "journal", "Q flips to the journal page");
-  ok(story.activeStatuses().length === 0, "journal: no active quests left");
   ok(
-    story.completedDefs().map((d) => d.title).includes("First Steps"),
-    "journal: First Steps listed as completed",
+    story.activeStatuses().some((s) => s.def.id === "the-swordsages-disciple"),
+    "journal: the Act-2 quest is active",
+  );
+  const completedTitles = story.completedDefs().map((d) => d.title);
+  ok(
+    completedTitles.includes("The Seven-Year Festival") && completedTitles.includes("The Exhibition Match"),
+    "journal: both Act-1 quests listed as completed",
   );
   tap("KeyQ");
   ok(T.world.panelPage === "spirit", "Q flips back to the spirit page");
@@ -507,9 +622,10 @@ try {
   ok(parsed.player.map === "valleyWilds", `save carries the map id (got ${parsed.player.map})`);
   ok(parsed.player.stage === "Iron", `save carries the stage label (got ${parsed.player.stage})`);
   ok(
-    parsed.flags["seed.spokeToNeighbor"] === true &&
-      parsed.flags["seed.leftVillage"] === true &&
-      parsed.flags["seed.sawWildsIntro"] === true,
+    parsed.flags["a1.duelWon"] === true &&
+      parsed.flags["a1.surielResolved"] === true &&
+      parsed.flags["item.surielsMarble"] === true &&
+      parsed.flags["a2.sawWildsIntro"] === true,
     "save carries the story flags",
   );
   const cs = parsed.systems?.combat;
@@ -531,8 +647,9 @@ try {
   );
   const st = parsed.systems?.story;
   ok(
-    st && st.questsCompleted.includes("first-steps") && st.questsActive.length === 0 &&
-      st.resolve === 2 && typeof st.knowledge === "number" && typeof st.reputation === "object",
+    st && st.questsCompleted.includes("the-exhibition-match") &&
+      st.questsActive.includes("the-swordsages-disciple") &&
+      st.resolve === 1 && st.knowledge === 3 && st.reputation?.heavensGlory === -2,
     "save has systems.story { reputation, resolve, knowledge, quests }",
   );
 

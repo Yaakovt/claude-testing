@@ -148,7 +148,7 @@ try {
 
   // The wilds' on-enter cutscene greets the migrated save (flag never set).
   ok(T.cutscene !== null, "valleyWilds on-enter cutscene fires for the migrated save");
-  ok(T.story.flagTruthy("seed.sawWildsIntro"), "its once-flag is set so it never refires");
+  ok(T.story.flagTruthy("a2.sawWildsIntro"), "its once-flag is set so it never refires");
   frames(90); // camera pan
   tap("KeyE"); // skip reveal, line 1
   tap("KeyE"); // dismiss
@@ -156,7 +156,7 @@ try {
   tap("KeyE"); // dismiss
   frames(60); // resetCamera glide
   ok(T.cutscene === null, "cutscene driven to completion");
-  ok(T.story.flagTruthy("seed.leftVillage"), "cutscene effects applied");
+  ok(T.story.flagTruthy("a2.enteredWilds"), "cutscene effects applied");
   ok(Math.abs(player.x - SEED.player.x) < 1, "the cutscene moved the camera, not the player");
 
   // Re-save: must come out as v4 with everything intact.
@@ -166,7 +166,7 @@ try {
   ok(parsed.player.map === "valleyWilds", "player.map persists the registry id");
   ok(parsed.systems?.advancement?.stage === 2, "advancement bucket persists the stage");
   ok(parsed.systems?.character?.origin === "wei", "character bucket persists");
-  ok(parsed.flags["seed.sawWildsIntro"] === true, "story flags persist");
+  ok(parsed.flags["a2.sawWildsIntro"] === true, "story flags persist");
   const st = parsed.systems?.story;
   ok(st && Array.isArray(st.questsActive) && Array.isArray(st.questsCompleted),
     "systems.story bucket persists");
