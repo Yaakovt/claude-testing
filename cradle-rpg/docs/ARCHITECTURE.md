@@ -1,4 +1,4 @@
-# Architecture (as of M4b — the full Unsouled-arc story as content)
+# Architecture (as of M5 — Remnants, Soulsmithing, audio, polish)
 
 Zero-dependency TypeScript + Canvas. `npm run build` (strict tsc) compiles
 `src/` to `dist/`; `index.html` loads `dist/game/main.js` as a native ES
@@ -7,7 +7,28 @@ runs headless sanity tests (map integrity, world-graph integrity, collision,
 combat math, advancement math, narrative-system unit tests, narrative-REGISTRY
 static integrity, boot + Act-1-story + combat + advancement smoke tests, the
 Unsouled learn path, continue/migration, and the three endings driven through
-the real runtime) — keep it green (765 assertions as of M4b).
+the real runtime) — keep it green (831 assertions as of M5).
+
+M5 additions in brief (details in the module headers):
+- `src/game/remnant.ts` — real Remnants: humanoid foes (`leavesRemnant`,
+  e.g. enemies/enforcer.ts) die into a hostile degraded spirit; fight it
+  (scales + a core pickup) or channel E within its fresh window to harvest
+  it intact (World.updateRemnantHarvest owns the channel).
+- `src/game/soulsmith.ts` + `src/content/soulsmith.ts` — Fisher Gesha's
+  stall (valleyWilds): cores + scales buy three once-per-save upgrades via
+  the new `takeItem`/`upgrade` Effects; stats are deterministically REBUILT
+  (base -> stage chain -> upgrades) on purchase/stage-up/load.
+- `src/engine/audio.ts` (game-agnostic WebAudio synth; headless no-op,
+  unlock-on-gesture) + `src/game/sounds.ts` (every Sfx cue + the
+  valley/peak/tense generative music beds; M toggles mute, settings saved).
+- HUD: K/L/U/I technique slots with cost dimming + cooldown sweep; a
+  corner terrain minimap with spirit-sense motes at Jade+.
+- Save v5 (`systems.audio`, `systems.soulsmith`) and THREE SAVE SLOTS
+  (engine/save.ts: slot 1 keeps the legacy key; the title screen picks).
+- Balance: HollowStalker 75 HP / 4 def so the post-Iron rematch stays a fight.
+- New harnesses: tools/checkm5.mjs (pure M5 math + audio headless + slot
+  isolation) and tools/smokeRemnant.mjs (kill -> Remnant -> fight/harvest ->
+  Gesha purchase -> v5 persistence, through real input).
 
 ## Module map
 

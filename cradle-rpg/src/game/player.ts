@@ -26,6 +26,15 @@ import { PATHS, type OriginId } from "./paths.js";
 
 export const PLAYER_WALK_SPEED = 90; // world px/s
 
+/** Foundation base statline (madra varies per origin — see paths.ts).
+ *  Exported so the Soulsmith stat rebuild (src/game/soulsmith.ts) derives
+ *  from the SAME numbers the constructor uses. */
+export const PLAYER_BASE = {
+  maxHealth: 40,
+  attackPower: 6,
+  defense: 1,
+} as const;
+
 const PAL = {
   H: "#15131c", // black hair
   S: "#e6b48d", // skin
@@ -186,10 +195,10 @@ export class Player extends Combatant {
     // All starts share a Foundation body; the Unsouled's pure core runs a
     // little deeper (lore: weak but UNDEVELOPED, not absent — and pure).
     this.stats = makeStats({
-      maxHealth: 40,
+      maxHealth: PLAYER_BASE.maxHealth,
       maxMadra: PATHS[origin].baseMaxMadra,
-      attackPower: 6,
-      defense: 1,
+      attackPower: PLAYER_BASE.attackPower,
+      defense: PLAYER_BASE.defense,
       moveSpeed: PLAYER_WALK_SPEED,
       stage: Stage.Foundation,
     });

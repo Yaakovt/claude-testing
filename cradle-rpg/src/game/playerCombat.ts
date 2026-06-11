@@ -16,11 +16,13 @@ import type { Tilemap } from "../engine/tilemap.js";
 import { facingVector, type CombatSystem } from "../systems/combat.js";
 import type { FxManager } from "../systems/fx.js";
 import {
+  getTechnique,
   TechniqueCaster,
   TECHNIQUE_SLOT_ACTIONS,
   type TechniqueContext,
 } from "../systems/techniques.js";
 import type { Player } from "./player.js";
+import { Sfx } from "./sounds.js";
 
 export const CYCLE_SPEED_FACTOR = 0.35;
 export const CYCLE_VULNERABILITY = 1.5;
@@ -137,7 +139,11 @@ export class PlayerCombat {
         if (this.state === "idle") {
           for (let i = 0; i < TECHNIQUE_SLOT_ACTIONS.length; i++) {
             if (this.input.pressed(TECHNIQUE_SLOT_ACTIONS[i]!)) {
-              this.caster.tryCast(i, this.castContext());
+              const id = this.caster.slots[i];
+              if (this.caster.tryCast(i, this.castContext()) && id) {
+                const def = getTechnique(id);
+                if (def) Sfx.cast(def.type);
+              }
             }
           }
         }
@@ -175,6 +181,10 @@ export class PlayerCombat {
   }
 
   private setCycling(on: boolean, dt: number): void {
+    if (on !== this.cycling) {
+      if (on) Sfx.cyclingStart();
+      else Sfx.cyclingStop();
+    }
     this.cycling = on;
     const p = this.player;
     if (on) {
@@ -208,6 +218,7 @@ export class PlayerCombat {
     this.dodgeCooldown = DODGE_COOLDOWN;
     this.dodgeTimer = DODGE_TIME;
     this.state = "dodge";
+    Sfx.dodge();
   }
 
   /** Full world context handed to technique defs. */
@@ -223,6 +234,7 @@ export class PlayerCombat {
   }
 
   private startSwing(index: number): void {
+    Sfx.swing();
     this.state = "swing";
     this.comboIndex = index;
     this.swingTimer = SWING_TIME;

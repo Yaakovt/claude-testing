@@ -3,7 +3,8 @@
  * feel like a quiet prologue rather than a menu. Flow:
  *
  *   title ("press any key", drifting aura)
- *     -> menu (Continue / New Game; only if a save exists)
+ *     -> slots (M5: pick one of three journeys; empty slots skip the menu)
+ *     -> menu (Continue / New Game; only if the slot holds a save)
  *     -> confirm-wipe (New Game over an old save)
  *     -> origin (the four starts, with Path summary + lore line)
  *     -> name (A-Z entry; per-origin placeholder, Unsouled = "Lindon")
@@ -18,10 +19,10 @@ import type { Input } from "../engine/input.js";
 import { ORIGIN_ORDER, PATHS, type OriginId } from "./paths.js";
 
 export type ScreenResult =
-  | { kind: "continue" }
-  | { kind: "new"; origin: OriginId; name: string };
+  | { kind: "continue"; slot: number }
+  | { kind: "new"; slot: number; origin: OriginId; name: string };
 
-type ScreenState = "title" | "menu" | "confirmWipe" | "origin" | "name";
+type ScreenState = "title" | "slots" | "menu" | "confirmWipe" | "origin" | "name";
 
 const INK = "#cfc8e8";
 const DIM = "#5c5478";
@@ -38,14 +39,21 @@ export class Screens {
   result: ScreenResult | null = null;
 
   private t = 0;
+  private slotIndex = 0;
   private menuIndex = 0;
   private confirmIndex = 0;
   private originIndex = 0;
   private nameBuf = "";
 
+  /** 1-based slot the player picked (valid once past the slots state). */
+  get chosenSlot(): number {
+    return this.slotIndex + 1;
+  }
+
   constructor(
     private input: Input,
-    private hasSave: boolean,
+    /** One label per save slot ("Kael — Iron"), null = empty slot. */
+    private slotLabels: (string | null)[],
   ) {}
 
   private confirmPressed(): boolean {
@@ -65,15 +73,29 @@ export class Screens {
     switch (this.state) {
       case "title":
         if (this.input.anyPressed()) {
-          this.state = this.hasSave ? "menu" : "origin";
+          this.state = "slots";
         }
         return;
+      case "slots": {
+        const n = this.slotLabels.length;
+        if (this.input.pressed("up")) this.slotIndex = (this.slotIndex + n - 1) % n;
+        if (this.input.pressed("down")) this.slotIndex = (this.slotIndex + 1) % n;
+        if (this.confirmPressed()) {
+          this.menuIndex = 0;
+          this.state = this.slotLabels[this.slotIndex] ? "menu" : "origin";
+        }
+        return;
+      }
       case "menu": {
+        if (this.input.keyPressed("Backspace")) {
+          this.state = "slots";
+          return;
+        }
         if (this.input.pressed("up") || this.input.pressed("down")) {
           this.menuIndex = 1 - this.menuIndex;
         }
         if (this.confirmPressed()) {
-          if (this.menuIndex === 0) this.result = { kind: "continue" };
+          if (this.menuIndex === 0) this.result = { kind: "continue", slot: this.chosenSlot };
           else {
             this.confirmIndex = 0;
             this.state = "confirmWipe";
@@ -118,7 +140,7 @@ export class Screens {
         if (this.input.keyPressed("Enter") || this.input.keyPressed("NumpadEnter")) {
           const origin = ORIGIN_ORDER[this.originIndex]!;
           const name = this.nameBuf.length > 0 ? this.nameBuf : PATHS[origin].defaultName;
-          this.result = { kind: "new", origin, name };
+          this.result = { kind: "new", slot: this.chosenSlot, origin, name };
         }
         return;
       }
@@ -135,6 +157,9 @@ export class Screens {
     switch (this.state) {
       case "title":
         this.drawTitle(ctx, w, h);
+        break;
+      case "slots":
+        this.drawSlots(ctx, w, h);
         break;
       case "menu":
         this.drawMenu(ctx, w, h);
@@ -208,6 +233,20 @@ export class Screens {
       ctx.fillStyle = sel ? (i === danger ? DANGER : GOLD) : DIM;
       ctx.fillText(`${sel ? "✦  " : ""}${items[i]}${sel ? "  ✦" : ""}`, w / 2, y + i * 32);
     }
+  }
+
+  private drawSlots(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    ctx.textAlign = "center";
+    ctx.fillStyle = INK;
+    ctx.font = "italic 20px Georgia, serif";
+    ctx.fillText("Three roads lie open.", w / 2, h * 0.28);
+    const items = this.slotLabels.map(
+      (label, i) => `Slot ${i + 1} — ${label ?? "an unwritten journey"}`,
+    );
+    this.drawMenuList(ctx, w, h * 0.44, items, this.slotIndex);
+    ctx.fillStyle = DIM;
+    ctx.font = "12px Georgia, serif";
+    ctx.fillText("W/S to choose — E or Enter to confirm", w / 2, h * 0.44 + items.length * 32 + 28);
   }
 
   private drawMenu(ctx: CanvasRenderingContext2D, w: number, h: number): void {

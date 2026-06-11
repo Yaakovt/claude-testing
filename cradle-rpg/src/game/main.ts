@@ -23,8 +23,11 @@ import { Input } from "../engine/input.js";
 import {
   clearSave,
   load,
+  peekSlot,
   registerMigration,
   save,
+  setActiveSlot,
+  SLOT_COUNT,
   type SaveData,
 } from "../engine/save.js";
 import { registerGameTechniques } from "./techniques.js";
@@ -39,7 +42,9 @@ import { Slitherer } from "./enemies/slitherer.js";
 import { MadBoar } from "./enemies/boar.js";
 import { HollowStalker } from "./enemies/stalker.js";
 import { ScalePickup } from "./pickups.js";
-import { RemnantStub } from "./remnantStub.js";
+import { Remnant, RemnantCorePickup } from "./remnant.js";
+import { Enforcer } from "./enemies/enforcer.js";
+import { audio } from "./sounds.js";
 import { Shrine } from "./shrine.js";
 import { Npc } from "./npc.js";
 import { MadraBolt, SlowPool, StoneWallSegment } from "./techniqueEntities.js";
@@ -94,6 +99,17 @@ registerMigration(4, (old) => {
   };
 });
 
+// v4 -> v5 (M5): audio settings + Soulsmith purchases (fresh defaults;
+// Remnant cores live in flags as a number and need no migration).
+registerMigration(5, (old) => ({
+  ...old,
+  systems: {
+    ...((old.systems as Record<string, unknown> | undefined) ?? {}),
+    audio: { volume: 0.8, muted: false },
+    soulsmith: { purchased: [] },
+  },
+}));
+
 registerGameTechniques();
 registerStoryContent();
 
@@ -106,11 +122,28 @@ if (!maybeCtx) throw new Error("no 2d context");
 const ctx = maybeCtx;
 
 const input = new Input(canvas);
-let existing = load();
+
+/** "Kael — Iron" per occupied slot, null when the slot is empty. */
+function slotLabels(): (string | null)[] {
+  const labels: (string | null)[] = [];
+  for (let i = 1; i <= SLOT_COUNT; i++) {
+    const data = peekSlot(i);
+    labels.push(data ? `${characterFromSave(data).name} — ${data.player.stage}` : null);
+  }
+  return labels;
+}
+
+let existing: SaveData | null = null;
 
 let world: World | null = null;
-let screens = new Screens(input, existing !== null);
+let screens = new Screens(input, slotLabels());
 let endingScreen: EndingScreen | null = null;
+
+// WebAudio unlock: created after the first key/click of the session (the
+// page then has user activation, satisfying autoplay policy). Checked in
+// the loop rather than via a window listener so the input pipeline stays
+// the sole key consumer (and the headless shim's single-listener window
+// keeps working). No-ops where AudioContext doesn't exist.
 
 function resizeCanvas(): void {
   canvas!.width = Math.floor(window.innerWidth);
@@ -136,11 +169,14 @@ function characterFromSave(data: SaveData): CharacterInfo {
 let saveBase: SaveData | null = null;
 
 function beginWorld(result: ScreenResult): void {
+  setActiveSlot(result.slot); // all saves now read/write this slot
+  existing = load();
   if (result.kind === "continue" && existing) {
     saveBase = existing;
     world = new World({ canvas: canvas!, ctx, input, character: characterFromSave(existing), saveData: existing });
   } else if (result.kind === "new") {
     clearSave(); // New Game wipes the old journey (confirmed in the screens)
+    existing = null;
     saveBase = null;
     world = new World({
       canvas: canvas!,
@@ -200,7 +236,7 @@ const loop = new GameLoop({
         endingScreen = null;
         existing = load(); // the post-ending save backs Continue
         saveBase = existing;
-        screens = new Screens(input, existing !== null);
+        screens = new Screens(input, slotLabels());
       }
     } else if (world) {
       world.update(dt);
@@ -209,6 +245,7 @@ const loop = new GameLoop({
       screens.update(dt);
       if (screens.result) beginWorld(screens.result);
     }
+    if (!audio.ready && audio.available && input.anyPressed()) audio.unlock();
     input.endFrame();
   },
 
@@ -286,7 +323,9 @@ loop.start();
     Slitherer,
     MadBoar,
     HollowStalker,
-    RemnantStub,
+    Remnant,
+    RemnantCorePickup,
+    Enforcer,
     Shrine,
     Npc,
     Player,

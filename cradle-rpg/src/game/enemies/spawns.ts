@@ -6,7 +6,8 @@
  * on re-entry by design (story flags do not; see maps/registry.ts).
  *
  * Roster: slitherers are fodder, mad boars teach positioning, hollow
- * stalkers say RUN (until Iron).
+ * stalkers say RUN (until Iron). M5 adds the "enforcer" — a HUMANOID Iron
+ * sacred artist whose death tears a Remnant free (leavesRemnant).
  */
 
 import { TILE_SIZE } from "../../engine/tilemap.js";
@@ -14,8 +15,9 @@ import { Dreadbeast, type EnemyContext } from "./dreadbeast.js";
 import { Slitherer } from "./slitherer.js";
 import { MadBoar } from "./boar.js";
 import { HollowStalker } from "./stalker.js";
+import { Enforcer } from "./enforcer.js";
 
-export type EnemyKind = "slitherer" | "boar" | "stalker";
+export type EnemyKind = "slitherer" | "boar" | "stalker" | "enforcer";
 
 export interface EnemySpawn {
   kind: EnemyKind;
@@ -58,6 +60,9 @@ export function spawnEnemies(
         break;
       case "stalker":
         beast = new HollowStalker(world, x, y);
+        break;
+      case "enforcer":
+        beast = new Enforcer(world, x, y);
         break;
     }
     if (s.onDeathFlag) beast.storyDeathFlag = s.onDeathFlag;

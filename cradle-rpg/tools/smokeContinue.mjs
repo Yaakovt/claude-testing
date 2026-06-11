@@ -115,7 +115,9 @@ try {
 
   frames(5);
   tap("KeyZ"); // press any key
-  ok(T.screens.state === "menu", "an existing save brings up Continue / New Game");
+  ok(T.screens.state === "slots", "title -> save-slot picker (M5)");
+  tap("KeyE"); // slot 1 — the legacy unsuffixed save lands here
+  ok(T.screens.state === "menu", "an occupied slot brings up Continue / New Game");
 
   // Visit New Game's confirm step and back out — nothing should be wiped.
   tap("ArrowDown"); // -> New Game
@@ -162,7 +164,7 @@ try {
   // Re-save: must come out as v4 with everything intact.
   windowListeners.get("pagehide")?.();
   const parsed = JSON.parse(storage.get("path-of-ascension.save"));
-  ok(parsed.version === 4, `re-saved as version 4 (got ${parsed.version})`);
+  ok(parsed.version === 5, `re-saved as version 4 (got ${parsed.version})`);
   ok(parsed.player.map === "valleyWilds", "player.map persists the registry id");
   ok(parsed.systems?.advancement?.stage === 2, "advancement bucket persists the stage");
   ok(parsed.systems?.character?.origin === "wei", "character bucket persists");

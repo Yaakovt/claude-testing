@@ -8,7 +8,8 @@
  * or specific enemies — it operates on `Combatant`, a thin Entity subclass
  * carrying Stats + combat timers. Loot/Remnant decisions on death are made
  * by the game via the `onDeath` hook (dreadbeasts drop scales and leave NO
- * Remnant — lore bible §6.3; future humanoid foes spawn the Remnant stub).
+ * Remnant — lore bible §6.3; humanoid sacred artists spawn a hostile
+ * Remnant — M5, src/game/remnant.ts).
  */
 
 import { Entity, type Facing } from "../engine/entity.js";
@@ -226,6 +227,8 @@ export class CombatSystem {
 
   /** Game hook: decide drops/Remnants when something dies. */
   onDeath: ((victim: Combatant, killer: Combatant | null) => void) | null = null;
+  /** Game hook (M5): a strike landed — sound cues live game-side. */
+  onStrike: ((victim: Combatant, attacker: Combatant, dmg: number) => void) | null = null;
 
   private noticedTimer = 0;
   private player: Combatant | null = null;
@@ -361,6 +364,7 @@ export class CombatSystem {
       target === this.player ? "#e86a5e" : "#f2ecd8",
     );
 
+    this.onStrike?.(target, attacker, dmg);
     this.applyDamage(target, dmg, attacker);
     return dmg;
   }

@@ -103,6 +103,7 @@ try {
   // ---- creation: pick the Unsouled, accept the "Lindon" placeholder ----------
   frames(5);
   tap("KeyZ"); // press any key
+  tap("KeyE"); // slot 1 (empty) — M5 slot picker
   tap("ArrowDown"); // wei -> li
   tap("ArrowDown"); // li -> kazan
   tap("ArrowDown"); // kazan -> unsouled
@@ -241,7 +242,7 @@ try {
   // ---- save carries the learned palm -------------------------------------------
   windowListeners.get("pagehide")?.();
   const parsed = JSON.parse(storage.get("path-of-ascension.save"));
-  ok(parsed.version === 4, "save is version 4");
+  ok(parsed.version === 5, "save is version 5");
   ok(parsed.player.map === "valleyWilds", "save carries the warped map id");
   ok(parsed.flags["a2.sawWildsIntro"] === true, "save carries story flags");
   ok(

@@ -76,6 +76,13 @@ export type Effect =
   | { kind: "completeObjective"; quest: string; objective: string }
   /** Items are flags ("item.<id>") until a real inventory exists. */
   | { kind: "giveItem"; item: string; label?: string }
+  /** M5: decrement a COUNTED item flag ("item.<id>" holding a number) —
+   *  Remnant cores are the first counted item. Clamped at 0. */
+  | { kind: "takeItem"; item: string; count?: number }
+  /** M5: apply a permanent Soulsmith upgrade by id (once per save; the
+   *  game records it in systems.soulsmith and mirrors "smith.<id>" flags
+   *  so dialogue conditions can hide sold-out choices). */
+  | { kind: "upgrade"; id: string }
   | { kind: "heal"; fraction?: number } // default full
   /** Move the player to another map ("" entry = the map's spawn). */
   | { kind: "moveMap"; map: string; entry?: string }

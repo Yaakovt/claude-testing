@@ -10,6 +10,8 @@
  *               Jade (giveStage behind stageGte Iron)
  *   act3.ts     HEAVEN'S GLORY — hospitality, the turn, the theft, the flight
  *   endings.ts  the gate choice + the three endings (E1/E2/E3) + ending cards
+ *   soulsmith.ts M5 — Fisher Gesha's crafting stall in the valley wilds
+ *               (Remnant cores + scales -> three once-per-save upgrades)
  *
  * Static integrity of the whole registry is enforced by
  * tools/checknarrative.mjs (graph targets, effect refs, objective-flag
@@ -20,6 +22,7 @@ import { registerAct1 } from "./act1.js";
 import { registerAct2 } from "./act2.js";
 import { registerAct3 } from "./act3.js";
 import { registerEndings } from "./endings.js";
+import { registerSoulsmith } from "./soulsmith.js";
 
 /** Call once at boot (main.ts), after the map registry has loaded. */
 export function registerStoryContent(): void {
@@ -27,4 +30,5 @@ export function registerStoryContent(): void {
   registerAct2();
   registerAct3();
   registerEndings();
+  registerSoulsmith();
 }

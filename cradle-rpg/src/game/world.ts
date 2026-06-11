@@ -44,7 +44,18 @@ import { Player } from "./player.js";
 import { Dreadbeast } from "./enemies/dreadbeast.js";
 import { spawnEnemies } from "./enemies/spawns.js";
 import { ScalePickup } from "./pickups.js";
-import { RemnantStub } from "./remnantStub.js";
+import {
+  HARVEST_BONUS_SCALES,
+  HARVEST_RADIUS,
+  HARVEST_SECONDS,
+  Remnant,
+  RemnantCorePickup,
+  REMNANT_SCALES_MAX,
+  REMNANT_SCALES_MIN,
+} from "./remnant.js";
+import { audio, music, Sfx } from "./sounds.js";
+import { rebuildPlayerStats, SOULSMITH_UPGRADES, upgradeFlag } from "./soulsmith.js";
+import { getTechnique } from "../systems/techniques.js";
 import { getMap, START_MAP, type MapEntry } from "./maps/registry.js";
 import { Shrine, spawnShrines } from "./shrine.js";
 import { Npc, type NpcContext, type NpcDef } from "./npc.js";
@@ -108,6 +119,11 @@ export class World {
   panelOpen = false;
   panelPage: "spirit" | "journal" = "spirit";
 
+  /** Soulsmith purchases (save v5) — stats are always REBUILT from this. */
+  purchased: string[] = [];
+  /** Remnant harvest channel state (world-owned; see src/game/remnant.ts). */
+  readonly harvest = { target: null as Remnant | null, t: 0 };
+
   /** Current map's spawn/respawn point. */
   get spawn(): { x: number; y: number } {
     return this.mapEntry.spawn;
@@ -131,6 +147,8 @@ export class World {
   private sceneEntities = new Map<string, Entity>();
   /** "— the Valley Wilds —" arrival caption. */
   private arrival = { name: "", t: 99 };
+  /** Baked terrain for the Jade minimap (rebuilt per map). */
+  private minimapCanvas: HTMLCanvasElement | null = null;
 
   constructor(opts: WorldOpts) {
     this.canvas = opts.canvas;
@@ -213,6 +231,12 @@ export class World {
         for (let s = Stage.Copper; s <= to; s++) {
           this.story.setFlag(`reached.${STAGE_NAMES[s as Stage].toLowerCase()}`);
         }
+        // M5: Soulsmith upgrades apply on the post-stage-up statline, so a
+        // stage-up rebuilds from scratch (deterministic with save/load).
+        if (this.purchased.length > 0) {
+          rebuildPlayerStats(this.player.stats, this.character.origin, this.purchased);
+        }
+        Sfx.stageUp();
       },
     });
     this.player.pc!.onBasicHit = (n) => this.advancement.recordBasicHits(n);
@@ -229,6 +253,23 @@ export class World {
     for (let s = Stage.Copper; s <= this.player.stats.stage; s++) {
       this.story.setFlag(`reached.${STAGE_NAMES[s as Stage].toLowerCase()}`);
     }
+
+    // Soulsmith upgrades re-apply via a full stat rebuild (deterministic:
+    // base -> stage-up chain -> upgrades), BEFORE the health/madra clamp.
+    const ss = existing?.systems["soulsmith"] as { purchased?: unknown } | undefined;
+    if (Array.isArray(ss?.purchased)) {
+      this.purchased = ss.purchased.filter(
+        (x): x is string => typeof x === "string" && x in SOULSMITH_UPGRADES,
+      );
+      if (this.purchased.length > 0) {
+        rebuildPlayerStats(this.player.stats, this.character.origin, this.purchased);
+      }
+    }
+
+    // Audio settings travel with the save (the engine is a global).
+    const as = existing?.systems["audio"] as { volume?: unknown; muted?: unknown } | undefined;
+    if (typeof as?.volume === "number") audio.setVolume(as.volume);
+    if (typeof as?.muted === "boolean") audio.setMuted(as.muted);
 
     const cs = existing?.systems["combat"] as Partial<CombatSave> | undefined;
     if (cs) {
@@ -247,22 +288,53 @@ export class World {
     // ---- death drops --------------------------------------------------------
     this.combat.onDeath = (victim) => {
       if (victim === this.player) return; // respawn sequence handles the player
+      // M4b documented game event: spawn-table onDeathFlag (duel wins,
+      // hunt targets, the gate-defense wave).
+      if (victim instanceof Dreadbeast && victim.storyDeathFlag) {
+        this.story.setFlag(victim.storyDeathFlag);
+      }
+      if (victim instanceof Remnant) {
+        // Subdued (harvested) Remnants paid out in updateRemnantHarvest.
+        if (!victim.subdued) {
+          const n =
+            REMNANT_SCALES_MIN +
+            Math.floor(Math.random() * (REMNANT_SCALES_MAX - REMNANT_SCALES_MIN + 1));
+          this.dropScales(victim.x, victim.y, n);
+          this.entities.add(
+            new RemnantCorePickup(victim.x, victim.y, this.player, () => this.collectCore()),
+          );
+        }
+        return;
+      }
+      if (victim.leavesRemnant) {
+        // A sacred artist's spirit tears free and fights on (lore §6.1).
+        this.entities.add(
+          new Remnant(
+            { map: this.map, combat: this.combat, player: this.player, entities: this.entities },
+            victim.x,
+            victim.y,
+            victim.stats,
+            victim.displayName,
+          ),
+        );
+        Sfx.remnantRise();
+        return;
+      }
       if (victim instanceof Dreadbeast) {
-        // M4b documented game event: spawn-table onDeathFlag (duel wins,
-        // hunt targets, the gate-defense wave).
-        if (victim.storyDeathFlag) this.story.setFlag(victim.storyDeathFlag);
         // Dreadbeasts leave no Remnant (lore §6.3) — render down to scales.
         this.dropScales(victim.x, victim.y, 1 + Math.floor(Math.random() * 3));
-      } else if (victim.leavesRemnant) {
-        // TODO(M5): real Remnant system — this is the stub hook.
-        this.entities.add(new RemnantStub(victim.x, victim.y));
       }
+    };
+    this.combat.onStrike = (victim) => {
+      if (victim === this.player) Sfx.hitTaken();
+      else Sfx.hitLanded();
     };
 
     this.camera.follow(this.player);
     this.camera.setScreenSize(this.canvas.width, this.canvas.height);
     this.camera.snapToTarget();
 
+    this.applyMusicScene();
     // An on-enter cutscene may greet even a restored save (once, by flag).
     this.maybeFireOnEnter();
   }
@@ -319,6 +391,7 @@ export class World {
     this.player.resetInterpolation();
 
     this.populateMap();
+    this.minimapCanvas = null; // rebaked lazily for the new terrain
     this.auraSight = new AuraSight(this.map);
     this.auraSight.enabled = this.player.stats.stage >= Stage.Copper;
     this.camera.setBounds(this.map.pixelWidth, this.map.pixelHeight);
@@ -326,7 +399,17 @@ export class World {
     this.camera.snapToTarget();
     this.arrival = { name: entry.name, t: 0 };
 
+    this.applyMusicScene();
     this.maybeFireOnEnter();
+  }
+
+  /** Pick the ambient bed for the current ground (M5). */
+  private applyMusicScene(): void {
+    const hostile = this.mapEntry.hostileFlag
+      ? this.story.flagTruthy(this.mapEntry.hostileFlag)
+      : false;
+    const peak = this.mapEntry.id === "samaraTrail" || this.mapEntry.id === "heavensGlory";
+    music.setScene(hostile ? "tense" : peak ? "peak" : "valley");
   }
 
   /** TEST HOOK (tools/smoke*.mjs): instant map swap, no fade. */
@@ -434,6 +517,24 @@ export class World {
         this.story.setFlag(`item.${e.item}`);
         this.fx.spawnText(p.x, p.y - 26, `received: ${e.label ?? e.item}`, "#e0c9a8", 1.4);
         break;
+      case "takeItem": {
+        // Counted item flags (Remnant cores): decrement, clamped at 0.
+        const key = `item.${e.item}`;
+        const cur = this.story.getFlag(key);
+        const n = typeof cur === "number" ? cur : cur ? 1 : 0;
+        this.story.setFlag(key, Math.max(0, n - (e.count ?? 1)));
+        break;
+      }
+      case "upgrade": {
+        const u = SOULSMITH_UPGRADES[e.id];
+        if (!u || this.purchased.includes(e.id)) break;
+        this.purchased.push(e.id);
+        this.story.setFlag(upgradeFlag(e.id)); // dialogue hides sold-out work
+        rebuildPlayerStats(p.stats, this.character.origin, this.purchased);
+        this.fx.spawnText(p.x, p.y - 26, `${u.name}: ${u.blurb}`, "#e0c9a8", 1.7);
+        Sfx.craft();
+        break;
+      }
       case "heal": {
         const f = e.fraction ?? 1;
         p.stats.health = Math.min(p.stats.maxHealth, p.stats.health + p.stats.maxHealth * f);
@@ -572,9 +673,71 @@ export class World {
         new ScalePickup(px, py, this.player, (value) => {
           this.gameState.scales += value;
           this.fx.spawnText(this.player.x, this.player.y - 26, `+${value} scale`, "#bfe3f2", 0.7);
+          Sfx.scale();
         }),
       );
     }
+  }
+
+  // ------------------------------------------------------ remnant harvest
+
+  /** Remnant cores live in the counted item flag (Soulsmithing stock). */
+  get remnantCores(): number {
+    const v = this.story.getFlag("item.remnantCore");
+    return typeof v === "number" ? v : v ? 1 : 0;
+  }
+
+  private collectCore(): void {
+    const n = this.remnantCores + 1;
+    this.story.setFlag("item.remnantCore", n);
+    this.fx.spawnText(this.player.x, this.player.y - 26, `Remnant core (${n})`, "#b88fd4", 1.3);
+    Sfx.scale();
+  }
+
+  /** The nearest still-harvestable Remnant within channel range. */
+  private freshRemnantNearby(): Remnant | null {
+    let best: Remnant | null = null;
+    let bestD = HARVEST_RADIUS;
+    for (const e of this.entities.all) {
+      if (e instanceof Remnant && e.fresh) {
+        const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        if (d <= bestD) {
+          best = e;
+          bestD = d;
+        }
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Hold E near a freshly-risen Remnant to channel a harvest: HARVEST_SECONDS
+   * of stillness subdues it intact (+1 core + bonus scales, no fight). Being
+   * hit-stunned, releasing E, or drifting out of range resets the channel —
+   * a drudge would make this easier; you don't have a drudge.
+   */
+  private updateRemnantHarvest(dt: number): void {
+    const h = this.harvest;
+    const p = this.player;
+    const target = this.freshRemnantNearby();
+    const channeling =
+      target !== null && this.input.held("interact") && p.hitstun <= 0 && p.stats.health > 0;
+    if (!channeling || target !== h.target) {
+      h.target = channeling ? target : null;
+      h.t = 0;
+      if (!h.target) return;
+    }
+    h.t += dt;
+    if (h.t < HARVEST_SECONDS || !h.target) return;
+    const t = h.target;
+    t.subdued = true;
+    this.entities.purge((e) => e === t);
+    this.collectCore();
+    this.dropScales(t.x, t.y, HARVEST_BONUS_SCALES);
+    this.fx.spawnText(t.x, t.y - 18, "Remnant subdued", "#cfdfef", 1.5);
+    Sfx.harvest();
+    h.target = null;
+    h.t = 0;
   }
 
   // ----------------------------------------------------- death & respawn
@@ -586,6 +749,7 @@ export class World {
         this.deathSeq.active = true;
         this.deathSeq.t = 0;
         player.controlEnabled = false;
+        Sfx.death();
       }
       return;
     }
@@ -635,6 +799,8 @@ export class World {
     data.systems["character"] = { ...this.character };
     data.systems["advancement"] = this.advancement.serialize();
     data.systems["story"] = this.story.serialize();
+    data.systems["audio"] = { volume: audio.volume, muted: audio.muted };
+    data.systems["soulsmith"] = { purchased: [...this.purchased] };
     return data;
   }
 
@@ -644,6 +810,11 @@ export class World {
     if (this.input.pressed("debug")) this.debug.toggle();
     this.hudTime += dt;
     this.arrival.t += dt;
+    music.update(dt);
+    if (this.input.keyPressed("KeyM")) {
+      const muted = audio.toggleMute();
+      this.fx.spawnText(this.player.x, this.player.y - 26, muted ? "sound off" : "sound on", "#8d97a8", 0.9);
+    }
 
     // Fades + transitions always advance, even while the sim is frozen.
     const sf = this.sceneFade;
@@ -695,6 +866,7 @@ export class World {
     this.combat.update(dt);
     this.entities.update(dt);
     this.fx.update(dt);
+    this.updateRemnantHarvest(dt);
     this.advancement.update(dt);
     this.updateDeathSequence(dt);
     this.auraSight.update(dt);
@@ -724,6 +896,132 @@ export class World {
       ctx.fillStyle = fill;
       ctx.fillRect(x + 1.5, y + 1.5, Math.max(1, (w - 2) * Math.min(1, frac)), h - 2);
     }
+  }
+
+  /** M5: K/L/U/I slots bottom-right — cost dimming + cooldown sweep. */
+  private drawTechniqueSlots(): void {
+    const ctx = this.ctx;
+    const caster = this.player.pc?.caster;
+    if (!caster) return;
+    const keys = ["K", "L", "U", "I"];
+    const size = 30;
+    const gap = 6;
+    const x0 = this.canvas.width - 4 * size - 3 * gap - 14;
+    const y0 = this.canvas.height - size - 14;
+    for (let i = 0; i < 4; i++) {
+      const x = x0 + i * (size + gap);
+      const id = caster.slots[i] ?? null;
+      const def = id ? getTechnique(id) : undefined;
+      ctx.fillStyle = "rgba(10, 8, 18, 0.7)";
+      ctx.fillRect(x, y0, size, size);
+      if (def) {
+        const affordable = this.player.stats.madra >= def.madraCost;
+        // Initial of the technique, dimmed when madra can't pay for it.
+        ctx.font = "bold 13px Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = affordable ? "#cfc8e8" : "rgba(92, 84, 120, 0.9)";
+        ctx.fillText(def.name.charAt(0), x + size / 2, y0 + size / 2 + 2);
+        // Cooldown sweep: a dark column draining downward as it recovers.
+        const remaining = caster.cooldownOf(def.id);
+        if (remaining > 0 && def.cooldown > 0) {
+          const f = Math.min(1, remaining / def.cooldown);
+          ctx.fillStyle = "rgba(5, 4, 10, 0.72)";
+          ctx.fillRect(x, y0, size, size * f);
+        }
+        ctx.textAlign = "left";
+      } else {
+        ctx.font = "12px Georgia, serif";
+        ctx.fillStyle = "rgba(92, 84, 120, 0.6)";
+        ctx.fillText("—", x + size / 2 - 4, y0 + size / 2 + 2);
+      }
+      ctx.strokeStyle = def ? "#6d4f94" : "rgba(109, 79, 148, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y0 + 0.5, size, size);
+      ctx.font = "9px Georgia, serif";
+      ctx.fillStyle = "#8d97a8";
+      ctx.fillText(keys[i]!, x + 2, y0 + 9);
+    }
+  }
+
+  /** M5: harvest prompt + channel progress for a fresh Remnant. */
+  private drawHarvestHud(): void {
+    const ctx = this.ctx;
+    const target = this.freshRemnantNearby();
+    if (!target) return;
+    const w = this.canvas.width;
+    const y = this.canvas.height - 64;
+    ctx.textAlign = "center";
+    if (this.harvest.target && this.harvest.t > 0) {
+      const f = Math.min(1, this.harvest.t / HARVEST_SECONDS);
+      const bw = 150;
+      ctx.fillStyle = "rgba(10, 8, 18, 0.8)";
+      ctx.fillRect(w / 2 - bw / 2 - 2, y - 10, bw + 4, 14);
+      ctx.fillStyle = "#b88fd4";
+      ctx.fillRect(w / 2 - bw / 2, y - 8, bw * f, 10);
+      ctx.font = "italic 11px Georgia, serif";
+      ctx.fillStyle = "#cfdfef";
+      ctx.fillText("subduing the Remnant…", w / 2, y + 18);
+    } else {
+      ctx.font = "italic 12px Georgia, serif";
+      ctx.fillStyle = "rgba(207, 223, 239, 0.85)";
+      ctx.fillText("hold E — harvest the Remnant", w / 2, y);
+    }
+    ctx.textAlign = "left";
+  }
+
+  /** M5: Jade's aura-sense payoff — a corner minimap with enemy motes. */
+  private drawMinimap(): void {
+    if (this.player.stats.stage < Stage.Jade) return;
+    const ctx = this.ctx;
+    if (!this.minimapCanvas) this.buildMinimap();
+    const mini = this.minimapCanvas;
+    if (!mini) return;
+    const scale = 2;
+    const mw = this.map.width * scale;
+    const mh = this.map.height * scale;
+    const x0 = this.canvas.width - mw - 14;
+    const y0 = 14;
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(mini, x0, y0, mw, mh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "#6d4f94";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x0 - 0.5, y0 - 0.5, mw + 1, mh + 1);
+    const dot = (wx: number, wy: number, color: string, r: number): void => {
+      ctx.fillStyle = color;
+      ctx.fillRect(
+        Math.round(x0 + (wx / TILE_SIZE) * scale) - r,
+        Math.round(y0 + (wy / TILE_SIZE) * scale) - r,
+        r * 2,
+        r * 2,
+      );
+    };
+    // Spirit-sense: living madra within ~12 tiles reads as motes.
+    const sense = 12 * TILE_SIZE;
+    for (const e of this.entities.all) {
+      if ((e instanceof Dreadbeast || e instanceof Remnant) && e.alive) {
+        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) <= sense) {
+          dot(e.x, e.y, e instanceof Remnant ? "#b88fd4" : "#cc4434", 1);
+        }
+      }
+    }
+    dot(this.player.x, this.player.y, "#e0c9a8", 1);
+  }
+
+  /** Bake the current map's terrain to a tiny offscreen canvas, once. */
+  private buildMinimap(): void {
+    const c = document.createElement("canvas");
+    c.width = this.map.width;
+    c.height = this.map.height;
+    const mctx = c.getContext("2d");
+    if (!mctx) return;
+    for (let ty = 0; ty < this.map.height; ty++) {
+      for (let tx = 0; tx < this.map.width; tx++) {
+        mctx.fillStyle = this.map.isSolid(tx, ty) ? "#3d3656" : "#16131f";
+        mctx.fillRect(tx, ty, 1, 1);
+      }
+    }
+    this.minimapCanvas = c;
   }
 
   private drawHud(): void {
@@ -808,6 +1106,9 @@ export class World {
       ctx.textAlign = "left";
     }
 
+    this.drawTechniqueSlots();
+    this.drawHarvestHud();
+    this.drawMinimap();
     this.drawChannelOverlay();
     this.drawCeremony();
 

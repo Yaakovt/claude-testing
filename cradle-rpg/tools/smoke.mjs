@@ -120,7 +120,9 @@ try {
   ok(T.world === null, "boot lands on the title screen, not the world");
   ok(T.screens.state === "title", "title state active");
   tap("KeyZ"); // press any key
-  ok(T.screens.state === "origin", "no save -> straight to origin choice");
+  ok(T.screens.state === "slots", "title -> save-slot picker (M5)");
+  tap("KeyE"); // slot 1 (empty)
+  ok(T.screens.state === "origin", "empty slot -> straight to origin choice");
   tap("ArrowDown"); // wei -> li
   tap("ArrowDown"); // li -> kazan
   tap("ArrowUp"); // back to li
@@ -425,8 +427,8 @@ try {
     `slitherer dropped 1-3 scales (got ${dropped}) — dreadbeasts leave no Remnant`,
   );
   ok(
-    !entities.all.some((e) => e instanceof classes.RemnantStub),
-    "no Remnant stub spawned for a dreadbeast",
+    !entities.all.some((e) => e instanceof classes.Remnant),
+    "no Remnant spawned for a dreadbeast",
   );
   for (const s of pickups) {
     teleport(player, s.x, s.y);
@@ -617,7 +619,7 @@ try {
   const saved = storage.get("path-of-ascension.save");
   if (!saved) throw new Error("pagehide did not write a save");
   const parsed = JSON.parse(saved);
-  ok(parsed.version === 4, `save is version 4 (got ${parsed.version})`);
+  ok(parsed.version === 5, `save is version 5 (got ${parsed.version})`);
   ok(typeof parsed.player.x === "number", "save has player position");
   ok(parsed.player.map === "valleyWilds", `save carries the map id (got ${parsed.player.map})`);
   ok(parsed.player.stage === "Iron", `save carries the stage label (got ${parsed.player.stage})`);

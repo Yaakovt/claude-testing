@@ -407,16 +407,18 @@ export function registerAct3(): void {
   ]);
 
   // The school's enforcers, once the ground turns hostile (forever — exile).
+  // M5: real HUMANOID sacred artists (kind "enforcer") — killing one tears
+  // its Remnant free (lore §6.1; src/game/remnant.ts).
   addMapEnemies("heavensGlory", [
-    { kind: "stalker", tx: 19, ty: 24, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
-    { kind: "stalker", tx: 12, ty: 18, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
-    { kind: "stalker", tx: 30, ty: 20, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
+    { kind: "enforcer", tx: 19, ty: 24, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
+    { kind: "enforcer", tx: 12, ty: 18, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
+    { kind: "enforcer", tx: 30, ty: 20, ifFlag: "heavensGlory.hostile", name: "Heaven's Glory enforcer" },
   ]);
 
   // Pursuit on the trail during the flight; gone once you've broken through.
   addMapEnemies("samaraTrail", [
     {
-      kind: "stalker",
+      kind: "enforcer",
       tx: 19,
       ty: 6,
       ifFlag: "heavensGlory.hostile",
@@ -424,7 +426,7 @@ export function registerAct3(): void {
       name: "Heaven's Glory enforcer",
     },
     {
-      kind: "stalker",
+      kind: "enforcer",
       tx: 8,
       ty: 11,
       ifFlag: "heavensGlory.hostile",

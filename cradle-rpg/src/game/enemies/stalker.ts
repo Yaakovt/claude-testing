@@ -74,11 +74,16 @@ const WINDUP_TIME = 0.5;
 const RECOVER_TIME = 0.5;
 
 export class HollowStalker extends Dreadbeast {
+  // M5 balance pass: 60 HP / 3 def let an Iron player (atk 11) delete it in
+  // 7 swings — the "RUN" monster fell over the moment you matched stages.
+  // 75 HP / 4 def makes the post-Iron rematch a ~10-swing fight while its
+  // 9-attack still chunks ~7 off an Iron player per hit; a Foundation
+  // player's hits still chip 1 (asserted in tools/checkcombat.mjs).
   stats: Stats = makeStats({
-    maxHealth: 60,
+    maxHealth: 75,
     maxMadra: 0,
     attackPower: 9,
-    defense: 3,
+    defense: 4,
     moveSpeed: PROWL_SPEED,
     stage: Stage.Iron,
   });

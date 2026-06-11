@@ -8,7 +8,7 @@
     "build": "npx tsc",
     "serve": "node tools/serve.mjs",
     "start": "npx tsc && node tools/serve.mjs",
-    "check": "node tools/checkmap.mjs && node tools/checkworld.mjs && node tools/checkcombat.mjs && node tools/checkadvance.mjs && node tools/checkstory.mjs && node tools/checknarrative.mjs && node tools/smoke.mjs && node tools/smokeUnsouled.mjs && node tools/smokeContinue.mjs && ENDING=1 node tools/smokeEndings.mjs && ENDING=2 node tools/smokeEndings.mjs && ENDING=3 node tools/smokeEndings.mjs"
+    "check": "node tools/checkmap.mjs && node tools/checkworld.mjs && node tools/checkcombat.mjs && node tools/checkadvance.mjs && node tools/checkstory.mjs && node tools/checknarrative.mjs && node tools/checkm5.mjs && node tools/smoke.mjs && node tools/smokeUnsouled.mjs && node tools/smokeContinue.mjs && node tools/smokeRemnant.mjs && ENDING=1 node tools/smokeEndings.mjs && ENDING=2 node tools/smokeEndings.mjs && ENDING=3 node tools/smokeEndings.mjs"
   },
   "dependencies": {},
   "devDependencies": {}

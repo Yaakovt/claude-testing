@@ -85,7 +85,8 @@ const talkTo = (npc) => { teleport(T.player, npc.x + 2, npc.y + 8); frames(2); t
 // Creation (wei).
 frames(5);
 tap("KeyZ");
-tap("KeyE");
+tap("KeyE"); // slot 1 (empty) — M5 slot picker
+tap("KeyE"); // wei
 tap("Enter");
 frames(5);
 drive(); // opening

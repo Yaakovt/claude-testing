@@ -22,8 +22,40 @@ const STORAGE_KEY = "path-of-ascension.save";
  *     becomes "valleyWilds"), flags carries story flags, and systems.story =
  *     StorySave { reputation, resolve, knowledge, questsActive,
  *     questsCompleted } (migration in src/game/main.ts).
+ * v5: M5 — systems.audio = { volume, muted } and systems.soulsmith =
+ *     { purchased: string[] } (migration in src/game/main.ts; Remnant cores
+ *     live in flags as a number — "item.remnantCore" — and need no bump).
  */
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
+
+// ------------------------------------------------------------- save slots
+//
+// M5: three save slots, selected on the title screen. Slot 1 keeps the
+// historical unsuffixed key, so every pre-M5 save automatically becomes
+// slot 1; slots 2-3 append a ".slotN" suffix. All save/load/clear calls
+// operate on the ACTIVE slot.
+
+export const SLOT_COUNT = 3;
+
+let activeSlot = 1;
+
+/** The localStorage key backing a slot (slot 1 = the legacy key). */
+export function storageKeyFor(slot: number): string {
+  return slot <= 1 ? STORAGE_KEY : `${STORAGE_KEY}.slot${slot}`;
+}
+
+export function setActiveSlot(slot: number): void {
+  activeSlot = Math.min(SLOT_COUNT, Math.max(1, Math.round(slot)));
+}
+
+export function getActiveSlot(): number {
+  return activeSlot;
+}
+
+/** Load+migrate a slot WITHOUT changing the active slot (title picker). */
+export function peekSlot(slot: number): SaveData | null {
+  return loadKey(storageKeyFor(slot));
+}
 
 export interface SaveData {
   version: number;
@@ -78,16 +110,16 @@ function migrate(raw: Record<string, unknown>): SaveData | null {
 export function save(data: SaveData): boolean {
   try {
     data.savedAt = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(storageKeyFor(activeSlot), JSON.stringify(data));
     return true;
   } catch {
     return false; // storage full / disabled
   }
 }
 
-export function load(): SaveData | null {
+function loadKey(key: string): SaveData | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
@@ -97,9 +129,15 @@ export function load(): SaveData | null {
   }
 }
 
+/** Load+migrate the ACTIVE slot. */
+export function load(): SaveData | null {
+  return loadKey(storageKeyFor(activeSlot));
+}
+
+/** Erase the ACTIVE slot only. */
 export function clearSave(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKeyFor(activeSlot));
   } catch {
     /* ignore */
   }
