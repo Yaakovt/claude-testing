@@ -26,6 +26,8 @@ export class PixelSprite {
   private palette: Record<string, string>;
   private baked: HTMLCanvasElement | null = null;
   private bakedFlipped: HTMLCanvasElement | null = null;
+  private bakedFlash: HTMLCanvasElement | null = null;
+  private bakedFlashFlipped: HTMLCanvasElement | null = null;
 
   constructor(rows: string[], palette: Record<string, string>) {
     if (rows.length === 0) throw new Error("PixelSprite: empty rows");
@@ -44,7 +46,7 @@ export class PixelSprite {
   }
 
   /** Bake this sprite's pixels onto a fresh offscreen canvas. */
-  private bake(flip: boolean): HTMLCanvasElement {
+  private bake(flip: boolean, colorOverride?: string): HTMLCanvasElement {
     const canvas = document.createElement("canvas");
     canvas.width = this.width;
     canvas.height = this.height;
@@ -55,7 +57,7 @@ export class PixelSprite {
       for (let x = 0; x < this.width; x++) {
         const color = this.palette[row[x]!];
         if (color === undefined) continue; // transparent
-        ctx.fillStyle = color;
+        ctx.fillStyle = colorOverride ?? color;
         ctx.fillRect(flip ? this.width - 1 - x : x, y, 1, 1);
       }
     }
@@ -75,6 +77,20 @@ export class PixelSprite {
       ctx.drawImage(this.bakedFlipped, Math.round(x), Math.round(y));
     } else {
       ctx.drawImage(this.image, Math.round(x), Math.round(y));
+    }
+  }
+
+  /**
+   * Draw a solid-white silhouette of the sprite (combat hit flash).
+   * Set ctx.globalAlpha before calling to control flash strength.
+   */
+  drawFlash(ctx: CanvasRenderingContext2D, x: number, y: number, flip = false): void {
+    if (flip) {
+      if (!this.bakedFlashFlipped) this.bakedFlashFlipped = this.bake(true, "#ffffff");
+      ctx.drawImage(this.bakedFlashFlipped, Math.round(x), Math.round(y));
+    } else {
+      if (!this.bakedFlash) this.bakedFlash = this.bake(false, "#ffffff");
+      ctx.drawImage(this.bakedFlash, Math.round(x), Math.round(y));
     }
   }
 }

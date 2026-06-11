@@ -1,10 +1,10 @@
-# Architecture (as of M1 — walkable world)
+# Architecture (as of M2 — first blood)
 
 Zero-dependency TypeScript + Canvas. `npm run build` (strict tsc) compiles
 `src/` to `dist/`; `index.html` loads `dist/game/main.js` as a native ES
 module — **all imports must use explicit `.js` extensions**. `npm run check`
-runs headless sanity tests (map integrity, collision, boot smoke test) —
-keep it green.
+runs headless sanity tests (map integrity, collision, combat math, boot +
+combat smoke test) — keep it green.
 
 ## Module map
 
@@ -26,12 +26,36 @@ src/engine/            reusable, game-agnostic
 src/game/              this game
   tiles.ts             T tile-id table + TILESET: TileDef[] (Sacred Valley tiles)
   maps/testValley.ts   40x30 ASCII-authored map + spawn point
-  player.ts            Player entity, 16x24 Wei-clan sprite, 8-dir movement @90px/s
-  main.ts              boot: canvas, world, camera, HUD, save wiring, loop
+  player.ts            Player (a Combatant), 16x24 Wei-clan sprite, 8-dir movement @90px/s,
+                       cycling aura + slash visuals; wireCombat() hooks up PlayerCombat
+  playerCombat.ts      J/click 2-hit combo, Space dodge (i-frames, 5 madra),
+                       C-hold cycling (35% speed, +50% dmg taken, +20% madra/s),
+                       K/L/U/I technique slots via TechniqueCaster
+  techniques.ts        game technique DATA (M2: "Burst of Effort" Enforcer stub) +
+                       default slot assignment — M3 adds Path techniques here
+  pickups.ts           ScalePickup (forged-madra currency diamonds, collect on touch)
+  remnantStub.ts       RemnantStub — harmless fading wisp; TODO(M5) real Remnant system
+  enemies/dreadbeast.ts  AI base: state machine scaffold, proximity+LOS aggro,
+                       leash home, separation steering, HP pips, windup jitter
+  enemies/slitherer.ts Foundation serpent: patrol + lunge bite (starter food)
+  enemies/boar.ts      Copper boar: telegraphed overshooting charge, wall-stun punish
+  enemies/stalker.ts   Iron stalker: prowl bursts faster than the player; says RUN
+  enemies/spawns.ts    testValley placement table + spawner
+  main.ts              boot: world, combat wiring, enemies, HUD (bars/scales/labels),
+                       death/respawn sequence, hit-pause, save v2, loop
 
-src/systems/           (planned, M2+) combat, madra/cycling, techniques, advancement, AI
+src/systems/           game-rule systems (engine-agnostic of specific entities)
+  stats.ts             Stage enum, Stats, computeDamage() — the PURE stage-gap
+                       damage formula (2^gap, asymmetric defense; unit-tested)
+  combat.ts            Combatant base (hitstun/iframes/flash/knockback/buffs/dissolve)
+                       + CombatSystem (attack arcs, strikes, hit-pause, shake, onDeath)
+  techniques.ts        TechniqueDef registry + TechniqueCaster (Enforcer/Striker/
+                       Ruler/Forger taxonomy; data-driven — M3 only adds defs)
+  fx.ts                FxManager: floating damage numbers / text pops
 src/content/           (planned, M4) dialogue, quests, flags
-tools/                 serve.mjs (static server), checkmap.mjs + smoke.mjs (npm run check)
+tools/                 serve.mjs (static server); npm run check =
+                       checkmap.mjs + checkcombat.mjs (damage table, techniques,
+                       LOS) + smoke.mjs (boot + scripted combat scenario)
 ```
 
 Render order each frame: ground+flat decor → y-sorted (entities merged with
@@ -77,12 +101,22 @@ and `registerMigration(newVersion, old => upgraded)` so old saves keep
 loading. `main.ts` already autosaves every 10s and on pagehide via
 `buildSave()` — extend that function when you add persistent state.
 
-## Where systems plug in (M2+)
+## Where systems plug in (as wired in M2)
 
-- Per-tick logic: a system object with `update(dt, world)` called from the
-  loop in `main.ts` before `entities.update` — keep `input.endFrame()` last.
-- Screen shake on hits: `camera.shake(px, seconds)` already works.
-- HUD: `drawHud()` in `main.ts` reserves the top-left "Foundation" label and
-  the empty madra bar frame — fill the bar from your madra system.
-- Input: combat actions (`attack`, `tech1..4`, `dodge`, `cycle`, `interact`,
-  `sheet`) are already bound in `src/engine/input.ts`.
+- Per-tick order in `main.ts`: hit-pause gate → `combat.update` →
+  `entities.update` → `fx.update` → death sequence → map/camera —
+  keep `input.endFrame()` last.
+- Combatants: extend `Combatant` (src/systems/combat.ts), call
+  `tickCombat(dt, map)` first in update() (returns true → skip acting) and
+  render via `drawWithEffects()` for hit-flash + death dissolve.
+- New enemies: extend `Dreadbeast` (state machine + aggro/leash/separation
+  for free), implement `think(dt)`, add a row to `enemies/spawns.ts`.
+- Death drops are game policy: `combat.onDeath` in `main.ts` (dreadbeasts →
+  scales, `leavesRemnant` foes → RemnantStub; real Remnants are M5).
+- New techniques (M3): add a `TechniqueDef` in `src/game/techniques.ts`,
+  register it, point a K/L/U/I slot at its id. No plumbing changes.
+- Balance: ALL stage-gap math lives in `computeDamage()` in
+  src/systems/stats.ts — keep it pure; tools/checkcombat.mjs asserts the
+  doubling/halving table.
+- Headless testing: `main.ts` exposes `globalThis.__poaTest` (player,
+  entities, combat, classes…) for tools/smoke.mjs scenario scripting.

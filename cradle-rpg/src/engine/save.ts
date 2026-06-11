@@ -11,7 +11,12 @@
 
 const STORAGE_KEY = "path-of-ascension.save";
 
-export const SAVE_VERSION = 1;
+/**
+ * v1: M1 — player position/facing only.
+ * v2: M2 — systems.combat = { health, madra, scales } (migration lives in
+ *     src/game/main.ts, since the defaults are game knowledge).
+ */
+export const SAVE_VERSION = 2;
 
 export interface SaveData {
   version: number;

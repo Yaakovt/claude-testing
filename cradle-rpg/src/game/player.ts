@@ -6,13 +6,22 @@
  * sliding collision, 4-direction facing with a 2-frame walk cycle.
  * Sprite is 16x24; the left-facing frames are the right-facing frames
  * flipped at draw time.
+ *
+ * M2: the Player is a Combatant (stats, knockback, i-frames, hit flash) and
+ * delegates attacks/dodge/cycling/techniques to PlayerCombat — call
+ * wireCombat() once after construction.
  */
 
 import { Animation, definePixelFrames, type PixelSprite } from "../engine/sprites.js";
-import { Entity, type Facing } from "../engine/entity.js";
+import { type Facing } from "../engine/entity.js";
+import type { EntityManager } from "../engine/entity.js";
 import { moveAndCollide } from "../engine/collision.js";
 import type { Input } from "../engine/input.js";
 import type { Tilemap } from "../engine/tilemap.js";
+import { Combatant, facingVector, type CombatSystem } from "../systems/combat.js";
+import { makeStats, Stage, type Stats } from "../systems/stats.js";
+import type { FxManager } from "../systems/fx.js";
+import { PlayerCombat } from "./playerCombat.js";
 
 export const PLAYER_WALK_SPEED = 90; // world px/s
 
@@ -138,9 +147,21 @@ function makeSprites(): Record<Facing, FacingSprites> {
   };
 }
 
-export class Player extends Entity {
-  speed = PLAYER_WALK_SPEED;
+export class Player extends Combatant {
+  stats: Stats = makeStats({
+    maxHealth: 40,
+    maxMadra: 30,
+    attackPower: 6,
+    defense: 1,
+    moveSpeed: PLAYER_WALK_SPEED,
+    stage: Stage.Foundation,
+  });
+
+  /** False during the death/respawn sequence (main.ts drives it). */
+  controlEnabled = true;
   moving = false;
+  /** Combat controller; assigned by wireCombat() right after construction. */
+  pc: PlayerCombat | null = null;
 
   private input: Input;
   private map: Tilemap;
@@ -154,25 +175,50 @@ export class Player extends Entity {
     this.y = y;
     this.hitbox = { offsetX: -5, offsetY: -8, w: 10, h: 8 };
     this.sprites = makeSprites();
+    this.displayName = "Wei disciple";
+    this.despawnOnDeath = false; // death = fade + respawn, handled in main.ts
+    this.leavesRemnant = true; // a sacred artist (unused while we respawn)
     this.resetInterpolation();
   }
 
+  /** Hook up the combat system (call once from main after construction). */
+  wireCombat(combat: CombatSystem, entities: EntityManager, fx: FxManager | null): void {
+    this.pc = new PlayerCombat(this, this.input, combat, entities, fx);
+  }
+
+  get cyclingActive(): boolean {
+    return this.pc?.cycling ?? false;
+  }
+
   override update(dt: number): void {
+    const blocked = this.tickCombat(dt, this.map);
+    const canAct = !blocked && this.controlEnabled && this.stats.health > 0;
+
     // --- read directional input ---
     let dx = 0;
     let dy = 0;
-    if (this.input.held("left")) dx -= 1;
-    if (this.input.held("right")) dx += 1;
-    if (this.input.held("up")) dy -= 1;
-    if (this.input.held("down")) dy += 1;
+    if (canAct) {
+      if (this.input.held("left")) dx -= 1;
+      if (this.input.held("right")) dx += 1;
+      if (this.input.held("up")) dy -= 1;
+      if (this.input.held("down")) dy += 1;
+    }
 
-    this.moving = dx !== 0 || dy !== 0;
+    this.pc?.update(dt, canAct, dx, dy);
 
-    if (this.moving) {
+    // --- decide velocity ---
+    let vx = 0;
+    let vy = 0;
+    const override = canAct ? (this.pc?.velocityOverride() ?? null) : null;
+    if (override) {
+      vx = override.x;
+      vy = override.y;
+    } else if (canAct && (dx !== 0 || dy !== 0)) {
       // Normalize so diagonals aren't faster.
       const len = Math.hypot(dx, dy);
-      this.vx = (dx / len) * this.speed;
-      this.vy = (dy / len) * this.speed;
+      const speed = this.stats.moveSpeed * this.speedMult * (this.pc?.speedFactor ?? 1);
+      vx = (dx / len) * speed;
+      vy = (dy / len) * speed;
 
       // Facing: dominant axis wins; horizontal wins ties so strafing reads well.
       if (Math.abs(dx) >= Math.abs(dy)) {
@@ -180,27 +226,66 @@ export class Player extends Entity {
       } else {
         this.facing = dy > 0 ? "down" : "up";
       }
+    }
+
+    this.vx = vx;
+    this.vy = vy;
+    this.moving = vx !== 0 || vy !== 0;
+    if (this.moving) {
       this.sprites[this.facing].walk.update(dt);
     } else {
-      this.vx = 0;
-      this.vy = 0;
       this.sprites[this.facing].walk.reset();
     }
 
     // --- move with axis-separated sliding collision ---
-    const box = this.aabb;
-    const res = moveAndCollide(box, this.vx * dt, this.vy * dt, this.map);
-    this.x = res.x - this.hitbox.offsetX;
-    this.y = res.y - this.hitbox.offsetY;
+    if (this.moving) {
+      const res = moveAndCollide(this.aabb, this.vx * dt, this.vy * dt, this.map);
+      this.x = res.x - this.hitbox.offsetX;
+      this.y = res.y - this.hitbox.offsetY;
+    }
   }
 
   override draw(ctx: CanvasRenderingContext2D, alpha: number): void {
+    const cx = this.renderX(alpha);
+    const cy = this.renderY(alpha);
+
+    // Cycling aura: soft pulsing rings of madra around the artist.
+    if (this.pc?.cycling) {
+      const t = this.pc.cycleTime;
+      const pulse = Math.sin(t * 5);
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(138, 108, 192, ${0.45 + 0.2 * pulse})`;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 8, 11 + pulse * 1.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(186, 164, 224, ${0.25 + 0.15 * -pulse})`;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 8, 6.5 - pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     const set = this.sprites[this.facing];
     const sprite = this.moving ? set.walk.frame : set.idle;
     // Anchor = center of feet; sprite is 16 wide, feet sit on row 22 of 24.
-    const rx = this.renderX(alpha) - sprite.width / 2;
-    const ry = this.renderY(alpha) - (sprite.height - 1);
-    sprite.draw(ctx, rx, ry, set.flip);
+    const rx = cx - sprite.width / 2;
+    const ry = cy - (sprite.height - 1);
+    this.drawWithEffects(ctx, sprite, rx, ry, set.flip);
+
+    // Short-lived slash arc in front of the player when a swing starts.
+    const slash = this.pc?.slashAlpha ?? 0;
+    if (slash > 0) {
+      const { dx, dy } = facingVector(this.facing);
+      const ang = Math.atan2(dy, dx);
+      ctx.save();
+      ctx.strokeStyle = `rgba(242, 236, 216, ${0.7 * slash})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 4, 13, ang - 0.7, ang + 0.7);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 }
 
