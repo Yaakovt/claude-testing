@@ -40,6 +40,7 @@ import generate  # noqa: E402  (decorators populate generate.BLOCKS / generate.I
 from medieval_lib import Rng, canvas  # noqa: E402
 from medievalize import medievalize, is_tinted  # noqa: E402
 import custom  # noqa: E402
+import items_hd  # noqa: E402
 
 # vanilla top-level dirs we deliberately leave untouched (vanilla fallback):
 #   colormap — biome tint maps; recolouring them would skew every grass/leaf
@@ -73,13 +74,18 @@ def special(out_rel, im, size):
     return None
 
 
-def bespoke_block(name, ref_size):
-    """Bespoke procedural art for blocks only (vanilla item icons look better
-    medieval-graded than hand-redrawn, so items are never overridden)."""
-    if ref_size == (16, 16) and name in generate.BLOCKS:
+def bespoke(out_top, name, ref_size):
+    """Hand-authored art: bespoke blocks (generate.py) and hand-drawn item
+    pixel art (items_hd.py). Items not covered fall back to the graded vanilla
+    icon, which beats a crude redraw."""
+    if ref_size != (16, 16):
+        return None
+    if out_top == "block" and name in generate.BLOCKS:
         im = canvas()
         generate.BLOCKS[name](im, Rng("block:" + name))
         return im
+    if out_top == "item":
+        return items_hd.get(name)
     return None
 
 
@@ -112,8 +118,8 @@ def main():
                 has_meta = os.path.exists(src + ".mcmeta")
                 name = fn[:-4]
                 art = special(out_rel, im, size)        # hand-authored overrides first
-                if art is None and not has_meta:         # bespoke blocks (keep mcmeta layouts intact)
-                    art = bespoke_block(name, size)
+                if art is None and not has_meta:         # bespoke blocks/items (keep mcmeta layouts intact)
+                    art = bespoke(out_top, name, size)
                 if art is not None:
                     n_bespoke += 1
                 else:

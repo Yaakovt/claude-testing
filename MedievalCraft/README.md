@@ -12,8 +12,11 @@ resolution, so nothing renders as a missing-texture checkerboard.
 
 - **1,083 block** textures — the most-seen ones are bespoke handcrafted pixel
   art (masonry, iron-banded woodwork); the rest are graded through the filter.
-- **747 item** textures — the detailed vanilla icons warm-graded (hand-redrawn
-  icons looked worse, so the real art is used and toned).
+- **747 item** textures — the core gameplay items (all tools/weapons in every
+  material, armour, ingots, gems, nuggets, sticks, food) are **hand-drawn**
+  pixel art (`tools/items_hd.py`) with proper outline + highlight/mid/shadow
+  shading and a consistent light source. The hundreds of niche items (potions,
+  discs, spawn eggs, smithing templates…) use the warm-graded vanilla icon.
 - **577 entity textures** — every mob, plus banners, shields, decorated pots,
   beds, fishing bobbers and equipment, keeping all of vanilla's hand-drawn
   detail recoloured to the aged palette. The **Ender Dragon is reskinned as a
