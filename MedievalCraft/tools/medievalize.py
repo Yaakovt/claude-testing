@@ -1,32 +1,26 @@
 """
-medievalize.py — the medieval "aging" filter applied to vanilla reference
+medievalize.py — the medieval colour grade applied to vanilla reference
 textures. Preserves shape and alpha (so animations, UV maps and 9-slice GUI
-sprites stay valid) while remapping colour toward an aged, weathered,
-parchment-and-iron palette.
+sprites stay valid) while pushing colour toward a warm, torch-lit, heraldic
+medieval look.
 
-The transform:
-  * partial desaturation (hand-mixed-pigment feel)
-  * luminance-keyed sepia ramp blended in (warms shadows, parchments highlights)
-  * a gentle warm multiply
-  * light posterize-style contrast (painted, not photographic)
-  * faint deterministic grain (age / canvas texture)
+This is a RICH grade, not a desaturating sepia wash: colours stay vivid, the
+white balance goes warm/amber, contrast deepens for moody depth, and shadows
+pick up a torch-glow warmth. No grain.
 
 `gentle=True` is used for biome-tinted textures (grass, leaves, water…) which
-vanilla keeps near-greyscale and tints at runtime — we touch those lightly so
-the colormap still reads.
+vanilla keeps near-greyscale and tints at runtime — we touch those at half
+strength so the colormap still reads.
 """
 import numpy as np
 from PIL import Image
 
 _LUM = np.array([0.299, 0.587, 0.114], dtype=np.float32)
-_DARK = np.array([46, 34, 24], dtype=np.float32)       # aged shadow
-_LIGHT = np.array([234, 222, 192], dtype=np.float32)    # parchment highlight
-_WARM = np.array([1.06, 1.00, 0.86], dtype=np.float32)  # candle-warm tint
+_WARM_SHADOW = np.array([42, 24, 8], dtype=np.float32)   # amber torch-glow in darks
 
 
 def medievalize(im, strength=1.0, gentle=False):
-    if gentle:
-        strength *= 0.45
+    s = strength * (0.5 if gentle else 1.0)
     im = im.convert("RGBA")
     arr = np.asarray(im).astype(np.float32)
     rgb = arr[..., :3]
@@ -34,34 +28,25 @@ def medievalize(im, strength=1.0, gentle=False):
 
     lum = (rgb @ _LUM)[..., None]
 
-    # desaturate
-    sat = 1.0 - 0.50 * strength
-    rgb = lum + (rgb - lum) * sat
+    # keep colour vivid (slight boost, NOT a desaturation)
+    rgb = lum + (rgb - lum) * (1.0 + 0.10 * s)
 
-    # sepia ramp keyed on luminance
-    t = lum / 255.0
-    sepia = _DARK + (_LIGHT - _DARK) * t
-    blend = (0.18 if gentle else 0.35) * strength
-    rgb = rgb * (1 - blend) + sepia * blend
+    # deepen contrast for moody, candle-lit depth
+    rgb = (rgb - 120.0) * (1.0 + 0.16 * s) + 120.0
 
-    # warm multiply (skip most of it when gentle, to keep tint maps neutral)
-    warm = _WARM if not gentle else (1 + (_WARM - 1) * 0.3)
-    rgb = rgb * warm
+    # warm white balance (lift reds, drop blues -> torchlight / parchment)
+    rgb = rgb * np.array([1.0 + 0.10 * s, 1.0, 1.0 - 0.14 * s], dtype=np.float32)
 
-    # painted contrast
-    rgb = (rgb - 128) * (1 + 0.06 * strength) + 128
-
-    # faint deterministic grain
-    rng = np.random.default_rng(1234)
-    grain = rng.normal(0.0, 5.0 * strength, size=lum.shape).astype(np.float32)
-    rgb = rgb + grain
+    # torch-glow warmth pooling in the shadows
+    t = np.clip(lum / 255.0, 0.0, 1.0)
+    rgb = rgb + _WARM_SHADOW * (1.0 - t) * (0.16 * s)
 
     rgb = np.clip(rgb, 0, 255)
     out = np.concatenate([rgb, a], axis=-1).astype(np.uint8)
     return Image.fromarray(out, "RGBA")
 
 
-# texture-name fragments that are biome-tinted in vanilla (filter gently)
+# texture-name fragments that are biome-tinted in vanilla (grade gently)
 TINTED = (
     "grass_block_top", "grass_block_side_overlay", "short_grass", "tall_grass",
     "fern", "large_fern", "_leaves", "vine", "lily_pad", "water_",

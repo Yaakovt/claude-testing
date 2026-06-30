@@ -1,7 +1,7 @@
 {
   "pack": {
-    "pack_format": 34,
-    "supported_formats": { "min_inclusive": 15, "max_inclusive": 99 },
-    "description": "§6MedievalCraft§r\n§7Aged stone, iron & parchment"
+    "pack_format": 64,
+    "supported_formats": { "min_inclusive": 15, "max_inclusive": 1000 },
+    "description": "§6MedievalCraft§r\n§eWarm, torch-lit medieval"
   }
 }
