@@ -37,8 +37,9 @@ OUT = os.path.join(ROOT, "assets", "minecraft", "textures")
 
 from PIL import Image  # noqa: E402
 import generate  # noqa: E402  (decorators populate generate.BLOCKS / generate.ITEMS on import)
-from medieval_lib import Rng, canvas, outline  # noqa: E402
+from medieval_lib import Rng, canvas  # noqa: E402
 from medievalize import medievalize, is_tinted  # noqa: E402
+import custom  # noqa: E402
 
 # vanilla top-level dirs we deliberately leave untouched (vanilla fallback):
 #   colormap — biome tint maps; recolouring them would skew every grass/leaf
@@ -61,18 +62,24 @@ def find_ref():
     raise SystemExit("Pass the vanilla asset dir, e.g. .../minecraft-assets/data/1.21.8")
 
 
-def bespoke(out_top, name, ref_size):
-    """Return bespoke art if we have a generator and the size matches, else None."""
-    if ref_size != (16, 16):
-        return None
-    if out_top == "block" and name in generate.BLOCKS:
+def special(out_rel, im, size):
+    """Hand-authored overrides keyed by path (run regardless of mcmeta)."""
+    if out_rel == "entity/enderdragon/dragon_eyes.png":
+        return custom.fire_eyes(im)
+    if out_rel.startswith("entity/enderdragon/dragon"):   # dragon + exploding
+        return custom.fire_dragon(im)
+    if out_rel.startswith("gui/sprites/boss_bar/"):
+        return custom.boss_sprite(out_rel.rsplit("/", 1)[-1][:-4], size[0], size[1])
+    return None
+
+
+def bespoke_block(name, ref_size):
+    """Bespoke procedural art for blocks only (vanilla item icons look better
+    medieval-graded than hand-redrawn, so items are never overridden)."""
+    if ref_size == (16, 16) and name in generate.BLOCKS:
         im = canvas()
         generate.BLOCKS[name](im, Rng("block:" + name))
         return im
-    if out_top == "item" and name in generate.ITEMS:
-        im = canvas()
-        generate.ITEMS[name](im, Rng("item:" + name))
-        return outline(im)
     return None
 
 
@@ -104,9 +111,9 @@ def main():
                 im.load()
                 has_meta = os.path.exists(src + ".mcmeta")
                 name = fn[:-4]
-                art = None
-                if not has_meta:  # animated / 9-sliced sprites must keep vanilla layout
-                    art = bespoke(out_top, name, size)
+                art = special(out_rel, im, size)        # hand-authored overrides first
+                if art is None and not has_meta:         # bespoke blocks (keep mcmeta layouts intact)
+                    art = bespoke_block(name, size)
                 if art is not None:
                     n_bespoke += 1
                 else:

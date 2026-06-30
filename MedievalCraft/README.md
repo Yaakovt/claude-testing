@@ -10,13 +10,16 @@ resolution, so nothing renders as a missing-texture checkerboard.
 
 ## What's covered
 
-- **1,083 block** and **747 item** textures — the most-seen ones are bespoke
-  handcrafted pixel art (masonry, iron-banded woodwork, forged tools); the rest
-  are aged through the medieval filter.
+- **1,083 block** textures — the most-seen ones are bespoke handcrafted pixel
+  art (masonry, iron-banded woodwork); the rest are graded through the filter.
+- **747 item** textures — the detailed vanilla icons warm-graded (hand-redrawn
+  icons looked worse, so the real art is used and toned).
 - **577 entity textures** — every mob, plus banners, shields, decorated pots,
-  beds, fishing bobbers and equipment. These keep all of vanilla's hand-drawn
-  detail (the creeper face, villager robe, skeleton ribs…) recoloured to the
-  aged palette.
+  beds, fishing bobbers and equipment, keeping all of vanilla's hand-drawn
+  detail recoloured to the aged palette. The **Ender Dragon is reskinned as a
+  red fire-dragon** (its scales remapped to a glowing fire gradient).
+- **Custom medieval boss bars** — gold-framed banner bars with brass rivets and
+  segment notches, in every colour.
 - **All animated textures** — water, lava, fire, the nether portal, prismarine,
   sea lantern, magma, campfires, kelp, etc. — preserved as their real
   multi-frame strips with `.mcmeta` timing, so they flow exactly like vanilla,
