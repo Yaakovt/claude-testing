@@ -82,8 +82,13 @@ bespoke generator in `generate.py`, then re-run `build_pack.py`.
 
 ## Scope & honesty
 
-- This now covers **every texture vanilla references** — complete, correctly
-  sized, with no missing textures.
+- This covers **every texture in the 1.21.8 set** — complete, correctly sized,
+  no missing textures. The offline reference (`minecraft-assets` npm) tops out
+  at 1.21.8, so textures added in newer drops (e.g. the Copper Age) aren't in
+  that reference. Copper tools & armour are **hand-drawn and included anyway**
+  (standard 16×16 items, so they apply on 1.21.9+); brand-new *block/entity*
+  textures from versions past 1.21.8 would fall back to vanilla until that
+  version's data is available.
 - The most-visible blocks, items and the HUD are **handcrafted**; the long tail
   (and all entities) is the vanilla art **medieval-toned** through the filter,
   which keeps full detail and recognisability. It is a coherent aged restyle,

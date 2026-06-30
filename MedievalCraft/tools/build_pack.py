@@ -131,11 +131,24 @@ def main():
                 shutil.copyfile(src + ".mcmeta", dst + ".mcmeta")
                 n_meta += 1
 
+    # emit hand-drawn items the 1.21.8 reference doesn't contain (e.g. the
+    # newer Copper Age tools/armour) so they apply on 1.21.9+ and are harmless
+    # extra files on older versions
+    item_dir = os.path.join(OUT, "item")
+    n_future = 0
+    for iname, im in items_hd.ITEMS_HD.items():
+        dst = os.path.join(item_dir, iname + ".png")
+        if not os.path.exists(dst):
+            os.makedirs(item_dir, exist_ok=True)
+            im.save(dst)
+            n_future += 1
+
     print(f"bespoke art:   {n_bespoke}")
     print(f"medievalized:  {n_filter}")
+    print(f"hand-drawn items beyond 1.21.8: {n_future}")
     print(f"mcmeta copied: {n_meta}")
     print(f"skipped (colormap/font): {n_skip}")
-    print(f"TOTAL textures: {n_bespoke + n_filter}")
+    print(f"TOTAL textures: {n_bespoke + n_filter + n_future}")
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ OUT = (26, 19, 14, 255)          # warm near-black outline
 METAL = {
     "wooden":    ((178, 143, 88), (138, 104, 62), (100, 72, 42)),
     "stone":     ((156, 156, 158), (120, 120, 122), (88, 88, 92)),
+    "copper":    ((212, 132, 94), (170, 96, 64), (122, 64, 42)),
     "iron":      ((226, 228, 234), (182, 186, 196), (132, 136, 150)),
     "golden":    ((250, 220, 126), (216, 172, 66), (158, 116, 40)),
     "diamond":   ((158, 236, 228), (96, 206, 200), (54, 158, 156)),
@@ -377,6 +378,7 @@ _ARMOR = {"helmet": HELMET, "chestplate": CHEST, "leggings": LEGGINGS, "boots": 
 _ARMOR_MATS = {
     "leather": ((150, 102, 60), (112, 74, 42), (80, 52, 30)),
     "chainmail": ((180, 182, 188), (132, 134, 142), (96, 98, 106)),
+    "copper": METAL["copper"],
     "iron": METAL["iron"], "golden": METAL["golden"],
     "diamond": METAL["diamond"], "netherite": METAL["netherite"],
     "turtle": ((120, 168, 96), (88, 130, 66), (60, 96, 46)),
