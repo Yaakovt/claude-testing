@@ -1,109 +1,89 @@
-# MedievalCraft — a medieval texture pack for Minecraft: Java Edition
+# MedievalCraft — a complete medieval texture pack for Minecraft: Java Edition
 
-Everything in the world reskinned toward an aged, hand-built medieval look:
-weathered ashlar and mortar, iron-banded oak doors, leaded glass, parchment
-paper, forged tools, and ore veins picked out of rough stone. Textures stay at
-vanilla **16×16** resolution so the pack is light and reads as authentic pixel
-art, and the palette is tuned to keep every block recognisable (grass is still
-green, lava still glows) while shifting the whole game toward a medieval mood.
+Every texture the game ships is reskinned toward an aged, hand-built medieval
+look: weathered ashlar and mortar, iron-banded oak doors, parchment, forged
+tools, and a warm, candle-lit, slightly-desaturated palette across the whole
+world — blocks, items, mobs, particles, paintings, the HUD, menus and more.
 
-## What's inside
+The pack mirrors vanilla's **entire texture set (3,384 textures)** at native
+resolution, so nothing renders as a missing-texture checkerboard.
 
-**688 textures** across every category the player sees:
+## What's covered
 
-- **459 block textures** — every stone/brick variant, all wood families
-  (oak → cherry, crimson, warped, bamboo) with logs/planks/doors/trapdoors/
-  leaves/saplings, every ore (overworld + deepslate + nether), all 16 dye
-  colours across wool, carpet, concrete, concrete powder, terracotta, glazed
-  terracotta, stained glass and candles, crops with growth stages, flowers,
-  plants, nether/end blocks, and functional blocks (furnace, crafting table,
-  bookshelf, lantern, torch, barrel, anvil, bell…).
-- **128 item textures** — the full tool set (wood→netherite ×
-  pickaxe/axe/shovel/sword/hoe), all armour tiers, ingots/gems/nuggets, food,
-  and utility items (bow, shield, bucket, compass, clock, map, and more).
-- **10 animated textures** with proper `.mcmeta` frame-strips: **water**
-  (still + flow), **lava** (still + flow), **fire** (both layers), the
-  **nether portal**, **magma**, **sea lantern** and **prismarine**. These use
-  smooth, seamlessly-looping sine fields (with `interpolate` on the liquids)
-  so they flow rather than flicker.
-- **39 particles** — flame, lava, smoke (12-frame big_smoke), bubbles,
-  splashes, drips, hearts, notes, crit/enchant sparks, damage, flash and the
-  `generic_0..7` dust puffs.
-- **31 paintings** — every classic painting at its correct canvas size,
-  restyled as medieval tapestries: heraldic shields, crenellated castle towers,
-  trees of life, and sun-over-hills, all in wood-and-gold frames (plus the
-  canvas `back`).
-- **24 entity skins** — creeper, skeletons (incl. wither/stray), zombie/husk/
-  drowned, villager + zombie villager, enderman, pig, cow, mooshroom, sheep
-  (+ fur), chicken, wolf, squid, slime, magma cube, iron golem, bat, and the
-  Steve/Alex player skins. Correctly sized and UV-region-aware (tunic /
-  trousers / boots on humanoids; iconic faces on creeper and skeletons).
-- **7 GUI textures** — parchment-and-carved-wood container panels (inventory,
-  crafting table, furnace, chest) and stone menu backdrops.
+- **1,083 block** and **747 item** textures — the most-seen ones are bespoke
+  handcrafted pixel art (masonry, iron-banded woodwork, forged tools); the rest
+  are aged through the medieval filter.
+- **577 entity textures** — every mob, plus banners, shields, decorated pots,
+  beds, fishing bobbers and equipment. These keep all of vanilla's hand-drawn
+  detail (the creeper face, villager robe, skeleton ribs…) recoloured to the
+  aged palette.
+- **All animated textures** — water, lava, fire, the nether portal, prismarine,
+  sea lantern, magma, campfires, kelp, etc. — preserved as their real
+  multi-frame strips with `.mcmeta` timing, so they flow exactly like vanilla,
+  just medieval-toned.
+- **519 GUI textures** including the full **HUD** you see constantly — hearts,
+  hunger, armour, air, the XP bar, hotbar and crosshair — plus menus, buttons
+  and container screens (9-slice metadata preserved so panels stretch cleanly).
+- **253 particles**, **52 paintings**, **39 mob-effect icons**, **37 map
+  markers**, **56 armour-trim** overlays, and the **environment** (sun, moon,
+  clouds, weather).
 
 ## Install
 
-1. Grab **`MedievalCraft.zip`** from this folder (or zip the `MedievalCraft`
-   folder yourself — `pack.mcmeta` must sit at the zip root).
-2. In Minecraft: **Options → Resource Packs → Open Pack Folder**.
-3. Drop `MedievalCraft.zip` into that folder.
-4. Back in-game, move MedievalCraft to the **Selected** column and hit **Done**.
+1. Grab **`MedievalCraft.zip`** (build it with the one-liner below, or use the
+   copy provided).
+2. Minecraft → **Options → Resource Packs → Open Pack Folder**.
+3. Drop the zip in, move MedievalCraft to **Selected**, click **Done**.
 
-`pack.mcmeta` declares `supported_formats` 15–99, so the pack loads across a
-wide range of modern versions (roughly 1.20 onward) without editing.
-
-## How it was made — and how to extend it
-
-The textures aren't shipped as static art; they're **generated procedurally**
-so the whole set stays visually consistent and is trivial to extend:
-
-- `tools/medieval_lib.py` — the drawing toolkit: seeded RNG plus primitives
-  (`noise_fill`, `bricks`, `cobble`, `planks`, `log_rings`, `woven`,
-  `metal_plate`, `ore`, weathering/moss/crack overlays, item silhouette helpers).
-- `tools/generate.py` — the medieval palette and the registry mapping every
-  block/item name to a draw function.
-- `tools/generate_anim.py` — the animated liquids/fire/portal/glow blocks
-  (seamless sine fields + `.mcmeta` writers).
-- `tools/generate_extra.py` — particles, paintings, entities and GUI.
-- `tools/build_all.py` — runs the three generators **in the correct order**
-  (animations must overwrite the static liquid placeholders).
-
-Regenerate everything with:
+`pack.mcmeta` declares a wide `supported_formats` range, so it loads across
+modern versions. It was built against the 1.21.8 texture set.
 
 ```bash
-python3 -m pip install Pillow
-python3 tools/build_all.py     # don't run generate.py alone afterwards —
-                               # it would clobber the animated liquids
+zip -r MedievalCraft.zip pack.mcmeta pack.png assets    # rebuild the zip
 ```
 
-To add or restyle a texture, register it in `generate.py`:
+## How it's built
 
-```python
-@block("my_new_block")
-def _(img, r):
-    noise_fill(img, r, (120, 116, 110))
-    moss(img, r, 0.15)
+Two complementary techniques, tied together by `tools/build_pack.py`:
+
+1. **Bespoke procedural art** for the most-seen blocks & items —
+   `tools/generate.py` + `tools/medieval_lib.py` generate weathered masonry,
+   iron-banded doors, ore veins and forged tools from a shared palette.
+2. **The medieval aging filter** — `tools/medievalize.py` — recolours every
+   other vanilla texture toward the aged palette while preserving its exact
+   shape, alpha, animation frames and GUI 9-slice metadata. Biome-tinted
+   textures (grass, leaves, water) are filtered gently so the colormap still
+   reads.
+
+`build_pack.py` walks the authoritative vanilla texture tree, writes a medieval
+counterpart for every file (bespoke where available, filtered otherwise), and
+copies all `.mcmeta` verbatim.
+
+### Regenerating from scratch
+
+The vanilla tree is **not** redistributed here — it's read at build time from
+the `minecraft-assets` npm package purely to mirror the file list and sizes:
+
+```bash
+python3 -m pip install Pillow numpy
+npm pack minecraft-assets && tar xzf minecraft-assets-*.tgz
+python3 tools/build_pack.py package/minecraft-assets/data/1.21.8
+zip -r MedievalCraft.zip pack.mcmeta pack.png assets
 ```
 
-Re-run the generator and re-zip. Because every block keys off the shared
-palette and primitives, new textures automatically match the rest of the pack.
+To restyle anything, edit the palette/filter in `medievalize.py` or add a
+bespoke generator in `generate.py`, then re-run `build_pack.py`.
 
 ## Scope & honesty
 
-This pack now spans **all the texture families the player sees** — blocks,
-items, animated liquids/fire, particles, paintings, entities and GUI (688
-textures total). A few honest notes on depth:
-
-- **Entities** are themed recolours tinted to the medieval palette with
-  region-aware clothing and iconic faces — recognisable and correctly sized,
-  but not bespoke hand-painted mob art. The helpers in `generate_extra.py`
-  make detailing any single mob straightforward.
-- **GUI** covers the high-impact container panels and menu backdrops. It does
-  not retexture every individual HUD sprite (hearts, XP bar, etc.) — those are
-  version-specific sprite atlases and are left vanilla so nothing breaks.
-- Not every newly-added 1.21+ painting variant or niche particle is included,
-  and block-entity models (chests, beds, banners, signs), the enchanting-table
-  glyph runes, and the title-screen panorama are left vanilla.
-
-Everything is procedural, so any missing texture can be added in a few lines
-against the shared palette without breaking the visual style.
+- This now covers **every texture vanilla references** — complete, correctly
+  sized, with no missing textures.
+- The most-visible blocks, items and the HUD are **handcrafted**; the long tail
+  (and all entities) is the vanilla art **medieval-toned** through the filter,
+  which keeps full detail and recognisability. It is a coherent aged restyle,
+  not 3,000 individually hand-painted tiles.
+- **Colormaps** (biome grass/leaf tint) and the **UI font** are intentionally
+  left vanilla — recolouring the colormap would skew every biome and tinting
+  the font hurts readability.
+- The pack is a derivative resource pack of Minecraft's assets and is meant for
+  use with a legitimate copy of the game under Mojang's usage guidelines.

@@ -1,0 +1,10 @@
+# Built artifact — regenerate with:  zip -r MedievalCraft.zip pack.mcmeta pack.png assets
+MedievalCraft.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# Vendored vanilla reference (never committed; obtained via npm at build time)
+minecraft-assets*/
+*.tgz
