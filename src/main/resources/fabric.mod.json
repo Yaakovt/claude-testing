@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "aibuilder",
+	"version": "${version}",
+	"name": "AI Builder",
+	"description": "Tell Claude what to build and a builder mob constructs it in front of you — houses, castles, redstone contraptions, anything.",
+	"authors": [
+		"Jacob"
+	],
+	"contact": {
+		"sources": "https://github.com/yaakovt/claude-testing"
+	},
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.aibuilder.AIBuilderMod"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
