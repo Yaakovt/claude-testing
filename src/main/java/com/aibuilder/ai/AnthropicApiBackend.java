@@ -29,7 +29,7 @@ public class AnthropicApiBackend implements AiBackend {
 	}
 
 	@Override
-	public String generate(String request, String previousError) throws BackendException, InterruptedException {
+	public GenResult generate(String request, String previousError) throws BackendException, InterruptedException {
 		String apiKey = config.resolvedApiKey();
 		if (apiKey.isBlank()) {
 			throw new BackendException("backend is \"api\" but no API key is set. Put your key in \"apiKey\" in "
@@ -98,7 +98,7 @@ public class AnthropicApiBackend implements AiBackend {
 		return response;
 	}
 
-	private static String parseResponse(HttpResponse<String> response) throws BackendException {
+	private static GenResult parseResponse(HttpResponse<String> response) throws BackendException {
 		try {
 			JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
 			String stopReason = root.has("stop_reason") && !root.get("stop_reason").isJsonNull()
@@ -109,11 +109,20 @@ public class AnthropicApiBackend implements AiBackend {
 			if (stopReason.equals("max_tokens")) {
 				throw new BackendException("The design was too large to finish. Ask for something smaller or simpler.");
 			}
+			long tokens = 0;
+			if (root.has("usage") && root.get("usage").isJsonObject()) {
+				JsonObject usage = root.getAsJsonObject("usage");
+				for (String field : new String[]{"input_tokens", "output_tokens", "cache_creation_input_tokens"}) {
+					if (usage.has(field) && usage.get(field).isJsonPrimitive()) {
+						tokens += usage.get(field).getAsLong();
+					}
+				}
+			}
 			JsonArray content = root.getAsJsonArray("content");
 			for (var element : content) {
 				JsonObject block = element.getAsJsonObject();
 				if (block.get("type").getAsString().equals("text")) {
-					return block.get("text").getAsString();
+					return new GenResult(block.get("text").getAsString(), tokens);
 				}
 			}
 			throw new BackendException("The AI returned no text.");

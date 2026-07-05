@@ -16,12 +16,16 @@ public interface AiBackend {
 		}
 	}
 
+	/** The AI's reply plus how many tokens the call consumed (0 if unknown). */
+	record GenResult(String text, long tokensUsed) {
+	}
+
 	/**
 	 * @param request       what the player asked to build
 	 * @param previousError if retrying after a malformed plan, the parse error; else null
 	 * @return the raw text of the AI's reply (expected to contain the plan JSON)
 	 */
-	String generate(String request, String previousError) throws BackendException, InterruptedException;
+	GenResult generate(String request, String previousError) throws BackendException, InterruptedException;
 
 	/** Best-effort abort of an in-flight generation (kills the CLI process, etc.). */
 	default void cancel() {

@@ -33,7 +33,7 @@ public class ClaudeCliBackend implements AiBackend {
 	}
 
 	@Override
-	public String generate(String request, String previousError) throws BackendException, InterruptedException {
+	public GenResult generate(String request, String previousError) throws BackendException, InterruptedException {
 		List<String> base = findClaude();
 		List<String> command = new ArrayList<>(base);
 		command.add("-p");
@@ -123,7 +123,7 @@ public class ClaudeCliBackend implements AiBackend {
 	}
 
 	/** Parses the CLI's JSON envelope: {"type":"result","subtype":"success","result":"...","is_error":false,...} */
-	private static String extractResult(String stdout, String stderr) throws BackendException {
+	private static GenResult extractResult(String stdout, String stderr) throws BackendException {
 		try {
 			JsonObject envelope = JsonParser.parseString(stdout.trim()).getAsJsonObject();
 			boolean isError = envelope.has("is_error") && envelope.get("is_error").getAsBoolean();
@@ -132,15 +132,34 @@ public class ClaudeCliBackend implements AiBackend {
 				String detail = result != null ? result : stderr;
 				throw new BackendException("Claude Code reported an error: " + truncate(detail, 200));
 			}
-			return result;
+			return new GenResult(result, tokensFromUsage(envelope));
 		} catch (BackendException e) {
 			throw e;
 		} catch (Exception e) {
 			// Not the expected envelope; maybe the CLI printed the answer directly.
 			if (stdout.contains("{")) {
-				return stdout;
+				return new GenResult(stdout, 0);
 			}
 			throw new BackendException("Couldn't understand Claude Code's output: " + truncate(stdout + " " + stderr, 200));
+		}
+	}
+
+	/** Sums the token counts from the envelope's "usage" object, tolerating missing fields. */
+	private static long tokensFromUsage(JsonObject envelope) {
+		try {
+			if (!envelope.has("usage") || !envelope.get("usage").isJsonObject()) {
+				return 0;
+			}
+			JsonObject usage = envelope.getAsJsonObject("usage");
+			long total = 0;
+			for (String field : new String[]{"input_tokens", "output_tokens", "cache_creation_input_tokens"}) {
+				if (usage.has(field) && usage.get(field).isJsonPrimitive()) {
+					total += usage.get(field).getAsLong();
+				}
+			}
+			return total;
+		} catch (Exception e) {
+			return 0;
 		}
 	}
 

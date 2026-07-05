@@ -3,6 +3,7 @@ package com.aibuilder.build;
 import com.aibuilder.ai.AiBackend;
 import com.aibuilder.ai.AnthropicApiBackend;
 import com.aibuilder.ai.ClaudeCliBackend;
+import com.aibuilder.ai.UsageTracker;
 import com.aibuilder.config.AiBuilderConfig;
 import com.aibuilder.plan.BuildPlan;
 import com.aibuilder.plan.PlanParser;
@@ -35,6 +36,7 @@ public class BuildSessionManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger("aibuilder");
 
 	private final AiBuilderConfig config;
+	private final UsageTracker usageTracker = new UsageTracker();
 	private final Map<UUID, BuildSession> sessions = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<List<BuildSession.UndoEntry>>> undoHistory = new HashMap<>();
 	private final List<RestoreJob> restoreJobs = new ArrayList<>();
@@ -83,8 +85,12 @@ public class BuildSessionManager {
 	private void generateAsync(MinecraftServer server, BuildSession session, String previousError, int attempt) {
 		executor.submit(() -> {
 			try {
-				String rawText = session.backend.generate(session.request, previousError);
-				server.execute(() -> onGenerated(server, session, rawText, attempt));
+				AiBackend.GenResult result = session.backend.generate(session.request, previousError);
+				usageTracker.record(result.tokensUsed());
+				server.execute(() -> {
+					warnAboutUsage(server, session);
+					onGenerated(server, session, result.text(), attempt);
+				});
 			} catch (AiBackend.BackendException e) {
 				server.execute(() -> failSession(server, session, e.getMessage()));
 			} catch (InterruptedException e) {
@@ -94,6 +100,25 @@ public class BuildSessionManager {
 				server.execute(() -> failSession(server, session, "Unexpected error: " + e.getMessage()));
 			}
 		});
+	}
+
+	/**
+	 * Chat warning when the mod's own AI usage crosses the configured share of the
+	 * 5-hour budget. Best effort: Claude doesn't expose the account's real meter,
+	 * and Claude usage outside this mod counts against the same limit.
+	 */
+	private void warnAboutUsage(MinecraftServer server, BuildSession session) {
+		if (usageTracker.shouldWarn(config.fiveHourTokenBudget, config.usageWarnPercent)) {
+			ServerPlayer player = player(server, session.playerId);
+			if (player != null) {
+				int percent = usageTracker.percentUsed(config.fiveHourTokenBudget);
+				tell(player, "⚠ Heads up: builds have used ~" + percent + "% of your 5-hour Claude budget ("
+						+ usageTracker.windowTokens() + " of " + config.fiveHourTokenBudget
+						+ " tokens). It refills as time passes.", ChatFormatting.GOLD);
+				tell(player, "(Estimate of this mod's usage only - tune fiveHourTokenBudget in config/aibuilder.json)",
+						ChatFormatting.DARK_GRAY);
+			}
+		}
 	}
 
 	private void onGenerated(MinecraftServer server, BuildSession session, String rawText, int attempt) {

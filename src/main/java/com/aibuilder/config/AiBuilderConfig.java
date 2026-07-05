@@ -50,6 +50,15 @@ public class AiBuilderConfig {
 	public int undoHistory = 3;
 	/** Retry once with error feedback if the AI returns malformed JSON. */
 	public boolean retryOnParseError = true;
+	/**
+	 * Estimated token budget per rolling 5-hour window, used only for the in-chat
+	 * usage warning. Claude doesn't let the mod read your plan's real meter, so this
+	 * tracks the mod's own consumption against this number. Tune it to your plan
+	 * (check /usage inside Claude Code); 0 disables the warning.
+	 */
+	public long fiveHourTokenBudget = 250000;
+	/** Warn in chat when the mod has used this percent of fiveHourTokenBudget. 0 disables. */
+	public int usageWarnPercent = 75;
 
 	public static AiBuilderConfig load() {
 		Path path = FabricLoader.getInstance().getConfigDir().resolve("aibuilder.json");

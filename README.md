@@ -77,6 +77,17 @@ After the first launch, edit `%APPDATA%\.minecraft\config\aibuilder.json`:
 | `builderMob` | `"minecraft:allay"` | Which mob does the building (try `"minecraft:bee"`...) |
 | `builderName` | `"Claude the Builder"` | The mob's name tag |
 | `undoHistory` | `3` | How many builds `/undo` remembers (per session; cleared when you quit) |
+| `fiveHourTokenBudget` | `250000` | Estimated Claude tokens per 5-hour window, for the usage warning (0 = off) |
+| `usageWarnPercent` | `75` | Warn in chat when builds have used this % of the budget (0 = off) |
+
+### About the usage warning
+
+When your builds have consumed ~75% of `fiveHourTokenBudget` within the last 5 hours, the mod
+warns you in chat so you don't hit your Claude plan's limit mid-build. One honest caveat:
+Claude doesn't let apps read your plan's real usage meter, so the mod counts only its own
+token usage. If you also use Claude Code/claude.ai heavily outside Minecraft, the real meter
+fills faster than the mod can see. Check the real numbers anytime by typing `/usage` inside
+Claude Code, and tune `fiveHourTokenBudget` to match your plan.
 
 ---
 
