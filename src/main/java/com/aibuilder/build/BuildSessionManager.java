@@ -35,7 +35,9 @@ import java.util.concurrent.Executors;
 public class BuildSessionManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger("aibuilder");
 
-	private final AiBuilderConfig config;
+	// Re-read from disk at the start of each /build so config edits apply without
+	// restarting Minecraft; hence not final.
+	private AiBuilderConfig config;
 	private final UsageTracker usageTracker = new UsageTracker();
 	private final Map<UUID, BuildSession> sessions = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<List<BuildSession.UndoEntry>>> undoHistory = new HashMap<>();
@@ -64,6 +66,9 @@ public class BuildSessionManager {
 			tell(player, "You already have a build in progress. Use /buildcancel first.", ChatFormatting.RED);
 			return;
 		}
+
+		// Pick up any edits to config/aibuilder.json without a game restart.
+		config = AiBuilderConfig.load();
 
 		BuildSession session = new BuildSession(player.getUUID(), request,
 				(ServerLevel) player.level(), player.blockPosition(), player.getYRot());

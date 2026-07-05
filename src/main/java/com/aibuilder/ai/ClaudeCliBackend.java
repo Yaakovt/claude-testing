@@ -35,17 +35,49 @@ public class ClaudeCliBackend implements AiBackend {
 	@Override
 	public GenResult generate(String request, String previousError) throws BackendException, InterruptedException {
 		List<String> base = findClaude();
+		String prompt = PromptBuilder.cliPrompt(config, request, previousError);
+
+		// Full flags make the call truly non-interactive and fast:
+		//  --bare              skip auto-discovery of MCP servers / hooks / plugins (the usual hang)
+		//  --permission-mode dontAsk   never block waiting for a permission prompt
+		//  --allowedTools ""   let the model answer directly with no tools
+		// If an older CLI rejects any of these, we retry once with the minimal set.
+		try {
+			return runOnce(buildCommand(base, true), prompt);
+		} catch (UnknownFlagException e) {
+			LOGGER.warn("Claude CLI rejected an option ({}); retrying with minimal flags", e.getMessage());
+			return runOnce(buildCommand(base, false), prompt);
+		}
+	}
+
+	private List<String> buildCommand(List<String> base, boolean fullFlags) {
 		List<String> command = new ArrayList<>(base);
 		command.add("-p");
 		command.add("--output-format");
 		command.add("json");
+		if (fullFlags) {
+			command.add("--bare");
+			command.add("--permission-mode");
+			command.add("dontAsk");
+			command.add("--allowedTools");
+			command.add("");
+		}
 		if (config.cliModel != null && !config.cliModel.isBlank()) {
 			command.add("--model");
 			command.add(config.cliModel);
 		}
+		return command;
+	}
 
-		String prompt = PromptBuilder.cliPrompt(config, request, previousError);
+	/** Thrown when the CLI reports an unrecognized option, so we can retry with fewer flags. */
+	private static class UnknownFlagException extends Exception {
+		UnknownFlagException(String message) {
+			super(message);
+		}
+	}
 
+	private GenResult runOnce(List<String> command, String prompt)
+			throws BackendException, InterruptedException, UnknownFlagException {
 		ProcessBuilder builder = new ProcessBuilder(command);
 		builder.redirectErrorStream(false);
 		Process process;
@@ -53,7 +85,7 @@ public class ClaudeCliBackend implements AiBackend {
 			process = builder.start();
 		} catch (IOException e) {
 			cachedCommand = null;
-			throw new BackendException("Couldn't start Claude Code (" + String.join(" ", base)
+			throw new BackendException("Couldn't start Claude Code (" + String.join(" ", command)
 					+ "). Is it installed? See the README, or set \"claudePath\" in config/aibuilder.json.", e);
 		}
 		currentProcess = process;
@@ -84,6 +116,12 @@ public class ClaudeCliBackend implements AiBackend {
 			int exit = process.exitValue();
 			String err = stderr.toString();
 			if (exit != 0) {
+				String lower = (err + "\n" + stdout).toLowerCase(Locale.ROOT);
+				if (lower.contains("unknown option") || lower.contains("unrecognized")
+						|| lower.contains("unknown argument") || lower.contains("--bare")
+						|| lower.contains("--permission-mode") || lower.contains("--allowedtools")) {
+					throw new UnknownFlagException(truncate(err, 120));
+				}
 				throw new BackendException(friendlyCliError(exit, err, stdout.toString()));
 			}
 			return extractResult(stdout.toString(), err);

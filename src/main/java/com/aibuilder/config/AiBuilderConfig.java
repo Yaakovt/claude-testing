@@ -31,7 +31,7 @@ public class AiBuilderConfig {
 	/** Max output tokens for the API backend (non-streaming; keep at or below 16000). */
 	public int apiMaxTokens = 16000;
 	/** Seconds to wait for the AI to design a build before giving up. */
-	public int timeoutSeconds = 300;
+	public int timeoutSeconds = 600;
 	/** Maximum size of a build along each axis. */
 	public int maxSize = 64;
 	/** Maximum total volume (blocks) of a build. */
