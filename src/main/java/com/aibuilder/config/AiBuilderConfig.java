@@ -75,13 +75,19 @@ public class AiBuilderConfig {
 			}
 		}
 		// Always rewrite so new options appear in the file after mod updates.
+		config.save();
+		return config;
+	}
+
+	/** Writes this config back to config/aibuilder.json (used by /buildset). */
+	public void save() {
+		Path path = FabricLoader.getInstance().getConfigDir().resolve("aibuilder.json");
 		try {
 			Files.createDirectories(path.getParent());
-			Files.writeString(path, GSON.toJson(config), StandardCharsets.UTF_8);
+			Files.writeString(path, GSON.toJson(this), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			LOGGER.error("Failed to write config/aibuilder.json", e);
 		}
-		return config;
 	}
 
 	public String resolvedApiKey() {

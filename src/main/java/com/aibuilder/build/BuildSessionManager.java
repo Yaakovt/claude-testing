@@ -10,8 +10,11 @@ import com.aibuilder.plan.PlanParser;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +60,55 @@ public class BuildSessionManager {
 
 	public AiBuilderConfig config() {
 		return config;
+	}
+
+	// ------------------------------------------------------------------ /buildset
+
+	/** Applies an in-game config change, persists it to disk, and returns a confirmation line. */
+	public synchronized String applySetting(String key, String value) {
+		config = AiBuilderConfig.load(); // start from what's on disk
+		String result;
+		switch (key.toLowerCase(java.util.Locale.ROOT)) {
+			case "model" -> {
+				config.cliModel = value.equalsIgnoreCase("default") ? "" : value.toLowerCase(java.util.Locale.ROOT);
+				result = "AI model set to " + (config.cliModel.isBlank() ? "your account default" : config.cliModel);
+			}
+			case "timeout" -> {
+				int seconds = parsePositiveInt(value);
+				if (seconds < 30 || seconds > 3600) {
+					return "timeout must be between 30 and 3600 seconds";
+				}
+				config.timeoutSeconds = seconds;
+				result = "Design timeout set to " + seconds + "s";
+			}
+			case "speed" -> {
+				int bpt = parsePositiveInt(value);
+				if (bpt < 1 || bpt > 200) {
+					return "speed (blocks per tick) must be between 1 and 200";
+				}
+				config.blocksPerTick = bpt;
+				result = "Build speed set to " + bpt + " blocks/tick";
+			}
+			default -> {
+				return "Unknown setting '" + key + "'. Try: model, timeout, speed";
+			}
+		}
+		config.save();
+		return result;
+	}
+
+	public String settingsSummary() {
+		AiBuilderConfig c = AiBuilderConfig.load();
+		return "AI Builder settings - model: " + (c.cliModel == null || c.cliModel.isBlank() ? "account default" : c.cliModel)
+				+ ", timeout: " + c.timeoutSeconds + "s, speed: " + c.blocksPerTick + " blocks/tick, backend: " + c.backend;
+	}
+
+	private static int parsePositiveInt(String value) {
+		try {
+			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 
 	// ------------------------------------------------------------------ /build
@@ -153,6 +205,13 @@ public class BuildSessionManager {
 		session.builder = BuilderMob.spawn(session.level, spawnPos, config);
 		session.state = BuildSession.State.PLACING;
 
+		// Start fanfare: a "ding" plus a burst of sparks where the build will rise.
+		Vec3 center = Vec3.atCenterOf(session.anchor).add(0, 1.0, 0);
+		session.level.playSound(null, session.anchor, SoundEvents.EXPERIENCE_ORB_PICKUP,
+				SoundSource.PLAYERS, 0.9F, 1.3F);
+		session.level.sendParticles(ParticleTypes.END_ROD, center.x, center.y, center.z, 50, 1.6, 1.0, 1.6, 0.06);
+		session.level.sendParticles(ParticleTypes.HAPPY_VILLAGER, center.x, center.y, center.z, 25, 1.4, 0.8, 1.4, 0.1);
+
 		ServerPlayer player = player(server, session.playerId);
 		if (player != null) {
 			tell(player, "⚒ Design ready: " + plan.name() + " (" + plan.sizeX() + "x" + plan.sizeY() + "x"
@@ -238,6 +297,9 @@ public class BuildSessionManager {
 					session.builder.celebrate();
 					session.builder.remove();
 				}
+				// Completion fanfare.
+				session.level.playSound(null, session.anchor, SoundEvents.PLAYER_LEVELUP,
+						SoundSource.PLAYERS, 1.0F, 1.0F);
 				pushUndo(session.playerId, session.undoEntries);
 				iterator.remove();
 				if (player != null) {

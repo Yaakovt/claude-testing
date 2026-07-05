@@ -56,6 +56,12 @@ building starts — the chat tells you what's happening.
 | `/build <description>` | Designs and builds it in front of you (facing you) |
 | `/buildcancel` | Stops the current design/build |
 | `/undo` | Reverts your last build (up to 3, configurable) |
+| `/buildset model <name>` | Switch AI model without leaving the game, e.g. `/buildset model sonnet` (or `default`) |
+| `/buildset timeout <seconds>` | Change how long to wait for a design, e.g. `/buildset timeout 600` |
+| `/buildset speed <n>` | Blocks placed per tick, e.g. `/buildset speed 5` (higher = faster building) |
+| `/buildstatus` | Show the current model, timeout, and speed |
+
+Settings changed with `/buildset` are saved and take effect on your next `/build` — no restart needed.
 
 ---
 

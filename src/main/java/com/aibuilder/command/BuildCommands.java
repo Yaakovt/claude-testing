@@ -65,5 +65,36 @@ public final class BuildCommands {
 					manager.cancel(player);
 					return 1;
 				}));
+
+		// /buildset <model|timeout|speed> <value> - change settings without leaving the game
+		dispatcher.register(Commands.literal("buildset")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.then(Commands.argument("setting", StringArgumentType.word())
+						.then(Commands.argument("value", StringArgumentType.greedyString())
+								.executes(context -> {
+									String key = StringArgumentType.getString(context, "setting");
+									String value = StringArgumentType.getString(context, "value");
+									String message = manager.applySetting(key, value);
+									context.getSource().sendSuccess(
+											() -> Component.literal("⚙ " + message).withStyle(ChatFormatting.AQUA), false);
+									return 1;
+								})))
+				.executes(context -> {
+					context.getSource().sendFailure(Component.literal(
+							"Usage: /buildset <model|timeout|speed> <value>  e.g. /buildset model sonnet")
+							.withStyle(ChatFormatting.RED));
+					return 0;
+				}));
+
+		// /buildstatus - show current settings
+		dispatcher.register(Commands.literal("buildstatus")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.executes(context -> {
+					context.getSource().sendSuccess(
+							() -> Component.literal(manager.settingsSummary()).withStyle(ChatFormatting.GRAY), false);
+					return 1;
+				}));
 	}
 }

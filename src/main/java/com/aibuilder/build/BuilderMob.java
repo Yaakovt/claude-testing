@@ -123,6 +123,11 @@ public class BuilderMob {
 						Vec3.atCenterOf(target));
 			} catch (Exception ignored) {
 			}
+			// A sparkly trail so it's easy to follow the builder as it flies.
+			if (age % 2 == 0) {
+				level.sendParticles(ParticleTypes.END_ROD,
+						next.x, next.y, next.z, 1, 0.05, 0.05, 0.05, 0.005);
+			}
 		}
 		return entity.position().distanceTo(Vec3.atCenterOf(target)) <= 3.5;
 	}
@@ -142,8 +147,10 @@ public class BuilderMob {
 		if (!isAlive()) {
 			return;
 		}
-		level.sendParticles(ParticleTypes.HEART,
-				entity.getX(), entity.getY() + 0.5, entity.getZ(), 6, 0.4, 0.4, 0.4, 0.02);
+		double x = entity.getX(), y = entity.getY() + 0.5, z = entity.getZ();
+		level.sendParticles(ParticleTypes.HEART, x, y, z, 8, 0.4, 0.4, 0.4, 0.02);
+		level.sendParticles(ParticleTypes.HAPPY_VILLAGER, x, y, z, 30, 0.5, 0.6, 0.5, 0.2);
+		level.sendParticles(ParticleTypes.END_ROD, x, y, z, 25, 0.3, 0.5, 0.3, 0.15);
 	}
 
 	public void remove() {
