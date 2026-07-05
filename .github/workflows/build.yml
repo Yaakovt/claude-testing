@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,4 +34,18 @@ jobs:
           name: ai-builder-mod
           path: |
             build/libs/*.jar
+            !build/libs/*-sources.jar
+
+      - name: Publish latest jar as a release
+        if: success() && github.ref == 'refs/heads/claude/minecraft-ai-builder-mod-1c0lza'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: AI Builder (latest build)
+          body: |
+            Always the newest build of the AI Builder mod for Minecraft 26.2 (Fabric).
+            Install: drop the jar below into your mods folder. Full instructions in the README.
+          prerelease: true
+          files: |
+            build/libs/aibuilder-*.jar
             !build/libs/*-sources.jar
