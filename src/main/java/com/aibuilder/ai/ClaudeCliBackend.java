@@ -46,7 +46,11 @@ public class ClaudeCliBackend implements AiBackend {
 			return runOnce(buildCommand(base, true), prompt);
 		} catch (UnknownFlagException e) {
 			LOGGER.warn("Claude CLI rejected an option ({}); retrying with minimal flags", e.getMessage());
-			return runOnce(buildCommand(base, false), prompt);
+			try {
+				return runOnce(buildCommand(base, false), prompt);
+			} catch (UnknownFlagException e2) {
+				throw new BackendException("Claude Code rejected the command options: " + e2.getMessage());
+			}
 		}
 	}
 
