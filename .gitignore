@@ -20,3 +20,4 @@ remappedSrc/
 # OS
 .DS_Store
 Thumbs.db
+javac.*.args
