@@ -28,10 +28,11 @@ public class AiBuilderMod implements ModInitializer {
 
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> manager.shutdown());
 
-		// A builder left behind by a crash gets loaded from disk with our tag but no
-		// session tracking it - quietly clean those up.
+		// A builder left behind by a crash gets loaded from disk with no session
+		// tracking it - quietly clean those up when their chunk loads.
 		ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-			if (!BuilderMob.spawningNow && entity.getTags().contains(BuilderMob.TAG)
+			if (!BuilderMob.spawningNow
+					&& BuilderMob.looksLikeBuilder(entity, config.builderName)
 					&& !manager.isActiveBuilder(entity.getUUID())) {
 				entity.discard();
 			}

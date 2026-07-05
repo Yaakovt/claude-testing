@@ -1,8 +1,8 @@
-# Gradle
+# Gradle (root build output only - NOT src/**/build source packages)
 .gradle/
-build/
-out/
-classes/
+/build/
+/out/
+/classes/
 
 # IDE
 .idea/

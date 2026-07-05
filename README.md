@@ -14,19 +14,21 @@ Claude subscription you already have (no API key needed).
 
 ## Installation (Windows)
 
-### 1. Install Fabric
+### 1. Install Fabric (one-time, ~30 seconds)
+
+Minecraft can't load mods on its own, so this one small step is unavoidable:
 
 1. Download the Fabric installer from <https://fabricmc.net/use/installer/> and run it.
-2. Pick game version **26.2**, click **Install**.
-3. Download the **Fabric API** mod jar for 26.2 from <https://modrinth.com/mod/fabric-api/versions>
-   (pick the newest one marked `26.2`).
+2. Pick game version **26.2**, click **Install**. Done.
 
-### 2. Install this mod
+### 2. Install this mod — just one file
 
-1. Get `aibuilder-1.0.0.jar` (see **Building the mod** below, or download it from this repo's
-   GitHub Actions artifacts).
+The Fabric API is bundled inside the mod, so there is only ONE jar to install:
+
+1. Get `aibuilder-1.0.0.jar` (from this repo's GitHub Actions artifacts, or see
+   **Building the mod** below).
 2. Press `Win+R`, type `%APPDATA%\.minecraft\mods`, press Enter.
-3. Drop **both** jars in there: `fabric-api-....jar` and `aibuilder-1.0.0.jar`.
+3. Drop `aibuilder-1.0.0.jar` in there. That's the whole install.
 
 ### 3. Install Claude Code (the AI brain)
 
