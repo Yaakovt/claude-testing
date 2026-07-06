@@ -37,20 +37,16 @@ public class ClaudeCliBackend implements AiBackend {
 		List<String> base = findClaude();
 		String prompt = PromptBuilder.cliPrompt(config, request, previousError);
 
-		// Full flags make the call truly non-interactive and fast:
-		//  --bare              skip auto-discovery of MCP servers / hooks / plugins (the usual hang)
+		// Preferred flags keep the call non-interactive and fast:
+		//  --bare              skip auto-discovery of MCP servers / hooks / plugins (avoids MCP-auth noise)
 		//  --permission-mode dontAsk   never block waiting for a permission prompt
-		//  --allowedTools ""   let the model answer directly with no tools
-		// If an older CLI rejects any of these, we retry once with the minimal set.
+		// If this attempt fails for ANY reason, we retry once with the bare-minimum
+		// command (proven to work), before giving up.
 		try {
-			return runOnce(buildCommand(base, true), prompt);
-		} catch (UnknownFlagException e) {
-			LOGGER.warn("Claude CLI rejected an option ({}); retrying with minimal flags", e.getMessage());
-			try {
-				return runOnce(buildCommand(base, false), prompt);
-			} catch (UnknownFlagException e2) {
-				throw new BackendException("Claude Code rejected the command options: " + e2.getMessage());
-			}
+			return runOnce(buildCommand(base, true), prompt, true);
+		} catch (RetryException e) {
+			LOGGER.warn("Preferred Claude CLI invocation failed ({}); retrying with the minimal command", e.getMessage());
+			return runOnce(buildCommand(base, false), prompt, false);
 		}
 	}
 
@@ -63,8 +59,6 @@ public class ClaudeCliBackend implements AiBackend {
 			command.add("--bare");
 			command.add("--permission-mode");
 			command.add("dontAsk");
-			command.add("--allowedTools");
-			command.add("");
 		}
 		if (config.cliModel != null && !config.cliModel.isBlank()) {
 			command.add("--model");
@@ -73,15 +67,19 @@ public class ClaudeCliBackend implements AiBackend {
 		return command;
 	}
 
-	/** Thrown when the CLI reports an unrecognized option, so we can retry with fewer flags. */
-	private static class UnknownFlagException extends Exception {
-		UnknownFlagException(String message) {
+	/** Signals that the preferred invocation failed and the minimal command should be tried. */
+	private static class RetryException extends Exception {
+		RetryException(String message) {
 			super(message);
 		}
 	}
 
-	private GenResult runOnce(List<String> command, String prompt)
-			throws BackendException, InterruptedException, UnknownFlagException {
+	/**
+	 * @param retryable if true, a non-zero exit throws RetryException (caller falls back
+	 *                  to the minimal command); if false, it throws a friendly BackendException.
+	 */
+	private GenResult runOnce(List<String> command, String prompt, boolean retryable)
+			throws BackendException, InterruptedException, RetryException {
 		ProcessBuilder builder = new ProcessBuilder(command);
 		builder.redirectErrorStream(false);
 		Process process;
@@ -120,11 +118,8 @@ public class ClaudeCliBackend implements AiBackend {
 			int exit = process.exitValue();
 			String err = stderr.toString();
 			if (exit != 0) {
-				String lower = (err + "\n" + stdout).toLowerCase(Locale.ROOT);
-				if (lower.contains("unknown option") || lower.contains("unrecognized")
-						|| lower.contains("unknown argument") || lower.contains("--bare")
-						|| lower.contains("--permission-mode") || lower.contains("--allowedtools")) {
-					throw new UnknownFlagException(truncate(err, 120));
+				if (retryable) {
+					throw new RetryException(truncate(err, 120));
 				}
 				throw new BackendException(friendlyCliError(exit, err, stdout.toString()));
 			}
@@ -207,8 +202,11 @@ public class ClaudeCliBackend implements AiBackend {
 
 	private static String friendlyCliError(int exit, String stderr, String stdout) {
 		String all = (stderr + "\n" + stdout).toLowerCase(Locale.ROOT);
-		if (all.contains("log in") || all.contains("login") || all.contains("authentication")
-				|| all.contains("not authenticated") || all.contains("api key")) {
+		// Be specific: the harmless "N MCP servers need authentication" notice must NOT
+		// be mistaken for a logged-out account.
+		if (all.contains("not logged in") || all.contains("please log in") || all.contains("log in to")
+				|| all.contains("not authenticated") || all.contains("invalid api key")
+				|| all.contains("authentication_error") || all.contains("unauthorized")) {
 			return "Claude Code isn't logged in. Open a terminal, run \"claude\", and sign in with your Claude account once.";
 		}
 		if (all.contains("rate limit") || all.contains("usage limit")) {
