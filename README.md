@@ -141,7 +141,9 @@ latest run → **Artifacts** → `ai-builder-mod`).
 
 ## Limitations
 
-- No chest loot / command blocks / NBT data (by design, for safety).
+- Every vanilla block is available (including command/structure blocks), and the AI can stock
+  containers (chests, barrels, furnaces, etc.) with items. Raw NBT in block strings is still not
+  supported — container contents use a dedicated, safer mechanism instead.
 - `/undo` history is kept in memory only — it's lost when you quit the world.
 - One build at a time per player.
 - The builder mob is cosmetic — killing the fun by looking away won't stop the build. 🙂

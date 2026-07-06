@@ -34,10 +34,19 @@ public final class PromptBuilder {
 				solid shell first, carve interiors by filling with air (palette index of minecraft:air), then add details.
 				- "f" fills the inclusive cuboid from (x1,y1,z1) to (x2,y2,z2). "s" sets a single block.
 				- All coordinates are integers within [0, size-1] on each axis.
-				- Palette entries use vanilla blockstate syntax: namespace:block or namespace:block[prop=value,prop2=value2]. \
-				Only the "minecraft:" namespace. No NBT (no {...}), no command blocks, no structure blocks, no bedrock.
+				- Palette entries use blockstate syntax: block or block[prop=value,prop2=value2] (namespace optional, \
+				defaults to minecraft). EVERY vanilla block is allowed - decoration, redstone, even command/structure \
+				blocks. Do not put NBT ({...}) in a palette string.
 				- Limits: each size axis at most %MAX_SIZE%, at most %MAX_OPS% ops, at most %MAX_VOLUME% total blocks \
 				touched. Stay well under the limits; prefer compact, detailed builds over giant empty ones.
+
+				# Filling containers (chests, barrels, furnaces, dispensers, hoppers, shulker boxes, ...)
+				A "set" op for a container block may include an "items" array to stock it. Each item is \
+				["item_id", count] or ["item_id", count, slot] (slot optional; omit to auto-fill from slot 0). \
+				count is 1-64, item_id is any vanilla item. Example - a chest with loot:
+				{"s": [3,1,2, 5], "items": [["minecraft:diamond", 5], ["minecraft:golden_apple", 3], ["minecraft:iron_sword", 1, 9]]}
+				Use this to make builds feel lived-in: stock chests, barrels, furnaces (fuel + input), item frames won't work \
+				(not a container), but most storage blocks do. Only "s" (single-block) ops support items.
 
 				# Coordinate system and orientation
 				The player stands at the ORIGIN looking toward +z (south).

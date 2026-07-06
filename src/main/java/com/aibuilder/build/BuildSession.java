@@ -5,7 +5,10 @@ import com.aibuilder.plan.BuildPlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
@@ -22,7 +25,8 @@ import java.util.UUID;
 public class BuildSession {
 	public enum State {GENERATING, PLACING, DONE, FAILED, CANCELLED}
 
-	public record Placement(BlockPos pos, BlockState state, boolean attachable) {
+	public record Placement(BlockPos pos, BlockState state, boolean attachable,
+							List<BuildPlan.ContainerItem> items) {
 	}
 
 	public record UndoEntry(BlockPos pos, BlockState previousState) {
@@ -96,7 +100,7 @@ public class BuildSession {
 						}
 						BlockPos world = anchor.offset(rx, y, rz);
 						finalStates.remove(world); // re-insert so later ops also place later
-						finalStates.put(world, new Placement(world, rotated, op.attachable()));
+						finalStates.put(world, new Placement(world, rotated, op.attachable(), op.items()));
 					}
 				}
 			}
@@ -156,6 +160,10 @@ public class BuildSession {
 		level.setBlock(placement.pos(), placement.state(), 3);
 		placedCount++;
 
+		if (!placement.items().isEmpty()) {
+			fillContainer(placement);
+		}
+
 		if (!placement.state().isAir()) {
 			double x = placement.pos().getX() + 0.5;
 			double y = placement.pos().getY() + 0.5;
@@ -168,6 +176,27 @@ public class BuildSession {
 				} catch (Exception ignored) {
 				}
 			}
+		}
+	}
+
+	/** Drops the op's items into the container block just placed at this position, if it is one. */
+	private void fillContainer(Placement placement) {
+		try {
+			BlockEntity blockEntity = level.getBlockEntity(placement.pos());
+			if (!(blockEntity instanceof Container container)) {
+				return;
+			}
+			int size = container.getContainerSize();
+			int nextSlot = 0;
+			for (BuildPlan.ContainerItem ci : placement.items()) {
+				int slot = ci.slot() >= 0 ? ci.slot() : nextSlot++;
+				if (slot >= 0 && slot < size) {
+					container.setItem(slot, new ItemStack(ci.item(), ci.count()));
+				}
+			}
+			container.setChanged();
+		} catch (Exception ignored) {
+			// never let a container-fill problem break the build
 		}
 	}
 

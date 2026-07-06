@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
@@ -97,13 +98,15 @@ public final class PlanParser {
 					parsed = new BuildPlan.Op(
 							Math.min(x1, x2), Math.min(y1, y2), Math.min(z1, z2),
 							Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2),
-							paletteState(states, index), attachables.get(index));
+							paletteState(states, index), attachables.get(index), List.of());
 				} else if (op.has("s")) {
 					JsonArray s = op.getAsJsonArray("s");
 					if (s.size() != 4) throw new PlanException("a set op must have 4 numbers [x,y,z,palette]");
 					int x = s.get(0).getAsInt(), y = s.get(1).getAsInt(), z = s.get(2).getAsInt();
 					int index = s.get(3).getAsInt();
-					parsed = new BuildPlan.Op(x, y, z, x, y, z, paletteState(states, index), attachables.get(index));
+					List<BuildPlan.ContainerItem> items = op.has("items")
+							? parseItems(op.getAsJsonArray("items")) : List.of();
+					parsed = new BuildPlan.Op(x, y, z, x, y, z, paletteState(states, index), attachables.get(index), items);
 				} else {
 					throw new PlanException("each op must have an \"f\" (fill) or \"s\" (set) key");
 				}
@@ -128,6 +131,33 @@ public final class PlanParser {
 		if (op.x1() < 0 || op.y1() < 0 || op.z1() < 0 || op.x2() >= sx || op.y2() >= sy || op.z2() >= sz) {
 			throw new PlanException("an op reaches outside the declared size " + sx + "x" + sy + "x" + sz);
 		}
+	}
+
+	/**
+	 * Parses a container "items" array: each entry is ["id", count] or ["id", count, slot].
+	 * Invalid item ids are skipped (a bad item shouldn't fail the whole build).
+	 */
+	private static List<BuildPlan.ContainerItem> parseItems(JsonArray itemsArray) {
+		List<BuildPlan.ContainerItem> result = new ArrayList<>();
+		for (JsonElement element : itemsArray) {
+			try {
+				JsonArray entry = element.getAsJsonArray();
+				if (entry.size() < 2) {
+					continue;
+				}
+				String idText = entry.get(0).getAsString().trim();
+				int count = Math.max(1, Math.min(64, entry.get(1).getAsInt()));
+				int slot = entry.size() >= 3 ? entry.get(2).getAsInt() : -1;
+				Identifier id = idText.contains(":")
+						? Identifier.fromNamespaceAndPath(idText.split(":", 2)[0], idText.split(":", 2)[1])
+						: Identifier.fromNamespaceAndPath("minecraft", idText);
+				var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(id);
+				item.ifPresent(value -> result.add(new BuildPlan.ContainerItem(value, count, slot)));
+			} catch (Exception ignored) {
+				// skip malformed / unknown item entries
+			}
+		}
+		return result;
 	}
 
 	private static BlockState paletteState(List<BlockState> states, int index) throws PlanException {

@@ -48,12 +48,7 @@ public final class BlockStateResolver {
 		} catch (Exception e) {
 			throw new InvalidBlockException("'" + spec + "': not a valid block id");
 		}
-		if (!id.getNamespace().equals("minecraft")) {
-			throw new InvalidBlockException("'" + spec + "': only vanilla minecraft: blocks are allowed");
-		}
-		if (DENYLIST.contains(id.getPath())) {
-			throw new InvalidBlockException("'" + spec + "': this block is not allowed");
-		}
+		// No denylist: any registered block is allowed. Unknown ids still error below.
 
 		Optional<Block> block = BuiltInRegistries.BLOCK.getOptional(id);
 		if (block.isEmpty()) {
@@ -96,9 +91,4 @@ public final class BlockStateResolver {
 		}
 		return state.setValue(property, parsed.get());
 	}
-
-	private static final java.util.Set<String> DENYLIST = java.util.Set.of(
-			"command_block", "chain_command_block", "repeating_command_block",
-			"structure_block", "structure_void", "jigsaw", "barrier", "bedrock",
-			"end_portal_frame", "end_portal", "nether_portal", "reinforced_deepslate");
 }
