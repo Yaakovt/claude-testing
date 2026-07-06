@@ -64,6 +64,18 @@ building starts — the chat tells you what's happening.
 | `/buildmake <name>` | Rebuild a saved design in front of you — no AI, no tokens, instant |
 | `/buildlist` | List your saved builds |
 | `/buildideas` | Get suggestions for what to build |
+| `/buildadd <text>` | Add a chunk to a long description (chat limits one command to 256 chars) |
+| `/buildgo` | Build the description you assembled with `/buildadd` |
+| `/buildclear` | Discard the assembled description |
+
+**Long descriptions:** Minecraft caps a single chat command at 256 characters. For a detailed build,
+use `/buildadd` several times to pile up the description, then `/buildgo`:
+```
+/buildadd a two-story oak and cobblestone house with a peaked roof
+/buildadd inside: a bed, a chest of food and tools, 2 furnaces, a crafting table
+/buildadd out back, a fenced garden with flowers and a small pond
+/buildgo
+```
 
 Settings changed with `/buildset` are saved and take effect on your next `/build` — no restart needed.
 

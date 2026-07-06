@@ -148,6 +148,55 @@ public final class BuildCommands {
 					return 1;
 				}));
 
+		// /buildadd <text> - append to a long prompt (chat caps one command at 256 chars)
+		dispatcher.register(Commands.literal("buildadd")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.then(Commands.argument("text", StringArgumentType.greedyString())
+						.executes(context -> {
+							ServerPlayer player = context.getSource().getPlayer();
+							if (player == null) {
+								context.getSource().sendFailure(Component.literal("Only players can /buildadd."));
+								return 0;
+							}
+							manager.addToPrompt(player, StringArgumentType.getString(context, "text"));
+							return 1;
+						}))
+				.executes(context -> {
+					context.getSource().sendFailure(Component.literal(
+							"Usage: /buildadd <text> - add a piece of a long description, then /buildgo")
+							.withStyle(ChatFormatting.RED));
+					return 0;
+				}));
+
+		// /buildgo - run the accumulated /buildadd prompt
+		dispatcher.register(Commands.literal("buildgo")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.executes(context -> {
+					ServerPlayer player = context.getSource().getPlayer();
+					if (player == null) {
+						context.getSource().sendFailure(Component.literal("Only players can /buildgo."));
+						return 0;
+					}
+					manager.runBufferedBuild(player);
+					return 1;
+				}));
+
+		// /buildclear - discard the accumulated prompt
+		dispatcher.register(Commands.literal("buildclear")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.executes(context -> {
+					ServerPlayer player = context.getSource().getPlayer();
+					if (player == null) {
+						context.getSource().sendFailure(Component.literal("Only players can /buildclear."));
+						return 0;
+					}
+					manager.clearPrompt(player);
+					return 1;
+				}));
+
 		// /buildideas - suggestions for what to build
 		dispatcher.register(Commands.literal("buildideas")
 				.requires(PermissionPredicates.require(

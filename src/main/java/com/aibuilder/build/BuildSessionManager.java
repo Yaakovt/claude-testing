@@ -45,6 +45,8 @@ public class BuildSessionManager {
 	private final BuildLibrary library = new BuildLibrary();
 	/** The last completed design's JSON per player, so /buildsave can keep it. */
 	private final Map<UUID, String> lastPlanJson = new ConcurrentHashMap<>();
+	/** Accumulated long-prompt text per player (Minecraft caps a single command at 256 chars). */
+	private final Map<UUID, StringBuilder> promptBuffers = new ConcurrentHashMap<>();
 	private final Map<UUID, BuildSession> sessions = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<List<BuildSession.UndoEntry>>> undoHistory = new HashMap<>();
 	private final List<RestoreJob> restoreJobs = new ArrayList<>();
@@ -112,6 +114,40 @@ public class BuildSessionManager {
 		} catch (NumberFormatException e) {
 			return -1;
 		}
+	}
+
+	// ------------------------------------------------------------------ long prompts (/buildadd, /buildgo)
+
+	/** Appends a chunk to the player's pending prompt, for descriptions longer than one command. */
+	public void addToPrompt(ServerPlayer player, String text) {
+		StringBuilder buf = promptBuffers.computeIfAbsent(player.getUUID(), k -> new StringBuilder());
+		if (buf.length() > 0) {
+			buf.append(' ');
+		}
+		buf.append(text.trim());
+		String full = buf.toString();
+		tell(player, "✍ Added (" + full.length() + " chars so far): "
+				+ (full.length() <= 120 ? full : full.substring(0, 120) + "..."), ChatFormatting.AQUA);
+		tell(player, "Add more with /buildadd, then /buildgo to build it (/buildclear to reset).",
+				ChatFormatting.DARK_GRAY);
+	}
+
+	/** Runs the accumulated prompt as a build, then clears the buffer. */
+	public void runBufferedBuild(ServerPlayer player) {
+		StringBuilder buf = promptBuffers.get(player.getUUID());
+		if (buf == null || buf.length() == 0) {
+			tell(player, "Nothing queued. Use /buildadd <text> (repeat for long prompts), then /buildgo.",
+					ChatFormatting.RED);
+			return;
+		}
+		String prompt = buf.toString().trim();
+		promptBuffers.remove(player.getUUID());
+		startBuild(player, prompt);
+	}
+
+	public void clearPrompt(ServerPlayer player) {
+		promptBuffers.remove(player.getUUID());
+		tell(player, "Cleared your queued build prompt.", ChatFormatting.YELLOW);
 	}
 
 	// ------------------------------------------------------------------ save / replay / ideas
