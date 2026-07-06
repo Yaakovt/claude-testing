@@ -9,7 +9,8 @@ import java.util.List;
  * A parsed, validated build plan in canonical space:
  * the player stands at the origin looking toward +z, +y is up, y=0 is at the player's feet.
  */
-public record BuildPlan(String name, int sizeX, int sizeY, int sizeZ, String notes, List<Op> ops) {
+public record BuildPlan(String name, int sizeX, int sizeY, int sizeZ, String notes, List<Op> ops,
+						List<String> warnings) {
 
 	/** An item to drop into a container block. slot < 0 means "next free slot". */
 	public record ContainerItem(Item item, int count, int slot) {

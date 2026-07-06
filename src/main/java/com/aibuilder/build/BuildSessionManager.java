@@ -335,6 +335,10 @@ public class BuildSessionManager {
 		if (player != null) {
 			tell(player, "⚒ Design ready: " + plan.name() + " (" + plan.sizeX() + "x" + plan.sizeY() + "x"
 					+ plan.sizeZ() + ", " + session.totalPlacements() + " blocks). Building...", ChatFormatting.GREEN);
+			if (plan.warnings() != null && !plan.warnings().isEmpty()) {
+				tell(player, "(Minor: " + String.join("; ", plan.warnings())
+						+ " - building everything else.)", ChatFormatting.DARK_GRAY);
+			}
 		}
 	}
 

@@ -23,6 +23,31 @@ public final class BlockStateResolver {
 		}
 	}
 
+	/**
+	 * Lenient fallback: returns the block's default state ignoring any properties,
+	 * or {@code null} if the block id itself is unknown. Never throws.
+	 */
+	public static BlockState resolveBlockOnly(String spec) {
+		try {
+			String idPart = spec.trim();
+			int bracket = idPart.indexOf('[');
+			if (bracket >= 0) {
+				idPart = idPart.substring(0, bracket);
+			}
+			int brace = idPart.indexOf('{');
+			if (brace >= 0) {
+				idPart = idPart.substring(0, brace);
+			}
+			idPart = idPart.trim();
+			Identifier id = idPart.contains(":")
+					? Identifier.fromNamespaceAndPath(idPart.split(":", 2)[0], idPart.split(":", 2)[1])
+					: Identifier.fromNamespaceAndPath("minecraft", idPart);
+			return BuiltInRegistries.BLOCK.getOptional(id).map(Block::defaultBlockState).orElse(null);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	public static BlockState resolve(String spec) throws InvalidBlockException {
 		String trimmed = spec.trim();
 		String idPart = trimmed;

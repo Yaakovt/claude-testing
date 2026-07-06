@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
@@ -55,25 +56,25 @@ public final class PlanParser {
 			}
 			List<BlockState> states = new ArrayList<>(palette.size());
 			List<Boolean> attachables = new ArrayList<>(palette.size());
-			List<String> badBlocks = new ArrayList<>();
+			List<String> warnings = new ArrayList<>();
+			BlockState air = Blocks.AIR.defaultBlockState();
+			// Be forgiving: one slightly-wrong block string must never throw away the whole design.
+			// Fall back to the plain block (ignore bad properties), or skip it (air) if unknown.
 			for (JsonElement entry : palette) {
 				String spec = entry.getAsString();
 				attachables.add(isAttachable(spec));
 				try {
 					states.add(BlockStateResolver.resolve(spec));
 				} catch (BlockStateResolver.InvalidBlockException e) {
-					states.add(null);
-					badBlocks.add(e.getMessage());
+					BlockState fallback = BlockStateResolver.resolveBlockOnly(spec);
+					if (fallback != null) {
+						states.add(fallback);
+						if (warnings.size() < 6) warnings.add("used a plain version of " + spec);
+					} else {
+						states.add(air);
+						if (warnings.size() < 6) warnings.add("skipped unknown block " + spec);
+					}
 				}
-			}
-			if (!badBlocks.isEmpty()) {
-				StringBuilder sb = new StringBuilder("The AI used invalid blocks: ");
-				for (int i = 0; i < Math.min(5, badBlocks.size()); i++) {
-					if (i > 0) sb.append("; ");
-					sb.append(badBlocks.get(i));
-				}
-				if (badBlocks.size() > 5) sb.append("; and ").append(badBlocks.size() - 5).append(" more");
-				throw new PlanException(sb.toString());
 			}
 
 			JsonArray ops = require(root, "ops").getAsJsonArray();
@@ -119,7 +120,7 @@ public final class PlanParser {
 						+ "). Try asking for something smaller.");
 			}
 
-			return new BuildPlan(name, sx, sy, sz, notes, parsedOps);
+			return new BuildPlan(name, sx, sy, sz, notes, parsedOps, warnings);
 		} catch (PlanException e) {
 			throw e;
 		} catch (Exception e) {
