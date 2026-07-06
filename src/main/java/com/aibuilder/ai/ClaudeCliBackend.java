@@ -40,14 +40,14 @@ public class ClaudeCliBackend implements AiBackend {
 		// Preferred flags keep the call non-interactive and fast:
 		//  --bare              skip auto-discovery of MCP servers / hooks / plugins (avoids MCP-auth noise)
 		//  --permission-mode dontAsk   never block waiting for a permission prompt
-		// If this attempt fails for ANY reason, we retry once with the bare-minimum
+		// If this attempt exits with an error, we retry once with the bare-minimum
 		// command (proven to work), before giving up.
-		try {
-			return runOnce(buildCommand(base, true), prompt, true);
-		} catch (RetryException e) {
-			LOGGER.warn("Preferred Claude CLI invocation failed ({}); retrying with the minimal command", e.getMessage());
-			return runOnce(buildCommand(base, false), prompt, false);
+		GenResult preferred = runOnce(buildCommand(base, true), prompt, false);
+		if (preferred != null) {
+			return preferred;
 		}
+		LOGGER.warn("Preferred Claude CLI invocation failed; retrying with the minimal command");
+		return runOnce(buildCommand(base, false), prompt, true);
 	}
 
 	private List<String> buildCommand(List<String> base, boolean fullFlags) {
@@ -67,19 +67,16 @@ public class ClaudeCliBackend implements AiBackend {
 		return command;
 	}
 
-	/** Signals that the preferred invocation failed and the minimal command should be tried. */
-	private static class RetryException extends Exception {
-		RetryException(String message) {
-			super(message);
-		}
-	}
-
 	/**
-	 * @param retryable if true, a non-zero exit throws RetryException (caller falls back
-	 *                  to the minimal command); if false, it throws a friendly BackendException.
+	 * Runs one CLI invocation.
+	 *
+	 * @param finalAttempt if false, a non-zero exit returns {@code null} to signal the caller
+	 *                     should retry with the minimal command; if true, it throws a friendly
+	 *                     BackendException. A timeout is always fatal (never a silent retry).
+	 * @return the result, or {@code null} if this non-final attempt failed and should be retried
 	 */
-	private GenResult runOnce(List<String> command, String prompt, boolean retryable)
-			throws BackendException, InterruptedException, RetryException {
+	private GenResult runOnce(List<String> command, String prompt, boolean finalAttempt)
+			throws BackendException, InterruptedException {
 		ProcessBuilder builder = new ProcessBuilder(command);
 		builder.redirectErrorStream(false);
 		Process process;
@@ -118,8 +115,9 @@ public class ClaudeCliBackend implements AiBackend {
 			int exit = process.exitValue();
 			String err = stderr.toString();
 			if (exit != 0) {
-				if (retryable) {
-					throw new RetryException(truncate(err, 120));
+				if (!finalAttempt) {
+					LOGGER.warn("Claude CLI exited {} on the preferred command: {}", exit, truncate(err, 120));
+					return null; // signal the caller to retry with the minimal command
 				}
 				throw new BackendException(friendlyCliError(exit, err, stdout.toString()));
 			}
