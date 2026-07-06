@@ -37,29 +37,17 @@ public class ClaudeCliBackend implements AiBackend {
 		List<String> base = findClaude();
 		String prompt = PromptBuilder.cliPrompt(config, request, previousError);
 
-		// Preferred flags keep the call non-interactive and fast:
-		//  --bare              skip auto-discovery of MCP servers / hooks / plugins (avoids MCP-auth noise)
-		//  --permission-mode dontAsk   never block waiting for a permission prompt
-		// If this attempt exits with an error, we retry once with the bare-minimum
-		// command (proven to work), before giving up.
-		GenResult preferred = runOnce(buildCommand(base, true), prompt, false);
-		if (preferred != null) {
-			return preferred;
-		}
-		LOGGER.warn("Preferred Claude CLI invocation failed; retrying with the minimal command");
-		return runOnce(buildCommand(base, false), prompt, true);
+		// Minimal, proven invocation. We deliberately do NOT pass --bare (it skips loading
+		// the Claude subscription login and reports "Not logged in") or --permission-mode
+		// (headless -p never blocks on a permission prompt for a plain text answer anyway).
+		return runOnce(buildCommand(base), prompt);
 	}
 
-	private List<String> buildCommand(List<String> base, boolean fullFlags) {
+	private List<String> buildCommand(List<String> base) {
 		List<String> command = new ArrayList<>(base);
 		command.add("-p");
 		command.add("--output-format");
 		command.add("json");
-		if (fullFlags) {
-			command.add("--bare");
-			command.add("--permission-mode");
-			command.add("dontAsk");
-		}
 		if (config.cliModel != null && !config.cliModel.isBlank()) {
 			command.add("--model");
 			command.add(config.cliModel);
@@ -67,15 +55,7 @@ public class ClaudeCliBackend implements AiBackend {
 		return command;
 	}
 
-	/**
-	 * Runs one CLI invocation.
-	 *
-	 * @param finalAttempt if false, a non-zero exit returns {@code null} to signal the caller
-	 *                     should retry with the minimal command; if true, it throws a friendly
-	 *                     BackendException. A timeout is always fatal (never a silent retry).
-	 * @return the result, or {@code null} if this non-final attempt failed and should be retried
-	 */
-	private GenResult runOnce(List<String> command, String prompt, boolean finalAttempt)
+	private GenResult runOnce(List<String> command, String prompt)
 			throws BackendException, InterruptedException {
 		ProcessBuilder builder = new ProcessBuilder(command);
 		builder.redirectErrorStream(false);
@@ -115,10 +95,6 @@ public class ClaudeCliBackend implements AiBackend {
 			int exit = process.exitValue();
 			String err = stderr.toString();
 			if (exit != 0) {
-				if (!finalAttempt) {
-					LOGGER.warn("Claude CLI exited {} on the preferred command: {}", exit, truncate(err, 120));
-					return null; // signal the caller to retry with the minimal command
-				}
 				throw new BackendException(friendlyCliError(exit, err, stdout.toString()));
 			}
 			return extractResult(stdout.toString(), err);
