@@ -60,8 +60,18 @@ building starts — the chat tells you what's happening.
 | `/buildset timeout <seconds>` | Change how long to wait for a design, e.g. `/buildset timeout 600` |
 | `/buildset speed <n>` | Blocks placed per tick, e.g. `/buildset speed 5` (higher = faster building) |
 | `/buildstatus` | Show the current model, timeout, and speed |
+| `/buildsave <name>` | Save the build you just made under a name |
+| `/buildmake <name>` | Rebuild a saved design in front of you — no AI, no tokens, instant |
+| `/buildlist` | List your saved builds |
+| `/buildideas` | Get suggestions for what to build |
 
 Settings changed with `/buildset` are saved and take effect on your next `/build` — no restart needed.
+
+**Saving & replaying builds:** after any build finishes, the mod tells you its token cost and offers
+`/buildsave <name>`. Once saved, `/buildmake <name>` rebuilds that exact design wherever you're standing
+— it replays the stored plan, so it's instant and costs zero AI tokens. Great for builds you want to place
+more than once (a house design, a working redstone door, etc.). Saved builds persist in
+`config/aibuilder_builds.json`.
 
 ---
 

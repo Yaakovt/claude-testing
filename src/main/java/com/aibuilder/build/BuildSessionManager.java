@@ -42,6 +42,9 @@ public class BuildSessionManager {
 	// restarting Minecraft; hence not final.
 	private AiBuilderConfig config;
 	private final UsageTracker usageTracker = new UsageTracker();
+	private final BuildLibrary library = new BuildLibrary();
+	/** The last completed design's JSON per player, so /buildsave can keep it. */
+	private final Map<UUID, String> lastPlanJson = new ConcurrentHashMap<>();
 	private final Map<UUID, BuildSession> sessions = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<List<BuildSession.UndoEntry>>> undoHistory = new HashMap<>();
 	private final List<RestoreJob> restoreJobs = new ArrayList<>();
@@ -111,6 +114,78 @@ public class BuildSessionManager {
 		}
 	}
 
+	// ------------------------------------------------------------------ save / replay / ideas
+
+	/** Saves the player's most recent finished build under a name. */
+	public void saveLastBuild(ServerPlayer player, String name) {
+		String json = lastPlanJson.get(player.getUUID());
+		if (json == null) {
+			tell(player, "Build something first, then /buildsave <name> to keep it.", ChatFormatting.RED);
+			return;
+		}
+		if (!name.matches("[A-Za-z0-9_-]{1,32}")) {
+			tell(player, "Pick a simple name: 1-32 letters, numbers, - or _ (no spaces).", ChatFormatting.RED);
+			return;
+		}
+		library.put(name, json);
+		tell(player, "💾 Saved as \"" + name + "\". Rebuild it anytime with /buildmake " + name
+				+ " (free - no AI).", ChatFormatting.GREEN);
+	}
+
+	/** Rebuilds a saved design in front of the player without calling the AI. */
+	public void buildSaved(ServerPlayer player, String name) {
+		if (sessions.containsKey(player.getUUID())) {
+			tell(player, "You already have a build in progress. Use /buildcancel first.", ChatFormatting.RED);
+			return;
+		}
+		String json = library.get(name);
+		if (json == null) {
+			tell(player, "No saved build called \"" + name + "\". See yours with /buildlist.", ChatFormatting.RED);
+			return;
+		}
+		config = AiBuilderConfig.load();
+		MinecraftServer server = player.level().getServer();
+		BuildSession session = new BuildSession(player.getUUID(), "saved:" + name,
+				(ServerLevel) player.level(), player.blockPosition(), player.getYRot());
+		sessions.put(player.getUUID(), session);
+
+		BuildPlan plan;
+		try {
+			plan = PlanParser.parse(json, config);
+		} catch (PlanParser.PlanException e) {
+			failSession(server, session, "that saved build is no longer valid: " + e.getMessage());
+			return;
+		}
+		session.planJson = json;
+		tell(player, "🔁 Rebuilding saved \"" + name + "\" - no AI needed...", ChatFormatting.AQUA);
+		beginPlacement(server, session, plan);
+	}
+
+	public String savedList() {
+		List<String> names = library.names();
+		if (names.isEmpty()) {
+			return "No saved builds yet. After a build finishes, use /buildsave <name>.";
+		}
+		return "Saved builds (" + names.size() + "): " + String.join(", ", names)
+				+ "  -  rebuild with /buildmake <name>";
+	}
+
+	public List<String> ideas() {
+		return List.of(
+				"Try one of these (type /build <idea>):",
+				"  a cozy log cabin with a stone chimney and a porch",
+				"  a 3-story medieval watchtower with a spiral staircase",
+				"  a small wizard's cottage with a garden and lanterns",
+				"  a Japanese-style pagoda with a red roof",
+				"  a hidden 2x2 piston door in a stone wall, opened by a lever",
+				"  an automatic sugar cane farm with an observer and pistons",
+				"  a working redstone combination lock with 3 levers",
+				"  a suspension bridge across a ravine",
+				"  a lighthouse with a glowstone beacon on top",
+				"  a fountain plaza with symmetric water features",
+				"Tip: /buildset model opus for tricky redstone; sonnet or haiku for quick builds.");
+	}
+
 	// ------------------------------------------------------------------ /build
 
 	public void startBuild(ServerPlayer player, String request) {
@@ -145,6 +220,7 @@ public class BuildSessionManager {
 				AiBackend.GenResult result = session.backend.generate(session.request, previousError);
 				usageTracker.record(result.tokensUsed());
 				server.execute(() -> {
+					session.tokensUsed = result.tokensUsed();
 					warnAboutUsage(server, session);
 					onGenerated(server, session, result.text(), attempt);
 				});
@@ -200,6 +276,13 @@ public class BuildSessionManager {
 			return;
 		}
 
+		// Keep the design's JSON so the player can /buildsave it after it finishes.
+		session.planJson = PlanParser.extractJson(rawText);
+		beginPlacement(server, session, plan);
+	}
+
+	/** Spawns the builder and starts placement for an already-parsed plan (AI or saved). */
+	private void beginPlacement(MinecraftServer server, BuildSession session, BuildPlan plan) {
 		session.preparePlacements(plan);
 		Vec3 spawnPos = Vec3.atCenterOf(session.anchor).add(0, 2.5, 0);
 		session.builder = BuilderMob.spawn(session.level, spawnPos, config);
@@ -302,12 +385,22 @@ public class BuildSessionManager {
 						SoundSource.PLAYERS, 1.0F, 1.0F);
 				pushUndo(session.playerId, session.undoEntries);
 				iterator.remove();
+				if (session.planJson != null) {
+					lastPlanJson.put(session.playerId, session.planJson);
+				}
 				if (player != null) {
 					tell(player, "✅ " + session.plan.name() + " is finished!", ChatFormatting.GREEN);
 					if (session.plan.notes() != null && !session.plan.notes().isBlank()) {
 						tell(player, session.plan.notes(), ChatFormatting.GRAY);
 					}
-					tell(player, "(/undo removes it)", ChatFormatting.DARK_GRAY);
+					if (session.tokensUsed > 0) {
+						tell(player, "🔢 This design used ~" + String.format("%,d", session.tokensUsed)
+								+ " tokens.", ChatFormatting.GRAY);
+					} else {
+						tell(player, "🔢 Rebuilt from a saved design - no AI tokens used.", ChatFormatting.GRAY);
+					}
+					tell(player, "💾 Like it? /buildsave <name> keeps it - then /buildmake <name> rebuilds it "
+							+ "anytime for free. (/undo removes it)", ChatFormatting.DARK_GRAY);
 				}
 			} else if (player != null && session.wantsProgressMessage()) {
 				tell(player, "Building... " + session.placedSoFar() + "/" + session.totalPlacements()

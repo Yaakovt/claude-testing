@@ -40,6 +40,10 @@ public class BuildSession {
 	public com.aibuilder.ai.AiBackend backend;
 
 	public BuildPlan plan;
+	/** Tokens the AI used to design this build (0 for a replayed/saved build). */
+	public long tokensUsed;
+	/** The design's JSON, kept so the player can /buildsave and replay it later. */
+	public String planJson;
 	private List<Placement> placements = List.of();
 	private int cursor;
 	private int placedCount;

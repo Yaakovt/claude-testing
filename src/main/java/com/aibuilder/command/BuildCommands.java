@@ -96,5 +96,68 @@ public final class BuildCommands {
 							() -> Component.literal(manager.settingsSummary()).withStyle(ChatFormatting.GRAY), false);
 					return 1;
 				}));
+
+		// /buildsave <name> - keep the build you just made
+		dispatcher.register(Commands.literal("buildsave")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.then(Commands.argument("name", StringArgumentType.word())
+						.executes(context -> {
+							ServerPlayer player = context.getSource().getPlayer();
+							if (player == null) {
+								context.getSource().sendFailure(Component.literal("Only players can /buildsave."));
+								return 0;
+							}
+							manager.saveLastBuild(player, StringArgumentType.getString(context, "name"));
+							return 1;
+						}))
+				.executes(context -> {
+					context.getSource().sendFailure(Component.literal(
+							"Usage: /buildsave <name> - saves the build you just made").withStyle(ChatFormatting.RED));
+					return 0;
+				}));
+
+		// /buildmake <name> - rebuild a saved design (no AI, free)
+		dispatcher.register(Commands.literal("buildmake")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.then(Commands.argument("name", StringArgumentType.word())
+						.executes(context -> {
+							ServerPlayer player = context.getSource().getPlayer();
+							if (player == null) {
+								context.getSource().sendFailure(Component.literal("Only players can /buildmake."));
+								return 0;
+							}
+							manager.buildSaved(player, StringArgumentType.getString(context, "name"));
+							return 1;
+						}))
+				.executes(context -> {
+					context.getSource().sendFailure(Component.literal(
+							"Usage: /buildmake <name> - rebuilds a saved design. See /buildlist")
+							.withStyle(ChatFormatting.RED));
+					return 0;
+				}));
+
+		// /buildlist - list saved builds
+		dispatcher.register(Commands.literal("buildlist")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.executes(context -> {
+					context.getSource().sendSuccess(
+							() -> Component.literal(manager.savedList()).withStyle(ChatFormatting.AQUA), false);
+					return 1;
+				}));
+
+		// /buildideas - suggestions for what to build
+		dispatcher.register(Commands.literal("buildideas")
+				.requires(PermissionPredicates.require(
+						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.executes(context -> {
+					for (String line : manager.ideas()) {
+						context.getSource().sendSuccess(
+								() -> Component.literal(line).withStyle(ChatFormatting.YELLOW), false);
+					}
+					return 1;
+				}));
 	}
 }
