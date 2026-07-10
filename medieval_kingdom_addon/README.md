@@ -54,10 +54,33 @@ Give yourself the spawn eggs from the creative inventory (search "Knight",
 | `/function build_tower` | Builds a 9×9 stone-brick watchtower where you stand, posts two knight guards, and stocks **three treasure chests** (strongbox, armory, and a gold-trimmed royal vault with diamonds) |
 | `/function summon_armor` | Spawns the Animated Armor boss in front of you |
 | `/function summon_dragon` | Spawns the Fire Dragon above and in front of you |
+| `/function build_village` | Generates a **random medieval village** (jigsaw-style): roads grow from a central plaza in random directions with random branches, and lots pick random rotated buildings — houses, blacksmith, tavern, farms, chapel, market stalls — that follow the terrain. Different every time |
 | `/function build_castle` | Builds a full **41×41 castle** around you — crenellated curtain walls, four corner towers, a gatehouse with portcullis, a rear keep — garrisoned by **8 archers on the battlements and 4 knights**, with a **gold treasure mound** in the courtyard where the **Fire Dragon spawns** atop its hoard |
 
-The two medieval mobs (Knight, Archer) also **spawn naturally at night** on the
-surface. The bosses are summon-only.
+The two medieval mobs (Knight, Archer) **spawn naturally at night**, and the
+**Animated Armor** has a rare natural night spawn on the surface (normal/hard
+difficulty).
+
+## Natural structure generation & locating
+
+Structures also **generate naturally as you explore** — no commands needed. The
+world is divided into 320-block cells; each cell deterministically rolls whether
+it holds a **watchtower**, **armor shrine** (ruin guarded by an Animated Armor),
+**random village**, or **castle** (complete with dragon and hoard). When you
+wander near one, it rises out of the landscape.
+
+Bedrock's vanilla `/locate` can't learn custom structures, so the pack keeps its
+own registry of everything generated:
+
+| Command | What it does |
+|---|---|
+| `/function locate_castle` | Nearest discovered castle — distance, direction, coordinates |
+| `/function locate_village` / `locate_tower` / `locate_shrine` | Same for the other structures |
+| `/function worldgen_off` / `worldgen_on` | Pause/resume natural generation |
+
+Tip: raise **Simulation Distance** to 6+ so large structures generate fully in
+one pass. Structures flatten the terrain where they appear — turn worldgen off
+near your base if you're worried.
 
 ---
 

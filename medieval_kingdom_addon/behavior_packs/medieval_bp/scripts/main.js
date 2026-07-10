@@ -1,4 +1,25 @@
 import { world, system } from "@minecraft/server";
+import { buildVillage } from "./village.js";
+import { initWorldgen, locateStructure, setWorldgen } from "./structures.js";
+
+// ---------------------------------------------------------------
+// scriptevent router (fired by /function build_village, locate_*, worldgen_*)
+// ---------------------------------------------------------------
+try {
+  system.afterEvents.scriptEventReceive.subscribe((ev) => {
+    const p = ev.sourceEntity;
+    if (!p) return;
+    if (ev.id === "md:village") {
+      buildVillage(p.dimension, Math.floor(p.location.x), Math.floor(p.location.y), Math.floor(p.location.z), p.name);
+    } else if (ev.id === "md:locate") {
+      locateStructure(p, (ev.message || "").trim());
+    } else if (ev.id === "md:worldgen") {
+      setWorldgen(p, (ev.message || "").trim() !== "off");
+    }
+  });
+} catch {}
+
+initWorldgen();
 
 const HAMMER = "md:knight_hammer";
 const FANG = "md:searing_fang";

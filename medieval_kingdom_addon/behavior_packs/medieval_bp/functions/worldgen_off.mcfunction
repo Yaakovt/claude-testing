@@ -1,0 +1,1 @@
+scriptevent md:worldgen off
