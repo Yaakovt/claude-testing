@@ -54,6 +54,7 @@ Give yourself the spawn eggs from the creative inventory (search "Knight",
 | `/function build_tower` | Builds a 9×9 stone-brick watchtower where you stand, posts two knight guards, and stocks **three treasure chests** (strongbox, armory, and a gold-trimmed royal vault with diamonds) |
 | `/function summon_armor` | Spawns the Animated Armor boss in front of you |
 | `/function summon_dragon` | Spawns the Fire Dragon above and in front of you |
+| `/function build_castle` | Builds a full **41×41 castle** around you — crenellated curtain walls, four corner towers, a gatehouse with portcullis, a rear keep — garrisoned by **8 archers on the battlements and 4 knights**, with a **gold treasure mound** in the courtyard where the **Fire Dragon spawns** atop its hoard |
 
 The two medieval mobs (Knight, Archer) also **spawn naturally at night** on the
 surface. The bosses are summon-only.
@@ -120,9 +121,9 @@ and vanilla loot. They also award XP.
 
 The **Helm of the Animated Armor** is a wearable helmet (5 armor, enchantable,
 repairable with iron). **Dragon Scales craft a Dragonscale Chestplate** (7 armor)
-— 8 scales in a chestplate pattern at a crafting table. Worn custom armor
-protects you but doesn't render a model on your body yet (that needs Bedrock
-attachables — a good future upgrade).
+— 8 scales in a chestplate pattern at a crafting table. Both **render on your
+body when worn** (attachables with custom armor-layer textures): a dark iron
+great-helm with a glowing cyan slit, and red dragon-scale plate with ember studs.
 
 Weapon abilities are implemented with the stable Script API (`@minecraft/server`),
 so the pack now requires **Minecraft 1.20.60+** (no experiments needed).
