@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:archer",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/archer" },
+      "geometry": { "default": "geometry.humanoid_medieval" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "bow": "animation.humanoid_medieval.bow",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": {
+        "animate": ["move", "bow"]
+      },
+      "spawn_egg": { "base_color": "#5a4630", "overlay_color": "#3c6437" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

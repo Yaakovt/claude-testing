@@ -1,0 +1,11 @@
+entity.md:knight.name=Knight
+entity.md:archer.name=Archer
+entity.md:animated_armor.name=Animated Armor
+entity.md:fire_dragon.name=Fire Dragon
+entity.md:dragon_fireball.name=Dragon Fireball
+entity.md:fire_sphere.name=Fire Sphere
+
+item.spawn_egg.entity.md:knight.name=Spawn Knight
+item.spawn_egg.entity.md:archer.name=Spawn Archer
+item.spawn_egg.entity.md:animated_armor.name=Spawn Animated Armor
+item.spawn_egg.entity.md:fire_dragon.name=Spawn Fire Dragon

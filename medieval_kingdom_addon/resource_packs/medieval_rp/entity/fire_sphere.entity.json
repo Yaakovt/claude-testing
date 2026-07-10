@@ -1,0 +1,18 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:fire_sphere",
+      "materials": { "default": "entity_alphablend", "sphere": "entity_alphablend" },
+      "textures": { "default": "textures/entity/fire_sphere" },
+      "geometry": { "default": "geometry.fire_sphere" },
+      "animations": {
+        "grow": "animation.fire_sphere.grow"
+      },
+      "scripts": {
+        "animate": ["grow"]
+      },
+      "render_controllers": ["controller.render.fire_sphere"]
+    }
+  }
+}

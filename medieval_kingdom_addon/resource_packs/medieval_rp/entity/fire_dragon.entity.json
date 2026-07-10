@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:fire_dragon",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/fire_dragon" },
+      "geometry": { "default": "geometry.fire_dragon" },
+      "animations": {
+        "fly": "animation.fire_dragon.fly",
+        "idle_ground": "animation.fire_dragon.idle_ground",
+        "fireball": "animation.fire_dragon.fireball",
+        "volley": "animation.fire_dragon.volley",
+        "dive": "animation.fire_dragon.dive",
+        "tail_whip": "animation.fire_dragon.tail_whip",
+        "sphere_charge": "animation.fire_dragon.sphere_charge",
+        "move": "controller.animation.dragon_move",
+        "combat": "controller.animation.dragon_combat"
+      },
+      "scripts": {
+        "animate": ["move", "combat"]
+      },
+      "particle_effects": {
+        "fire_breath": "minecraft:mobflame_single",
+        "sphere_charge_p": "minecraft:rising_border_dust_particle"
+      },
+      "sound_effects": {
+        "dragon_fire": "mob.blaze.shoot",
+        "dragon_flap": "mob.enderdragon.flap",
+        "dragon_charge": "mob.enderdragon.growl"
+      },
+      "spawn_egg": { "base_color": "#96281e", "overlay_color": "#d27828" },
+      "render_controllers": ["controller.render.fire_dragon"]
+    }
+  }
+}

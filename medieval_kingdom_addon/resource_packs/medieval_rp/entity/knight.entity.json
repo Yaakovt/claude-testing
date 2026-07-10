@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:knight",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/knight" },
+      "geometry": { "default": "geometry.humanoid_medieval" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "attack": "animation.humanoid_medieval.attack",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": {
+        "animate": ["move"]
+      },
+      "spawn_egg": { "base_color": "#8892a0", "overlay_color": "#3c5aa0" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

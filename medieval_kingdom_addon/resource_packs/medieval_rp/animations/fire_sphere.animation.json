@@ -1,0 +1,20 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.fire_sphere.grow": {
+      "loop": false,
+      "animation_length": 2.0,
+      "bones": {
+        "sphere": {
+          "scale": {
+            "0.0": [0.2, 0.2, 0.2],
+            "1.6": [3.0, 3.0, 3.0],
+            "1.85": [3.4, 3.4, 3.4],
+            "2.0": [0.05, 0.05, 0.05]
+          },
+          "rotation": [0, "query.life_time * 90", 0]
+        }
+      }
+    }
+  }
+}

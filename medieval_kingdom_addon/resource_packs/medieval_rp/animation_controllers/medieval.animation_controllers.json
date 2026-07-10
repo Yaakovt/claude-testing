@@ -1,0 +1,74 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.md_humanoid_move": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "animations": ["idle"],
+          "transitions": [{ "walk": "query.modified_move_speed > 0.1" }]
+        },
+        "walk": {
+          "animations": ["walk"],
+          "transitions": [{ "idle": "query.modified_move_speed <= 0.1" }]
+        }
+      }
+    },
+    "controller.animation.armor_combat": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "transitions": [
+            { "swing": "query.property('md:state') == 'swing'" },
+            { "smash": "query.property('md:state') == 'smash'" },
+            { "spin": "query.property('md:state') == 'spin'" }
+          ]
+        },
+        "swing": {
+          "animations": ["attack_swing"],
+          "transitions": [{ "idle": "query.property('md:state') != 'swing'" }]
+        },
+        "smash": {
+          "animations": ["attack_smash"],
+          "transitions": [{ "idle": "query.property('md:state') != 'smash'" }]
+        },
+        "spin": {
+          "animations": ["attack_spin"],
+          "transitions": [{ "idle": "query.property('md:state') != 'spin'" }]
+        }
+      }
+    },
+    "controller.animation.dragon_move": {
+      "initial_state": "fly",
+      "states": {
+        "fly": {
+          "animations": ["fly"],
+          "transitions": [{ "ground": "query.property('md:grounded')" }]
+        },
+        "ground": {
+          "animations": ["idle_ground"],
+          "transitions": [{ "fly": "!query.property('md:grounded')" }]
+        }
+      }
+    },
+    "controller.animation.dragon_combat": {
+      "initial_state": "none",
+      "states": {
+        "none": {
+          "transitions": [
+            { "fireball": "query.property('md:state') == 'fireball'" },
+            { "volley": "query.property('md:state') == 'volley'" },
+            { "dive": "query.property('md:state') == 'dive'" },
+            { "tailwhip": "query.property('md:state') == 'tailwhip'" },
+            { "sphere": "query.property('md:state') == 'sphere'" }
+          ]
+        },
+        "fireball": { "animations": ["fireball"], "transitions": [{ "none": "query.property('md:state') != 'fireball'" }] },
+        "volley": { "animations": ["volley"], "transitions": [{ "none": "query.property('md:state') != 'volley'" }] },
+        "dive": { "animations": ["dive"], "transitions": [{ "none": "query.property('md:state') != 'dive'" }] },
+        "tailwhip": { "animations": ["tail_whip"], "transitions": [{ "none": "query.property('md:state') != 'tailwhip'" }] },
+        "sphere": { "animations": ["sphere_charge"], "transitions": [{ "none": "query.property('md:state') != 'sphere'" }] }
+      }
+    }
+  }
+}

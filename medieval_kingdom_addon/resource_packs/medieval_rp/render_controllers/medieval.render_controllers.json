@@ -1,0 +1,35 @@
+{
+  "format_version": "1.10.0",
+  "render_controllers": {
+    "controller.render.humanoid_medieval": {
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Texture.default"]
+    },
+    "controller.render.animated_armor": {
+      "arrays": {
+        "textures": {
+          "Array.skins": ["Texture.default", "Texture.broken"]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Array.skins[(query.property('md:stage') >= 3) ? 1 : 0]"]
+    },
+    "controller.render.fire_dragon": {
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Texture.default"]
+    },
+    "controller.render.dragon_fireball": {
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Texture.default"]
+    },
+    "controller.render.fire_sphere": {
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.sphere" }],
+      "textures": ["Texture.default"]
+    }
+  }
+}

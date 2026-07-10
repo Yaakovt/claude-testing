@@ -1,0 +1,38 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:animated_armor",
+      "materials": { "default": "entity_alphatest" },
+      "textures": {
+        "default": "textures/entity/animated_armor",
+        "broken": "textures/entity/animated_armor_broken"
+      },
+      "geometry": { "default": "geometry.animated_armor" },
+      "animations": {
+        "spawn": "animation.animated_armor.spawn",
+        "idle": "animation.animated_armor.idle",
+        "walk": "animation.animated_armor.walk",
+        "attack_swing": "animation.animated_armor.attack_swing",
+        "attack_smash": "animation.animated_armor.attack_smash",
+        "attack_spin": "animation.animated_armor.attack_spin",
+        "move": "controller.animation.md_humanoid_move",
+        "combat": "controller.animation.armor_combat"
+      },
+      "scripts": {
+        "animate": ["move", "combat"]
+      },
+      "particle_effects": {
+        "shockwave": "minecraft:knockback_roar_particle",
+        "spin_sparks": "minecraft:critical_hit_emitter"
+      },
+      "sound_effects": {
+        "hammer_swing": "mob.irongolem.attack",
+        "hammer_smash": "random.explode",
+        "hammer_spin": "mob.irongolem.attack"
+      },
+      "spawn_egg": { "base_color": "#464a52", "overlay_color": "#5ae6f0" },
+      "render_controllers": ["controller.render.animated_armor"]
+    }
+  }
+}

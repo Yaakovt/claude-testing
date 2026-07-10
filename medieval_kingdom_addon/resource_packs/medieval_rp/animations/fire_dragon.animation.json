@@ -1,0 +1,109 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.fire_dragon.fly": {
+      "loop": true,
+      "bones": {
+        "rightWing": { "rotation": [0, 0, "math.cos(query.life_time * 180) * 35 - 10"] },
+        "rightWingTip": { "rotation": [0, 0, "math.cos(query.life_time * 180 - 40) * 25"] },
+        "leftWing": { "rotation": [0, 0, "-math.cos(query.life_time * 180) * 35 + 10"] },
+        "leftWingTip": { "rotation": [0, 0, "-math.cos(query.life_time * 180 - 40) * 25"] },
+        "tail0": { "rotation": [0, "math.cos(query.life_time * 90) * 8", 0] },
+        "tail1": { "rotation": [0, "math.cos(query.life_time * 90 - 30) * 9", 0] },
+        "tail2": { "rotation": [0, "math.cos(query.life_time * 90 - 60) * 10", 0] },
+        "tail3": { "rotation": [0, "math.cos(query.life_time * 90 - 90) * 12", 0] },
+        "body": { "rotation": ["math.cos(query.life_time * 180) * 2", 0, 0] },
+        "rightFrontLeg": { "rotation": [45, 0, 0] },
+        "leftFrontLeg": { "rotation": [45, 0, 0] },
+        "rightHindLeg": { "rotation": [25, 0, 0] },
+        "leftHindLeg": { "rotation": [25, 0, 0] }
+      }
+    },
+    "animation.fire_dragon.idle_ground": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": ["math.sin(query.life_time * 50) * 1", 0, 0] },
+        "neck": { "rotation": ["-25 + math.sin(query.life_time * 50) * 2", "math.sin(query.life_time * 30) * 4", 0] },
+        "rightWing": { "rotation": [0, 0, "-10 + math.cos(query.life_time * 60) * 4"] },
+        "leftWing": { "rotation": [0, 0, "10 - math.cos(query.life_time * 60) * 4"] },
+        "tail0": { "rotation": [0, "math.cos(query.life_time * 55) * 5", 0] },
+        "tail2": { "rotation": [0, "math.cos(query.life_time * 55 - 40) * 7", 0] }
+      }
+    },
+    "animation.fire_dragon.fireball": {
+      "loop": false,
+      "animation_length": 1.0,
+      "bones": {
+        "neck": { "rotation": { "0.0": [-25, 0, 0], "0.35": [-58, 0, 0], "0.55": [-5, 0, 0], "1.0": [-25, 0, 0] } },
+        "head": { "rotation": { "0.0": [25, 0, 0], "0.35": [48, 0, 0], "0.55": [-12, 0, 0], "1.0": [25, 0, 0] } },
+        "jaw": { "rotation": { "0.0": [0, 0, 0], "0.45": [38, 0, 0], "0.7": [10, 0, 0], "1.0": [0, 0, 0] } }
+      },
+      "particle_effects": { "0.5": { "effect": "fire_breath" } },
+      "sound_effects": { "0.45": { "effect": "dragon_fire" } }
+    },
+    "animation.fire_dragon.volley": {
+      "loop": false,
+      "animation_length": 1.7,
+      "bones": {
+        "neck": {
+          "rotation": {
+            "0.0": [-25, 0, 0],
+            "0.3": [-45, -32, 0],
+            "0.7": [-45, 32, 0],
+            "1.1": [-45, -32, 0],
+            "1.5": [-45, 24, 0],
+            "1.7": [-25, 0, 0]
+          }
+        },
+        "head": { "rotation": { "0.0": [25, 0, 0], "0.3": [40, 0, 0], "1.5": [40, 0, 0], "1.7": [25, 0, 0] } },
+        "jaw": { "rotation": { "0.0": [0, 0, 0], "0.25": [36, 0, 0], "1.55": [36, 0, 0], "1.7": [0, 0, 0] } }
+      },
+      "particle_effects": {
+        "0.35": { "effect": "fire_breath" },
+        "0.6": { "effect": "fire_breath" },
+        "0.9": { "effect": "fire_breath" },
+        "1.2": { "effect": "fire_breath" },
+        "1.45": { "effect": "fire_breath" }
+      },
+      "sound_effects": { "0.3": { "effect": "dragon_fire" } }
+    },
+    "animation.fire_dragon.dive": {
+      "loop": false,
+      "animation_length": 2.2,
+      "bones": {
+        "body": { "rotation": { "0.0": [0, 0, 0], "0.5": [58, 0, 0], "1.3": [58, 0, 0], "1.7": [-48, 0, 0], "2.2": [0, 0, 0] } },
+        "rightWing": { "rotation": { "0.0": [0, 0, -10], "0.5": [0, 0, -65], "1.3": [0, 0, -65], "1.7": [0, 0, 15], "2.2": [0, 0, -10] } },
+        "leftWing": { "rotation": { "0.0": [0, 0, 10], "0.5": [0, 0, 65], "1.3": [0, 0, 65], "1.7": [0, 0, -15], "2.2": [0, 0, 10] } },
+        "neck": { "rotation": { "0.0": [-25, 0, 0], "0.5": [12, 0, 0], "1.7": [-55, 0, 0], "2.2": [-25, 0, 0] } },
+        "jaw": { "rotation": { "0.0": [0, 0, 0], "0.5": [30, 0, 0], "1.3": [30, 0, 0], "1.7": [0, 0, 0] } }
+      },
+      "sound_effects": { "1.3": { "effect": "dragon_flap" } }
+    },
+    "animation.fire_dragon.tail_whip": {
+      "loop": false,
+      "animation_length": 1.0,
+      "bones": {
+        "tail0": { "rotation": { "0.0": [0, 0, 0], "0.3": [0, -38, 0], "0.5": [0, 58, 0], "1.0": [0, 0, 0] } },
+        "tail1": { "rotation": { "0.0": [0, 0, 0], "0.35": [0, -38, 0], "0.55": [0, 58, 0], "1.0": [0, 0, 0] } },
+        "tail2": { "rotation": { "0.0": [0, 0, 0], "0.4": [0, -38, 0], "0.6": [0, 58, 0], "1.0": [0, 0, 0] } },
+        "tail3": { "rotation": { "0.0": [0, 0, 0], "0.45": [0, -40, 0], "0.65": [0, 60, 0], "1.0": [0, 0, 0] } },
+        "body": { "rotation": { "0.0": [0, 0, 0], "0.5": [0, -16, 0], "1.0": [0, 0, 0] } }
+      },
+      "sound_effects": { "0.5": { "effect": "dragon_flap" } }
+    },
+    "animation.fire_dragon.sphere_charge": {
+      "loop": false,
+      "animation_length": 2.6,
+      "bones": {
+        "body": { "rotation": { "0.0": [0, 0, 0], "0.6": [-30, 0, 0], "2.1": [-30, 0, 0], "2.6": [0, 0, 0] } },
+        "neck": { "rotation": { "0.0": [-25, 0, 0], "0.6": [-72, 0, 0], "2.1": [-72, 0, 0], "2.6": [-25, 0, 0] } },
+        "head": { "rotation": { "0.0": [25, 0, 0], "0.6": [62, 0, 0], "2.1": [62, 0, 0], "2.6": [25, 0, 0] } },
+        "jaw": { "rotation": { "0.0": [0, 0, 0], "0.6": [42, 0, 0], "2.1": [42, 0, 0], "2.6": [0, 0, 0] } },
+        "rightWing": { "rotation": { "0.0": [0, 0, -10], "0.6": [0, 0, -72], "2.1": [0, 0, -72], "2.6": [0, 0, -10] } },
+        "leftWing": { "rotation": { "0.0": [0, 0, 10], "0.6": [0, 0, 72], "2.1": [0, 0, 72], "2.6": [0, 0, 10] } }
+      },
+      "particle_effects": { "0.6": { "effect": "sphere_charge_p" } },
+      "sound_effects": { "0.6": { "effect": "dragon_charge" } }
+    }
+  }
+}

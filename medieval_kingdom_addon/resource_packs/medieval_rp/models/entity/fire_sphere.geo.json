@@ -1,0 +1,24 @@
+{
+  "format_version": "1.16.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.fire_sphere",
+        "texture_width": 16,
+        "texture_height": 16,
+        "visible_bounds_width": 16,
+        "visible_bounds_height": 16,
+        "visible_bounds_offset": [0, 4, 0]
+      },
+      "bones": [
+        {
+          "name": "sphere",
+          "pivot": [0, 8, 0],
+          "cubes": [
+            { "origin": [-8, 0, -8], "size": [16, 16, 16], "uv": [0, 0] }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "format_version": "1.16.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.animated_armor",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 4,
+        "visible_bounds_height": 4,
+        "visible_bounds_offset": [0, 1.5, 0]
+      },
+      "bones": [
+        { "name": "root", "pivot": [0, 0, 0] },
+        { "name": "waist", "parent": "root", "pivot": [0, 12, 0] },
+        {
+          "name": "body",
+          "parent": "waist",
+          "pivot": [0, 24, 0],
+          "cubes": [
+            { "origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16], "inflate": 0.75 }
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "body",
+          "pivot": [0, 24, 0],
+          "cubes": [
+            { "origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0], "inflate": 0.25 }
+          ]
+        },
+        {
+          "name": "hat",
+          "parent": "head",
+          "pivot": [0, 24, 0],
+          "cubes": [
+            { "origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [32, 0], "inflate": 0.9 }
+          ]
+        },
+        {
+          "name": "rightArm",
+          "parent": "body",
+          "pivot": [-5, 22, 0],
+          "cubes": [
+            { "origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16], "inflate": 0.5 }
+          ]
+        },
+        {
+          "name": "leftArm",
+          "parent": "body",
+          "pivot": [5, 22, 0],
+          "cubes": [
+            { "origin": [4, 12, -2], "size": [4, 12, 4], "uv": [32, 48], "inflate": 0.5 }
+          ]
+        },
+        {
+          "name": "rightLeg",
+          "parent": "root",
+          "pivot": [-1.9, 12, 0],
+          "cubes": [
+            { "origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 16], "inflate": 0.5 }
+          ]
+        },
+        {
+          "name": "leftLeg",
+          "parent": "root",
+          "pivot": [1.9, 12, 0],
+          "cubes": [
+            { "origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [16, 48], "inflate": 0.5 }
+          ]
+        },
+        {
+          "name": "hammer",
+          "parent": "rightArm",
+          "pivot": [-6, 13, 0],
+          "rotation": [0, 0, 0],
+          "cubes": [
+            { "origin": [-6.5, 1, -0.5], "size": [1, 13, 1], "uv": [52, 32] },
+            { "origin": [-8.5, -2, -3], "size": [5, 5, 6], "uv": [38, 34] }
+          ]
+        }
+      ]
+    }
+  ]
+}
