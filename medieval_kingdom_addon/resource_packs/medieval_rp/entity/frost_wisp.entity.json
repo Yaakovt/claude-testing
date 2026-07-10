@@ -1,0 +1,14 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:frost_wisp",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/frost_wisp" },
+      "geometry": { "default": "geometry.dragon_fireball" },
+      "scripts": { "scale": "1.3" },
+      "spawn_egg": { "base_color": "#a8d8ee", "overlay_color": "#3c6ea0" },
+      "render_controllers": ["controller.render.dragon_fireball"]
+    }
+  }
+}

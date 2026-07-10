@@ -4,7 +4,11 @@
     "description": {
       "identifier": "md:fire_dragon",
       "materials": { "default": "entity_alphatest" },
-      "textures": { "default": "textures/entity/fire_dragon" },
+      "textures": {
+        "default": "textures/entity/fire_dragon",
+        "ice": "textures/entity/fire_dragon_ice",
+        "poison": "textures/entity/fire_dragon_poison"
+      },
       "geometry": { "default": "geometry.fire_dragon" },
       "animations": {
         "fly": "animation.fire_dragon.fly",

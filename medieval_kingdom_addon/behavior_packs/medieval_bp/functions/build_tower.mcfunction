@@ -18,7 +18,7 @@ setblock ~3 ~6 ~3 air
 setblock ~3 ~12 ~3 air
 
 # --- ladder up the back-east wall ---
-fill ~3 ~1 ~3 ~3 ~18 ~3 ladder ["facing_direction":4]
+fill ~3 ~1 ~3 ~3 ~18 ~3 ladder ["facing_direction"=2]
 
 # --- doorway on the -z face ---
 fill ~0 ~1 ~-4 ~0 ~2 ~-4 air

@@ -1,0 +1,36 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "md:ice_shard",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false
+    },
+    "components": {
+      "minecraft:collision_box": { "width": 0.4, "height": 0.4 },
+      "minecraft:physics": { "has_gravity": false },
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:projectile": {
+        "on_hit": {
+          "impact_damage": { "damage": 6, "knockback": true },
+          "mob_effect": {
+            "effect": "slowness",
+            "durationeasy": 3,
+            "durationnormal": 4,
+            "durationhard": 5,
+            "amplifier": 2
+          },
+          "remove_on_hit": {}
+        },
+        "power": 2.2,
+        "gravity": 0.0,
+        "homing": true,
+        "uncertainty_base": 1,
+        "uncertainty_multiplier": 0,
+        "anchor": 1,
+        "offset": [0, -1.5, 0]
+      }
+    }
+  }
+}

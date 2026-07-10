@@ -169,6 +169,27 @@
             }
           ]
         }
+      },
+      "armor:reinforce": {
+        "minecraft:spawn_entity": {
+          "entities": [
+            {
+              "min_wait_time": 1,
+              "max_wait_time": 1,
+              "num_to_spawn": 2,
+              "single_use": true,
+              "spawn_entity": "md:knight"
+            }
+          ]
+        }
+      },
+      "armor:enrage": {
+        "minecraft:movement": {
+          "value": 0.34
+        },
+        "minecraft:attack": {
+          "damage": 9
+        }
       }
     },
     "components": {
@@ -372,7 +393,8 @@
         },
         "add": {
           "component_groups": [
-            "armor:stage2"
+            "armor:stage2",
+            "armor:reinforce"
           ]
         },
         "set_property": {
@@ -387,7 +409,8 @@
         },
         "add": {
           "component_groups": [
-            "armor:stage3"
+            "armor:stage3",
+            "armor:enrage"
           ]
         },
         "set_property": {

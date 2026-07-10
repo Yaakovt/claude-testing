@@ -28,9 +28,14 @@
       "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
     },
     "controller.render.fire_dragon": {
+      "arrays": {
+        "textures": {
+          "Array.phases": ["Texture.default", "Texture.ice", "Texture.poison"]
+        }
+      },
       "geometry": "Geometry.default",
       "materials": [{ "*": "Material.default" }],
-      "textures": ["Texture.default"]
+      "textures": ["Array.phases[math.clamp(query.property('md:phase'), 0, 2)]"]
     },
     "controller.render.dragon_fireball": {
       "geometry": "Geometry.default",

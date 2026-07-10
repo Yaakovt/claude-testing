@@ -15,7 +15,8 @@
             "volley",
             "dive",
             "tailwhip",
-            "sphere"
+            "sphere",
+            "summon"
           ],
           "default": "fly",
           "client_sync": true
@@ -23,6 +24,15 @@
         "md:grounded": {
           "type": "bool",
           "default": false,
+          "client_sync": true
+        },
+        "md:phase": {
+          "type": "int",
+          "range": [
+            0,
+            2
+          ],
+          "default": 0,
           "client_sync": true
         }
       }
@@ -99,10 +109,6 @@
         }
       },
       "dragon:tailwhip": {
-        "minecraft:physics": {
-          "has_gravity": true,
-          "has_collision": true
-        },
         "minecraft:area_attack": {
           "damage_range": 5.5,
           "damage_per_tick": 6,
@@ -115,7 +121,7 @@
         },
         "minecraft:timer": {
           "looping": false,
-          "time": 3.5,
+          "time": 3.0,
           "time_down_event": {
             "event": "md:dragon_end"
           }
@@ -128,6 +134,127 @@
           "time_down_event": {
             "event": "md:dragon_end"
           }
+        }
+      },
+      "dragon:summon_wisps": {
+        "minecraft:spawn_entity": {
+          "entities": [
+            {
+              "min_wait_time": 1,
+              "max_wait_time": 1,
+              "num_to_spawn": 2,
+              "single_use": true,
+              "spawn_entity": "md:frost_wisp"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.2,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
+      },
+      "dragon:summon_rats": {
+        "minecraft:spawn_entity": {
+          "entities": [
+            {
+              "min_wait_time": 1,
+              "max_wait_time": 1,
+              "num_to_spawn": 3,
+              "single_use": true,
+              "spawn_entity": "md:plague_rat"
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.2,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
+      },
+      "dragon:phase0": {
+        "minecraft:shooter": {
+          "def": "md:dragon_fireball"
+        },
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "entity_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "block_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 190
+                },
+                "event": "md:to_phase1"
+              }
+            }
+          ]
+        }
+      },
+      "dragon:phase1": {
+        "minecraft:shooter": {
+          "def": "md:ice_shard"
+        },
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "entity_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "block_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 95
+                },
+                "event": "md:to_phase2"
+              }
+            }
+          ]
+        }
+      },
+      "dragon:phase2": {
+        "minecraft:shooter": {
+          "def": "md:venom_glob"
+        },
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "entity_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "block_explosion",
+              "deals_damage": false
+            },
+            {
+              "cause": "all",
+              "deals_damage": true
+            }
+          ]
         }
       }
     },
@@ -186,6 +313,18 @@
       "minecraft:experience_reward": {
         "on_death": "60"
       },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "entity_explosion",
+            "deals_damage": false
+          },
+          {
+            "cause": "block_explosion",
+            "deals_damage": false
+          }
+        ]
+      },
       "minecraft:behavior.float": {
         "priority": 0
       },
@@ -216,41 +355,31 @@
       },
       "minecraft:behavior.random_hover": {
         "priority": 9,
-        "xz_dist": 12,
-        "y_dist": 8,
+        "xz_dist": 10,
+        "y_dist": 6,
         "y_offset": -1,
         "hover_height": [
-          4,
-          9
+          3,
+          7
         ]
       },
       "minecraft:behavior.look_at_player": {
         "priority": 8,
         "look_distance": 40
-      },
-      "minecraft:damage_sensor": {
-        "triggers": [
-          {
-            "cause": "entity_explosion",
-            "deals_damage": false
-          },
-          {
-            "cause": "block_explosion",
-            "deals_damage": false
-          }
-        ]
       }
     },
     "events": {
       "minecraft:entity_spawned": {
         "add": {
           "component_groups": [
-            "dragon:ready"
+            "dragon:ready",
+            "dragon:phase0"
           ]
         },
         "set_property": {
           "md:state": "fly",
-          "md:grounded": false
+          "md:grounded": false,
+          "md:phase": 0
         }
       },
       "md:dragon_pick": {
@@ -263,6 +392,11 @@
             }
           },
           {
+            "filters": {
+              "test": "int_property",
+              "domain": "md:phase",
+              "value": 0
+            },
             "randomize": [
               {
                 "weight": 3,
@@ -305,12 +439,150 @@
                   ]
                 },
                 "set_property": {
-                  "md:state": "tailwhip",
-                  "md:grounded": true
+                  "md:state": "tailwhip"
                 }
               },
               {
                 "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:sphere"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "sphere"
+                }
+              }
+            ]
+          },
+          {
+            "filters": {
+              "test": "int_property",
+              "domain": "md:phase",
+              "value": 1
+            },
+            "randomize": [
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "dragon:fireball"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "fireball"
+                }
+              },
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "dragon:volley"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "volley"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:dive"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "dive"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:tailwhip"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "tailwhip"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:summon_wisps"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "summon"
+                }
+              }
+            ]
+          },
+          {
+            "filters": {
+              "test": "int_property",
+              "domain": "md:phase",
+              "value": 2
+            },
+            "randomize": [
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "dragon:fireball"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "fireball"
+                }
+              },
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "dragon:volley"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "volley"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:dive"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "dive"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:tailwhip"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "tailwhip"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:summon_rats"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "summon"
+                }
+              },
+              {
+                "weight": 1,
                 "add": {
                   "component_groups": [
                     "dragon:sphere"
@@ -331,7 +603,9 @@
             "dragon:volley",
             "dragon:dive",
             "dragon:tailwhip",
-            "dragon:sphere"
+            "dragon:sphere",
+            "dragon:summon_wisps",
+            "dragon:summon_rats"
           ]
         },
         "add": {
@@ -342,6 +616,36 @@
         "set_property": {
           "md:state": "fly",
           "md:grounded": false
+        }
+      },
+      "md:to_phase1": {
+        "remove": {
+          "component_groups": [
+            "dragon:phase0"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "dragon:phase1"
+          ]
+        },
+        "set_property": {
+          "md:phase": 1
+        }
+      },
+      "md:to_phase2": {
+        "remove": {
+          "component_groups": [
+            "dragon:phase1"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "dragon:phase2"
+          ]
+        },
+        "set_property": {
+          "md:phase": 2
         }
       }
     }

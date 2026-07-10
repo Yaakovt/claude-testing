@@ -79,15 +79,28 @@ Armor-breaking stages are detailed in **“The armor actually breaks now”** be
 
 A flying fire dragon. 280 HP, immune to fire and explosions. Five attacks, chosen at random on a 2.4–4 s timer:
 
-1. **Fireball** — spits a single `md:dragon_fireball` (`fireball` animation).
+1. **Fireball** — spits a single homing projectile (element follows the current phase).
 2. **Volley** — a barrage of ~14 homing fireballs while sweeping its head (`volley` animation).
 3. **Dive** — charges down onto the target and pulls back up (`dive` animation +
    `charge_attack` + splash damage).
 4. **Tail Whip** — sweeps its segmented tail to strike everything beside it
    (`tail_whip` animation, ~5 block radius).
-5. **Fire Sphere** — rears back and conjures a huge translucent red sphere
-   (`sphere_charge` animation). The sphere entity (`md:fire_sphere`) **expands for
-   ~2 seconds, then explodes**, setting the area alight and dealing blast damage.
+5. **Fire Sphere** — rears back and conjures a huge translucent red sphere **at the
+   player's position**; it expands for ~2 seconds, then explodes.
+
+**Three elemental phases.** The dragon transforms as you hurt it:
+
+| Phase | HP | Skin | Signature |
+|---|---|---|---|
+| 🔥 Fire | 280–191 | red | fireballs, fire sphere |
+| ❄️ Ice | 190–96 | glacial blue | slowing **ice shards**, summons 2 **Frost Wisps** |
+| ☠️ Poison | 95–0 | venom green | poisoning **venom globs**, summons 3 **Plague Rats** |
+
+Each transformation bursts with particles and swaps the dragon's texture and
+projectiles. Frost Wisps are floating ice orbs that pelt you with slowing shards;
+Plague Rats are fast little biters whose bite poisons. The dragon also **lands
+beside you** for its tail whip (it slams down with an explosion of particles,
+whips, then takes off).
 
 Projectiles: `md:dragon_fireball` (damaging, sets fire) and `md:fire_sphere`
 (the expanding blast) are their own entities so their timing and visuals are
@@ -102,8 +115,14 @@ and vanilla loot. They also award XP.
 
 | Boss | Weapon | Trophy | Materials |
 |---|---|---|---|
-| Animated Armor | **Warhammer of the Fallen Knight** — 14 dmg, 1200 durability, repairable with iron. **Ability:** every hit slams the ground, knocking the target flying and blasting everything near it with shockwave damage | **Helm of the Animated Armor** (glowing) | 2–5 Enchanted Iron Plating + 3–7 iron ingots |
-| Fire Dragon | **Searing Fang** — 12 dmg, 900 durability, repairable with Dragon Scales, glowing. **Ability:** every hit ignites the target and scorches everything around it | **Dragon Heart** (glowing) | 3–8 Dragon Scales + 3–8 gold ingots |
+| Animated Armor | **Warhammer of the Fallen Knight** — 14 dmg, 1200 durability, repairable with iron. **Ability:** every hit slams the ground, knocking the target flying and blasting everything near it with shockwave damage | **Helm of the Animated Armor** — wearable helmet | 2–5 Enchanted Iron Plating + 3–7 iron ingots |
+| Fire Dragon | **Searing Fang** — 12 dmg, 900 durability, repairable with Dragon Scales, glowing. **Ability:** every hit ignites the target and scorches everything around it | **Dragon Heart** — eat it for Strength II, Regeneration, Fire Resistance and Absorption (90 s) | 3–8 Dragon Scales + 3–8 gold ingots |
+
+The **Helm of the Animated Armor** is a wearable helmet (5 armor, enchantable,
+repairable with iron). **Dragon Scales craft a Dragonscale Chestplate** (7 armor)
+— 8 scales in a chestplate pattern at a crafting table. Worn custom armor
+protects you but doesn't render a model on your body yet (that needs Bedrock
+attachables — a good future upgrade).
 
 Weapon abilities are implemented with the stable Script API (`@minecraft/server`),
 so the pack now requires **Minecraft 1.20.60+** (no experiments needed).
@@ -140,6 +159,10 @@ damage it, plates are physically shed stage by stage:
 
 So it shrugs off most early damage, and the more you break it, the more it takes and
 the more armor visibly falls away — dying once the last plates are destroyed.
+
+At **stage 2** it sounds a call to arms and **summons two Knight reinforcements**;
+at **stage 3** it **enrages** — faster and hitting harder — for its last stand.
+Every plate shatter bursts with particles and a metallic crack.
 
 ## How the animations are wired
 

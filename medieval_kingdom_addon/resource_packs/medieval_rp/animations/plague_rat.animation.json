@@ -1,0 +1,22 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.plague_rat.walk": {
+      "loop": true,
+      "bones": {
+        "frontLegs": { "rotation": ["math.cos(query.modified_distance_moved * 60) * 45", 0, 0] },
+        "backLegs": { "rotation": ["-math.cos(query.modified_distance_moved * 60) * 45", 0, 0] },
+        "body": { "rotation": [0, "math.cos(query.modified_distance_moved * 60) * 6", 0] },
+        "tail": { "rotation": [0, "math.cos(query.life_time * 300) * 25", 0] },
+        "head": { "rotation": ["math.sin(query.life_time * 200) * 8", 0, 0] }
+      }
+    },
+    "animation.plague_rat.idle": {
+      "loop": true,
+      "bones": {
+        "head": { "rotation": ["math.sin(query.life_time * 60) * 6", "math.sin(query.life_time * 35) * 10", 0] },
+        "tail": { "rotation": [0, "math.cos(query.life_time * 80) * 15", 0] }
+      }
+    }
+  }
+}

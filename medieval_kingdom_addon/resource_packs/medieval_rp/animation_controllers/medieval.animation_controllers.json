@@ -60,14 +60,16 @@
             { "volley": "query.property('md:state') == 'volley'" },
             { "dive": "query.property('md:state') == 'dive'" },
             { "tailwhip": "query.property('md:state') == 'tailwhip'" },
-            { "sphere": "query.property('md:state') == 'sphere'" }
+            { "sphere": "query.property('md:state') == 'sphere'" },
+            { "summon": "query.property('md:state') == 'summon'" }
           ]
         },
         "fireball": { "animations": ["fireball"], "transitions": [{ "none": "query.property('md:state') != 'fireball'" }] },
         "volley": { "animations": ["volley"], "transitions": [{ "none": "query.property('md:state') != 'volley'" }] },
         "dive": { "animations": ["dive"], "transitions": [{ "none": "query.property('md:state') != 'dive'" }] },
         "tailwhip": { "animations": ["tail_whip"], "transitions": [{ "none": "query.property('md:state') != 'tailwhip'" }] },
-        "sphere": { "animations": ["sphere_charge"], "transitions": [{ "none": "query.property('md:state') != 'sphere'" }] }
+        "sphere": { "animations": ["sphere_charge"], "transitions": [{ "none": "query.property('md:state') != 'sphere'" }] },
+        "summon": { "animations": ["sphere_charge"], "transitions": [{ "none": "query.property('md:state') != 'summon'" }] }
       }
     }
   }

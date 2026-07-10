@@ -161,13 +161,8 @@ armor_tex(metal=(70, 58, 52), deep=(44, 34, 30), glow=(255, 150, 70), rust=260
 # =====================================================================
 #  FIRE DRAGON — 128x128, layered scales, spikes, membranes
 # =====================================================================
-def dragon():
+def dragon(body, belly, membrane, wingbone, horn, eye, maw, ember):
     img = Img(128, 128)
-    body = (150, 40, 30)
-    belly = (216, 128, 46)
-    membrane = (196, 66, 40)
-    wingbone = (86, 24, 22)
-    horn = (46, 34, 30)
     img.noise_rect(0, 0, 128, 128, body, 12)
     # scale rows across the body region
     for y in range(0, 64):
@@ -184,23 +179,37 @@ def dragon():
         img.rect(xx, 64, xx + 1, 112, wingbone)          # wing struts
     img.noise_rect(0, 112, 64, 128, wingbone, 8)
     # head + horns (top-left)
-    img.grad_rect(0, 0, 48, 40, (128, 32, 26), (78, 20, 18))
+    img.grad_rect(0, 0, 48, 40, (body[0] - 22, body[1] - 8, body[2] - 4), (body[0] - 70, body[1] - 20, body[2] - 12))
     img.noise_rect(0, 0, 16, 12, horn, 6)
-    img.rect(20, 8, 24, 12, (255, 226, 96))              # eye
-    img.rect(30, 8, 34, 12, (255, 226, 96))
-    img.set(21, 9, (255, 255, 200)); img.set(31, 9, (255, 255, 200))
-    img.rect(16, 20, 40, 26, (255, 150, 40))             # hot maw
-    img.rect(16, 22, 40, 23, (255, 220, 120))
-    # ember speckle
+    img.rect(20, 8, 24, 12, eye)                          # eyes
+    img.rect(30, 8, 34, 12, eye)
+    img.set(21, 9, (255, 255, 230)); img.set(31, 9, (255, 255, 230))
+    img.rect(16, 20, 40, 26, maw)                         # maw
+    img.rect(16, 22, 40, 23, (maw[0], min(255, maw[1] + 70), min(255, maw[2] + 80)))
+    # ember/speckle
     for _ in range(700):
         x, y = random.randint(0, 127), random.randint(0, 127)
-        img.set(x, y, (255, 180, 90))
+        img.set(x, y, ember)
     # tail spade region highlight
-    img.grad_rect(88, 60, 128, 78, (170, 46, 34), (110, 28, 24))
+    img.grad_rect(88, 60, 128, 78, (body[0] + 20, body[1] + 6, body[2] + 4), (body[0] - 40, body[1] - 12, body[2] - 6))
     return img
 
 
-dragon().save(os.path.join(ENT_DIR, "fire_dragon.png"))
+# fire — red/orange
+dragon(body=(150, 40, 30), belly=(216, 128, 46), membrane=(196, 66, 40),
+       wingbone=(86, 24, 22), horn=(46, 34, 30), eye=(255, 226, 96),
+       maw=(255, 150, 40), ember=(255, 180, 90)
+       ).save(os.path.join(ENT_DIR, "fire_dragon.png"))
+# ice — glacial blue/white
+dragon(body=(58, 122, 172), belly=(208, 236, 248), membrane=(140, 200, 235),
+       wingbone=(36, 74, 110), horn=(220, 240, 250), eye=(160, 240, 255),
+       maw=(120, 200, 255), ember=(230, 248, 255)
+       ).save(os.path.join(ENT_DIR, "fire_dragon_ice.png"))
+# poison — venomous green
+dragon(body=(74, 128, 46), belly=(168, 190, 66), membrane=(112, 164, 58),
+       wingbone=(46, 84, 30), horn=(30, 44, 24), eye=(230, 120, 250),
+       maw=(150, 235, 60), ember=(180, 230, 100)
+       ).save(os.path.join(ENT_DIR, "fire_dragon_poison.png"))
 
 
 # =====================================================================
@@ -226,6 +235,52 @@ def radial(size, inner, outer, alpha_edge=False, core_white=True):
 
 radial(16, (255, 250, 180), (200, 40, 10)).save(os.path.join(ENT_DIR, "dragon_fireball.png"))
 radial(16, (255, 90, 60), (150, 12, 8), alpha_edge=True, core_white=False).save(os.path.join(ENT_DIR, "fire_sphere.png"))
+radial(16, (240, 252, 255), (60, 140, 220)).save(os.path.join(ENT_DIR, "ice_shard.png"))
+radial(16, (220, 255, 120), (60, 120, 20)).save(os.path.join(ENT_DIR, "venom_glob.png"))
+
+# frost wisp — icy orb with sparkle
+wisp = radial(16, (235, 250, 255), (90, 160, 220))
+for (x, y) in [(4, 4), (11, 5), (6, 11), (10, 10)]:
+    wisp.set(x, y, (255, 255, 255, 255))
+wisp.save(os.path.join(ENT_DIR, "frost_wisp.png"))
+
+
+# plague rat — 32x32 mangy green-brown fur
+def plague_rat():
+    img = Img(32, 32)
+    fur = (96, 84, 52)
+    sick = (110, 130, 60)
+    img.noise_rect(0, 0, 32, 32, fur, 14)
+    for _ in range(120):
+        x, y = random.randint(0, 31), random.randint(0, 31)
+        img.set(x, y, sick)
+    # head front region gets eyes + nose
+    img.rect(2, 18, 4, 20, (200, 60, 200))   # sickly glowing eyes
+    img.rect(8, 18, 10, 20, (200, 60, 200))
+    img.rect(5, 21, 7, 22, (60, 40, 34))     # nose
+    # tail strip — bare pink
+    img.grad_rect(12, 16, 26, 23, (168, 120, 110), (120, 80, 74))
+    return img
+
+
+plague_rat().save(os.path.join(ENT_DIR, "plague_rat.png"))
+
+
+def dragon_chestplate():
+    img = Img(16, 16)
+    # chestplate silhouette in red scales
+    img.grad_rect(3, 3, 13, 13, (190, 50, 34), (110, 28, 24))
+    img.rect(3, 3, 5, 6, (0, 0, 0, 0))     # neck cutout corners
+    img.rect(11, 3, 13, 6, (0, 0, 0, 0))
+    img.rect(6, 3, 10, 5, (0, 0, 0, 0))    # neck hole
+    img.panel(3, 5, 13, 13, (70, 20, 16))
+    for y in range(6, 13, 2):
+        img.rect(4, y, 12, y + 1, (150, 40, 28))
+    img.set(8, 8, (255, 180, 90))
+    return img
+
+
+dragon_chestplate().save(os.path.join(ITEM_DIR, "dragon_chestplate.png"))
 
 
 # =====================================================================

@@ -1,0 +1,19 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:plague_rat",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/plague_rat" },
+      "geometry": { "default": "geometry.plague_rat" },
+      "animations": {
+        "idle": "animation.plague_rat.idle",
+        "walk": "animation.plague_rat.walk",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#605434", "overlay_color": "#6e823c" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}
