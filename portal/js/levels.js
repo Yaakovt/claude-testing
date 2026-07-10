@@ -785,11 +785,41 @@
         P.game.turrets.push(new P.Turret(g, V3(6, 0, 6), Math.PI));
         P.game.turrets.push(new P.Turret(g, V3(-6, 0, 6), Math.PI));
 
-        let lit = 0, overloadT = -1, t = 0;
+        let lit = 0, overloadT = -1, t = 0, hintT = 14, tauntT = 3;
+        const corePos = V3(0, 7, 0);
+        const segNear = (a, b, p, r) => {
+          const ab = b.clone().sub(a), len = ab.length();
+          if (len < 0.01) return false;
+          ab.divideScalar(len);
+          const k = P.clamp(p.clone().sub(a).dot(ab), 0, len);
+          return a.clone().add(ab.multiplyScalar(k)).distanceTo(p) < r;
+        };
         this.onUpdate = (dt) => {
           t += dt;
           core.rotation.y = Math.sin(t * 0.4) * 0.6;
           eye.material.color.setHSL(0, 1, 0.45 + Math.sin(t * 5) * 0.1);
+          if (overloadT < 0) {
+            // shooting the beam at the core itself earns commentary, not damage
+            tauntT -= dt;
+            const em = P.game.lasers[0];
+            if (tauntT <= 0 && em && em.segments) {
+              for (const [a, b] of em.segments) {
+                if (segNear(a, b, corePos, 2.9)) {
+                  tauntT = 9;
+                  P.voice.interrupt(P.voice.rand('coreEye'));
+                  break;
+                }
+              }
+            }
+            // periodic nudge toward the wall nodes while stuck
+            if (lit < 3) {
+              hintT -= dt;
+              if (hintT <= 0 && !P.voice.busy && P.voice.queue.length === 0) {
+                hintT = 17;
+                P.voice.say(P.voice.rand('coreHint'));
+              }
+            }
+          }
           const n = [r1, r2, r3].filter(r => r.active).length;
           if (n > lit) {
             lit = n;

@@ -613,7 +613,7 @@
           const t = toR.dot(dir);
           if (t > 0 && t < (ph ? ph.t : dist)) {
             const closest = origin.clone().add(dir.clone().multiplyScalar(t));
-            if (closest.distanceTo(rc.pos) < 0.5) { end = closest; receiverHit = rc; ph && (stop = true); break; }
+            if (closest.distanceTo(rc.pos) < 1.4) { end = closest; receiverHit = rc; ph && (stop = true); break; }
           }
         }
         segs.push([origin.clone(), end.clone()]);
@@ -622,13 +622,15 @@
           const other = P.portals.other(ph.portal);
           const T = P.portals.teleportMatrix(ph.portal, other);
           const R = new THREE.Matrix4().extractRotation(T);
-          origin = ph.point.clone().applyMatrix4(T);
           dir = dir.clone().applyMatrix4(R).normalize();
-          origin.add(dir.clone().multiplyScalar(0.06));
+          // the portal "conducts" the beam out of its center — forgiving of
+          // off-center entry, so aiming the exit portal is what matters
+          origin = other.pos.clone().add(dir.clone().multiplyScalar(0.1));
           stop = false;
         }
         if (stop) break;
       }
+      this.segments = segs;   // exposed for level scripts (boss taunts)
       // draw segments
       for (let i = 0; i < this.segMeshes.length; i++) this.segMeshes[i].visible = false;
       segs.forEach(([a, b], i) => {
@@ -675,12 +677,41 @@
         new THREE.MeshBasicMaterial({ color: 0x552222 }));
       this.eye.position.copy(normal.clone().multiplyScalar(0.16));
       g.add(this.eye);
+      // pulsing target ring so receivers read as objectives from across a room
+      this.ringMat = new THREE.MeshBasicMaterial({
+        color: 0xffb347, transparent: true, opacity: 0.85,
+        blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+      });
+      this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 10, 30), this.ringMat);
+      this.ring.position.copy(normal.clone().multiplyScalar(0.05));
+      g.add(this.ring);
+      this.glow = new THREE.PointLight(0xff9d33, 0.55, 7);
+      this.glow.position.copy(normal.clone().multiplyScalar(0.6));
+      g.add(this.glow);
       g.position.copy(pos);
       g.lookAt(pos.clone().add(normal));
       scene.add(g);
       this.mesh = g;
+      this.t = Math.random() * 9;
     }
-    update() {
+    update(dt) {
+      this.t += dt || 0.016;
+      if (this.active) {
+        this.ring.scale.setScalar(1);
+        this.ringMat.opacity = 1;
+        this.ringMat.color.setHex(0x66ff99);
+        this.glow.color.setHex(0x66ff99);
+        this.glow.intensity = 1.1;
+      } else {
+        this.ring.scale.setScalar(1 + Math.sin(this.t * 3.5) * 0.18);
+        this.ringMat.opacity = 0.55 + Math.sin(this.t * 3.5) * 0.3;
+        this.ringMat.color.setHex(0xffb347);
+        this.glow.color.setHex(0xff9d33);
+        this.glow.intensity = 0.45 + Math.sin(this.t * 3.5) * 0.2;
+      }
+      this._logic();
+    }
+    _logic() {
       const hit = this.hitThisFrame || (this.latch && this.active);
       this.hitThisFrame = false;
       if (hit !== this.active) {

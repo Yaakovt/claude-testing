@@ -466,6 +466,16 @@ window.PORTAL = window.PORTAL || {};
       "So. The participant would like to file a complaint.",
       "My core is shielded by three uplink nodes. I am telling you this because you cannot possibly reach them. Transparency is one of my values."
     ],
+    coreEye: [
+      "You are pointing my own beam at my face. The shield finds this adorable. The uplink nodes on the walls find it irrelevant.",
+      "Attacking the eye directly. Very traditional. The three glowing rings on the walls remain, notably, un-attacked.",
+      "That tickles. It will continue to only tickle until you do something about the wall nodes."
+    ],
+    coreHint: [
+      "Status update: three glowing wall nodes continue to power my shield. Unrelated: please stop looking at them.",
+      "The ringed nodes on the walls are certainly not connected to my shield. Whatever you do, do not route the beam into them through a portal.",
+      "Hypothetically, if my beam entered one of your portals and the other portal faced a wall node, something deeply regrettable would occur to me."
+    ],
     coreNode: [
       "That node was load-bearing. Emotionally.",
       "Stop redirecting my own beam at my own infrastructure. There are forms for this.",
@@ -1229,7 +1239,7 @@ window.PORTAL = window.PORTAL || {};
           const t = toR.dot(dir);
           if (t > 0 && t < (ph ? ph.t : dist)) {
             const closest = origin.clone().add(dir.clone().multiplyScalar(t));
-            if (closest.distanceTo(rc.pos) < 0.5) { end = closest; receiverHit = rc; ph && (stop = true); break; }
+            if (closest.distanceTo(rc.pos) < 1.4) { end = closest; receiverHit = rc; ph && (stop = true); break; }
           }
         }
         segs.push([origin.clone(), end.clone()]);
@@ -1238,13 +1248,15 @@ window.PORTAL = window.PORTAL || {};
           const other = P.portals.other(ph.portal);
           const T = P.portals.teleportMatrix(ph.portal, other);
           const R = new THREE.Matrix4().extractRotation(T);
-          origin = ph.point.clone().applyMatrix4(T);
           dir = dir.clone().applyMatrix4(R).normalize();
-          origin.add(dir.clone().multiplyScalar(0.06));
+          // the portal "conducts" the beam out of its center — forgiving of
+          // off-center entry, so aiming the exit portal is what matters
+          origin = other.pos.clone().add(dir.clone().multiplyScalar(0.1));
           stop = false;
         }
         if (stop) break;
       }
+      this.segments = segs;   // exposed for level scripts (boss taunts)
       // draw segments
       for (let i = 0; i < this.segMeshes.length; i++) this.segMeshes[i].visible = false;
       segs.forEach(([a, b], i) => {
@@ -1291,12 +1303,41 @@ window.PORTAL = window.PORTAL || {};
         new THREE.MeshBasicMaterial({ color: 0x552222 }));
       this.eye.position.copy(normal.clone().multiplyScalar(0.16));
       g.add(this.eye);
+      // pulsing target ring so receivers read as objectives from across a room
+      this.ringMat = new THREE.MeshBasicMaterial({
+        color: 0xffb347, transparent: true, opacity: 0.85,
+        blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+      });
+      this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 10, 30), this.ringMat);
+      this.ring.position.copy(normal.clone().multiplyScalar(0.05));
+      g.add(this.ring);
+      this.glow = new THREE.PointLight(0xff9d33, 0.55, 7);
+      this.glow.position.copy(normal.clone().multiplyScalar(0.6));
+      g.add(this.glow);
       g.position.copy(pos);
       g.lookAt(pos.clone().add(normal));
       scene.add(g);
       this.mesh = g;
+      this.t = Math.random() * 9;
     }
-    update() {
+    update(dt) {
+      this.t += dt || 0.016;
+      if (this.active) {
+        this.ring.scale.setScalar(1);
+        this.ringMat.opacity = 1;
+        this.ringMat.color.setHex(0x66ff99);
+        this.glow.color.setHex(0x66ff99);
+        this.glow.intensity = 1.1;
+      } else {
+        this.ring.scale.setScalar(1 + Math.sin(this.t * 3.5) * 0.18);
+        this.ringMat.opacity = 0.55 + Math.sin(this.t * 3.5) * 0.3;
+        this.ringMat.color.setHex(0xffb347);
+        this.glow.color.setHex(0xff9d33);
+        this.glow.intensity = 0.45 + Math.sin(this.t * 3.5) * 0.2;
+      }
+      this._logic();
+    }
+    _logic() {
       const hit = this.hitThisFrame || (this.latch && this.active);
       this.hitThisFrame = false;
       if (hit !== this.active) {
@@ -2740,11 +2781,41 @@ window.PORTAL = window.PORTAL || {};
         P.game.turrets.push(new P.Turret(g, V3(6, 0, 6), Math.PI));
         P.game.turrets.push(new P.Turret(g, V3(-6, 0, 6), Math.PI));
 
-        let lit = 0, overloadT = -1, t = 0;
+        let lit = 0, overloadT = -1, t = 0, hintT = 14, tauntT = 3;
+        const corePos = V3(0, 7, 0);
+        const segNear = (a, b, p, r) => {
+          const ab = b.clone().sub(a), len = ab.length();
+          if (len < 0.01) return false;
+          ab.divideScalar(len);
+          const k = P.clamp(p.clone().sub(a).dot(ab), 0, len);
+          return a.clone().add(ab.multiplyScalar(k)).distanceTo(p) < r;
+        };
         this.onUpdate = (dt) => {
           t += dt;
           core.rotation.y = Math.sin(t * 0.4) * 0.6;
           eye.material.color.setHSL(0, 1, 0.45 + Math.sin(t * 5) * 0.1);
+          if (overloadT < 0) {
+            // shooting the beam at the core itself earns commentary, not damage
+            tauntT -= dt;
+            const em = P.game.lasers[0];
+            if (tauntT <= 0 && em && em.segments) {
+              for (const [a, b] of em.segments) {
+                if (segNear(a, b, corePos, 2.9)) {
+                  tauntT = 9;
+                  P.voice.interrupt(P.voice.rand('coreEye'));
+                  break;
+                }
+              }
+            }
+            // periodic nudge toward the wall nodes while stuck
+            if (lit < 3) {
+              hintT -= dt;
+              if (hintT <= 0 && !P.voice.busy && P.voice.queue.length === 0) {
+                hintT = 17;
+                P.voice.say(P.voice.rand('coreHint'));
+              }
+            }
+          }
           const n = [r1, r2, r3].filter(r => r.active).length;
           if (n > lit) {
             lit = n;

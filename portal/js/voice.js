@@ -137,6 +137,16 @@
       "So. The participant would like to file a complaint.",
       "My core is shielded by three uplink nodes. I am telling you this because you cannot possibly reach them. Transparency is one of my values."
     ],
+    coreEye: [
+      "You are pointing my own beam at my face. The shield finds this adorable. The uplink nodes on the walls find it irrelevant.",
+      "Attacking the eye directly. Very traditional. The three glowing rings on the walls remain, notably, un-attacked.",
+      "That tickles. It will continue to only tickle until you do something about the wall nodes."
+    ],
+    coreHint: [
+      "Status update: three glowing wall nodes continue to power my shield. Unrelated: please stop looking at them.",
+      "The ringed nodes on the walls are certainly not connected to my shield. Whatever you do, do not route the beam into them through a portal.",
+      "Hypothetically, if my beam entered one of your portals and the other portal faced a wall node, something deeply regrettable would occur to me."
+    ],
     coreNode: [
       "That node was load-bearing. Emotionally.",
       "Stop redirecting my own beam at my own infrastructure. There are forms for this.",
