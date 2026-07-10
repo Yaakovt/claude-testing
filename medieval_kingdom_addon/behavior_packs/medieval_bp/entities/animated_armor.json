@@ -9,13 +9,21 @@
       "properties": {
         "md:state": {
           "type": "enum",
-          "values": ["idle", "swing", "smash", "spin"],
+          "values": [
+            "idle",
+            "swing",
+            "smash",
+            "spin"
+          ],
           "default": "idle",
           "client_sync": true
         },
         "md:stage": {
           "type": "int",
-          "range": [0, 3],
+          "range": [
+            0,
+            3
+          ],
           "default": 0,
           "client_sync": true
         }
@@ -25,8 +33,13 @@
       "armor:ready": {
         "minecraft:timer": {
           "looping": false,
-          "time": [1.6, 2.8],
-          "time_down_event": { "event": "md:pick_attack" }
+          "time": [
+            1.6,
+            2.8
+          ],
+          "time_down_event": {
+            "event": "md:pick_attack"
+          }
         }
       },
       "armor:swing": {
@@ -34,27 +47,57 @@
           "damage_range": 4.0,
           "damage_per_tick": 3,
           "cause": "entity_attack",
-          "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
         },
-        "minecraft:timer": { "looping": false, "time": 0.7, "time_down_event": { "event": "md:end_attack" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 0.7,
+          "time_down_event": {
+            "event": "md:end_attack"
+          }
+        }
       },
       "armor:smash": {
         "minecraft:area_attack": {
           "damage_range": 6.0,
           "damage_per_tick": 5,
           "cause": "entity_attack",
-          "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
         },
-        "minecraft:timer": { "looping": false, "time": 1.3, "time_down_event": { "event": "md:end_attack" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.3,
+          "time_down_event": {
+            "event": "md:end_attack"
+          }
+        }
       },
       "armor:spin": {
         "minecraft:area_attack": {
           "damage_range": 5.0,
           "damage_per_tick": 3,
           "cause": "entity_attack",
-          "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
         },
-        "minecraft:timer": { "looping": false, "time": 1.5, "time_down_event": { "event": "md:end_attack" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.5,
+          "time_down_event": {
+            "event": "md:end_attack"
+          }
+        }
       },
       "armor:stage0": {
         "minecraft:damage_sensor": {
@@ -64,7 +107,12 @@
               "deals_damage": true,
               "damage_multiplier": 0.3,
               "on_damage": {
-                "filters": { "test": "health", "subject": "self", "operator": "<=", "value": 120 },
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 120
+                },
                 "event": "md:to_stage1"
               }
             }
@@ -79,7 +127,12 @@
               "deals_damage": true,
               "damage_multiplier": 0.5,
               "on_damage": {
-                "filters": { "test": "health", "subject": "self", "operator": "<=", "value": 80 },
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 80
+                },
                 "event": "md:to_stage2"
               }
             }
@@ -94,7 +147,12 @@
               "deals_damage": true,
               "damage_multiplier": 0.75,
               "on_damage": {
-                "filters": { "test": "health", "subject": "self", "operator": "<=", "value": 40 },
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 40
+                },
                 "event": "md:to_stage3"
               }
             }
@@ -104,33 +162,77 @@
       "armor:stage3": {
         "minecraft:damage_sensor": {
           "triggers": [
-            { "cause": "all", "deals_damage": true, "damage_multiplier": 1.0 }
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "damage_multiplier": 1.0
+            }
           ]
         }
       }
     },
     "components": {
-      "minecraft:type_family": { "family": ["monster", "boss", "medieval", "armor_boss", "undead"] },
-      "minecraft:collision_box": { "width": 1.3, "height": 2.8 },
-      "minecraft:health": { "value": 160, "max": 160 },
-      "minecraft:attack": { "damage": 6 },
-      "minecraft:movement": { "value": 0.28 },
-      "minecraft:underwater_movement": { "value": 0.2 },
-      "minecraft:knockback_resistance": { "value": 0.9 },
+      "minecraft:type_family": {
+        "family": [
+          "monster",
+          "boss",
+          "medieval",
+          "armor_boss",
+          "undead"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 1.3,
+        "height": 2.8
+      },
+      "minecraft:health": {
+        "value": 160,
+        "max": 160
+      },
+      "minecraft:attack": {
+        "damage": 6
+      },
+      "minecraft:movement": {
+        "value": 0.28
+      },
+      "minecraft:underwater_movement": {
+        "value": 0.2
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.9
+      },
       "minecraft:fire_immune": true,
       "minecraft:persistent": {},
-      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
-      "minecraft:boss": { "should_darken_sky": false, "hud_range": 55, "name": "Animated Armor" },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:boss": {
+        "should_darken_sky": false,
+        "hud_range": 55,
+        "name": "Animated Armor"
+      },
       "minecraft:nameable": {},
-      "minecraft:navigation.walk": { "can_path_over_water": true, "avoid_water": true },
+      "minecraft:navigation.walk": {
+        "can_path_over_water": true,
+        "avoid_water": true
+      },
       "minecraft:movement.basic": {},
       "minecraft:jump.static": {},
       "minecraft:physics": {},
       "minecraft:conditional_bandwidth_optimization": {},
-      "minecraft:loot": { "table": "loot_tables/entities/animated_armor.json" },
-      "minecraft:experience_reward": { "on_death": "40" },
-      "minecraft:behavior.float": { "priority": 0 },
-      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/animated_armor.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "40"
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      },
       "minecraft:behavior.nearest_attackable_target": {
         "priority": 2,
         "must_see": false,
@@ -139,7 +241,14 @@
         "scan_interval": 10,
         "within_radius": 48,
         "entity_types": [
-          { "filters": { "test": "is_family", "subject": "other", "value": "player" }, "max_dist": 48 }
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            "max_dist": 48
+          }
         ]
       },
       "minecraft:behavior.melee_attack": {
@@ -150,46 +259,140 @@
         "cooldown_time": 1.0,
         "melee_fov": 120
       },
-      "minecraft:behavior.random_stroll": { "priority": 7, "speed_multiplier": 0.6 },
-      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 16 },
-      "minecraft:behavior.random_look_around": { "priority": 9 }
+      "minecraft:behavior.random_stroll": {
+        "priority": 7,
+        "speed_multiplier": 0.6
+      },
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 16
+      },
+      "minecraft:behavior.random_look_around": {
+        "priority": 9
+      }
     },
     "events": {
       "minecraft:entity_spawned": {
-        "add": { "component_groups": ["armor:stage0", "armor:ready"] },
-        "set_property": { "md:stage": 0, "md:state": "idle" }
+        "add": {
+          "component_groups": [
+            "armor:stage0",
+            "armor:ready"
+          ]
+        },
+        "set_property": {
+          "md:stage": 0,
+          "md:state": "idle"
+        }
       },
       "md:pick_attack": {
         "sequence": [
-          { "remove": { "component_groups": ["armor:ready"] } },
+          {
+            "remove": {
+              "component_groups": [
+                "armor:ready"
+              ]
+            }
+          },
           {
             "randomize": [
-              { "weight": 3, "add": { "component_groups": ["armor:swing"] }, "set_property": { "md:state": "swing" } },
-              { "weight": 2, "add": { "component_groups": ["armor:smash"] }, "set_property": { "md:state": "smash" } },
-              { "weight": 2, "add": { "component_groups": ["armor:spin"] }, "set_property": { "md:state": "spin" } }
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "armor:swing"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "swing"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "armor:smash"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "smash"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "armor:spin"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "spin"
+                }
+              }
             ]
           }
         ]
       },
       "md:end_attack": {
-        "remove": { "component_groups": ["armor:swing", "armor:smash", "armor:spin"] },
-        "add": { "component_groups": ["armor:ready"] },
-        "set_property": { "md:state": "idle" }
+        "remove": {
+          "component_groups": [
+            "armor:swing",
+            "armor:smash",
+            "armor:spin"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "armor:ready"
+          ]
+        },
+        "set_property": {
+          "md:state": "idle"
+        }
       },
       "md:to_stage1": {
-        "remove": { "component_groups": ["armor:stage0"] },
-        "add": { "component_groups": ["armor:stage1"] },
-        "set_property": { "md:stage": 1 }
+        "remove": {
+          "component_groups": [
+            "armor:stage0"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "armor:stage1"
+          ]
+        },
+        "set_property": {
+          "md:stage": 1
+        }
       },
       "md:to_stage2": {
-        "remove": { "component_groups": ["armor:stage1"] },
-        "add": { "component_groups": ["armor:stage2"] },
-        "set_property": { "md:stage": 2 }
+        "remove": {
+          "component_groups": [
+            "armor:stage1"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "armor:stage2"
+          ]
+        },
+        "set_property": {
+          "md:stage": 2
+        }
       },
       "md:to_stage3": {
-        "remove": { "component_groups": ["armor:stage2"] },
-        "add": { "component_groups": ["armor:stage3"] },
-        "set_property": { "md:stage": 3 }
+        "remove": {
+          "component_groups": [
+            "armor:stage2"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "armor:stage3"
+          ]
+        },
+        "set_property": {
+          "md:stage": 3
+        }
       }
     }
   }

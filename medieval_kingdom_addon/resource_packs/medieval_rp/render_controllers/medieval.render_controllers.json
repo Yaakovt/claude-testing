@@ -13,6 +13,17 @@
         }
       },
       "geometry": "Geometry.default",
+      "part_visibility": [
+        { "*": true },
+        { "plume": "query.property('md:stage') < 1" },
+        { "leftPauldron": "query.property('md:stage') < 1" },
+        { "faulds": "query.property('md:stage') < 2" },
+        { "rightPauldron": "query.property('md:stage') < 2" },
+        { "chestPlate": "query.property('md:stage') < 3" },
+        { "visor": "query.property('md:stage') < 3" },
+        { "leftGauntlet": "query.property('md:stage') < 3" },
+        { "rightGauntlet": "query.property('md:stage') < 3" }
+      ],
       "materials": [{ "*": "Material.default" }],
       "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
     },
