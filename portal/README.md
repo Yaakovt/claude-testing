@@ -35,9 +35,17 @@ Or open `dist/portal.html` — a self-contained single-file build.
   through them.
 - **Emancipation grills** — shimmering fields at chamber exits that clear your
   portals and fizzle any equipment you try to smuggle out.
-- **Six test chambers** — introduction, single-portal training, dual-portal
-  puzzles, the momentum fling, a sentry gauntlet, and a final synthesis…
-  followed by a baked good of disputed existence.
+- **Repulsion gel** — blue-coated floors bounce you higher with every landing.
+- **Propulsion gel** — orange strips let you sprint fast enough to clear gaps.
+- **Aerial faith plates** — step on one and it donates its enthusiasm to your
+  trajectory.
+- **Hard light bridges** — glowing walkable planes, wired to buttons.
+- **Thermal beams** — lasers that pass through your portals; redirect them
+  into receivers to power doors (and, eventually, to ruin an AI's day).
+- **A story campaign in 18 chambers** — eleven official test chambers, a
+  betrayal involving dessert, and an escape through the facility's disposal
+  pit, service catwalks, storage, and transit spine to a final confrontation
+  with the Overseer's core.
 - **Facility announcer** — original passive-aggressive lab-AI narration with
   subtitles and browser text-to-speech.
 - **Synthesized audio** — every sound effect is generated with WebAudio.

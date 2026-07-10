@@ -23,7 +23,8 @@
 
   // ------------------------------------------------------------------ Cube
   class Cube {
-    constructor(scene, pos) {
+    constructor(scene, pos, opts) {
+      this.companion = !!(opts && opts.companion);
       this.spawn = pos.clone();
       this.pos = pos.clone();          // center
       this.vel = new THREE.Vector3();
@@ -44,9 +45,16 @@
         const ry = P.boxMesh(t, e, t, P.mats.cubeEdge, 1);
         ry.position.set(sx * 0.28, 0, sy * 0.28); g.add(ry);
       }
-      const dot = new THREE.Mesh(new THREE.CircleGeometry(0.13, 20),
-        new THREE.MeshLambertMaterial({ color: 0x67c1e8, emissive: 0x1a4a60 }));
-      dot.position.z = 0.286; g.add(dot);
+      const dotMat = this.companion
+        ? new THREE.MeshLambertMaterial({ color: 0xff6fa8, emissive: 0x5c1030 })
+        : new THREE.MeshLambertMaterial({ color: 0x67c1e8, emissive: 0x1a4a60 });
+      for (const [rx, ry, dz] of [[0, 0, 1], [0, Math.PI, -1], [0, Math.PI / 2, 1], [0, -Math.PI / 2, 1]]) {
+        const dot = new THREE.Mesh(new THREE.CircleGeometry(0.13, 20), dotMat);
+        if (ry === 0 || ry === Math.PI) { dot.rotation.y = ry; dot.position.z = 0.286 * dz; }
+        else { dot.rotation.y = ry; dot.position.x = 0.286 * (ry > 0 ? 1 : -1); }
+        void rx;
+        g.add(dot);
+      }
       this.mesh = g;
       scene.add(g);
       this.sync();
@@ -57,9 +65,19 @@
       if (!this.carried) {
         this.vel.y -= P.GRAVITY * dt;
         this.vel.y = Math.max(this.vel.y, -P.TERMINAL);
-        // ground friction
+        const vyBefore = this.vel.y;
         const res = P.world.move(this.pos, this.half, this.vel, dt);
-        if (res.onGround) { this.vel.x *= 0.86; this.vel.z *= 0.86; }
+        if (res.onGround) {
+          // repulsion gel makes cubes bounce (with damping so they settle)
+          let bounced = false;
+          for (const gz of P.game.gels) {
+            if (gz.type === 'bounce' && gz.contains(this.pos) && Math.abs(vyBefore) > 4) {
+              this.vel.y = Math.abs(vyBefore) * 0.7;
+              bounced = true; break;
+            }
+          }
+          if (!bounced) { this.vel.x *= 0.86; this.vel.z *= 0.86; }
+        }
         P.portals.tryTeleportEntity(this);
       }
       this.sync();
@@ -368,12 +386,12 @@
         }
       }
     }
-    die() {
+    die(silent) {
       if (!this.alive) return;
       this.alive = false;
       this.tipDir = Math.random() < 0.5 ? 1 : -1;
       P.audio.turretDie();
-      P.voice.say(P.voice.rand('turretDown'));
+      if (!silent) P.voice.say(P.voice.rand('turretDown'));
     }
   }
   P.Turret = Turret;
@@ -407,5 +425,275 @@
     }
   }
   P.Elevator = Elevator;
+
+  // --------------------------------------------------------------- GelZone
+  // type 'bounce' (blue: reflects vertical speed, grows on repeat bounces)
+  // type 'speed'  (orange: raises run speed while standing on it)
+  class GelZone {
+    constructor(scene, type, min, max) {
+      this.type = type;
+      this.min = min; this.max = max;
+      const color = type === 'bounce' ? 0x2f7dff : 0xff8a2a;
+      const emis = type === 'bounce' ? 0x0a2f66 : 0x66300a;
+      const m = P.boxMesh(max.x - min.x, 0.07, max.z - min.z,
+        new THREE.MeshLambertMaterial({ color, emissive: emis, transparent: true, opacity: 0.85 }), 0.3);
+      m.position.set((min.x + max.x) / 2, max.y + 0.035, (min.z + max.z) / 2);
+      scene.add(m);
+      this.mesh = m;
+      this.t = Math.random() * 9;
+    }
+    contains(feet) {
+      return feet.x > this.min.x && feet.x < this.max.x &&
+             feet.z > this.min.z && feet.z < this.max.z &&
+             feet.y > this.min.y - 0.35 && feet.y < this.max.y + 0.6;
+    }
+    update(dt) {
+      this.t += dt;
+      this.mesh.material.opacity = 0.78 + Math.sin(this.t * 3) * 0.08;
+    }
+  }
+  P.GelZone = GelZone;
+
+  // ------------------------------------------------------------ FaithPlate
+  // Steps on it -> launched along a fixed velocity vector.
+  class FaithPlate {
+    constructor(scene, pos, launchVel) {
+      this.pos = pos.clone();
+      this.launch = launchVel.clone();
+      const g = new THREE.Group();
+      const base = P.boxMesh(1.5, 0.12, 1.5, P.mats.buttonBase, 1);
+      base.position.y = 0.06; g.add(base);
+      this.plate = P.boxMesh(1.2, 0.1, 1.2,
+        new THREE.MeshLambertMaterial({ color: 0xd8a13a, emissive: 0x4a3005 }), 1);
+      this.plate.position.y = 0.16; g.add(this.plate);
+      // chevron showing launch direction
+      const dirH = P.V3(launchVel.x, 0, launchVel.z);
+      const chev = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.4, 4),
+        new THREE.MeshBasicMaterial({ color: 0xffcf6a }));
+      chev.position.y = 0.25;
+      if (dirH.lengthSq() > 0.01) {
+        chev.rotation.z = -Math.PI / 2;
+        chev.lookAt && chev.position.add(dirH.normalize().multiplyScalar(0.25));
+        chev.rotation.set(Math.PI / 2, 0, Math.atan2(-dirH.x, -dirH.z) + Math.PI);
+      }
+      g.add(chev);
+      g.position.copy(pos);
+      scene.add(g);
+      this.mesh = g;
+      this.anim = 0;
+    }
+    _zone(p, half) {
+      return Math.abs(p.x - this.pos.x) < 0.85 && Math.abs(p.z - this.pos.z) < 0.85 &&
+             (p.y - half.y) < this.pos.y + 0.45 && (p.y + half.y) > this.pos.y - 0.1;
+    }
+    _fire(ent) {
+      const now = performance.now();
+      if (ent._plateT && now - ent._plateT < 600) return;
+      ent._plateT = now;
+      ent.vel.copy(this.launch);
+      if (ent.onGround !== undefined) ent.onGround = false;
+      this.anim = 1;
+      P.audio.sproing();
+    }
+    update(dt, player, cubes) {
+      if (player.alive && this._zone(player.center(), player.half)) this._fire(player);
+      for (const c of cubes)
+        if (!c.dead && !c.carried && this._zone(c.pos, c.half)) this._fire(c);
+      this.anim = Math.max(0, this.anim - dt * 4);
+      this.plate.rotation.x = -this.anim * 0.5;
+      this.plate.position.y = 0.16 + this.anim * 0.25;
+    }
+  }
+  P.FaithPlate = FaithPlate;
+
+  // ---------------------------------------------------------------- Bridge
+  // Hard light bridge: a glowing walkable plane, wired like a door.
+  class Bridge {
+    constructor(scene, id, min, max) {
+      this.id = id;
+      this.open = 0; this.target = 0; this.stayOpen = false;
+      const w = max.x - min.x, d = max.z - min.z;
+      this.mat = new THREE.MeshBasicMaterial({
+        color: 0xbfe6ff, transparent: true, opacity: 0.0,
+        side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), this.mat);
+      m.rotation.x = -Math.PI / 2;
+      m.position.set((min.x + max.x) / 2, max.y, (min.z + max.z) / 2);
+      scene.add(m);
+      this.mesh = m;
+      this.collider = P.world.add(new P.Collider(min, max));
+      this.collider.portalHost = false;
+      this.collider.enabled = false;
+      this.t = 0;
+    }
+    setOpen(v) {
+      if (this.stayOpen && !v) return;
+      const t = v ? 1 : 0;
+      if (t !== this.target) {
+        this.target = t;
+        if (v) P.audio.bridgeOn(); else P.audio.doorClose();
+      }
+    }
+    update(dt) {
+      this.t += dt;
+      this.open = P.lerp(this.open, this.target, dt * 7);
+      this.collider.enabled = this.open > 0.5;
+      this.mat.opacity = this.open * (0.34 + Math.sin(this.t * 7) * 0.05);
+    }
+  }
+  P.Bridge = Bridge;
+
+  // --------------------------------------------------- Laser (emitter side)
+  // Beam travels in straight segments, passes THROUGH open portals, stops at
+  // walls or at a receiver. Touching it stings.
+  class LaserEmitter {
+    constructor(scene, pos, dir) {
+      this.pos = pos.clone();
+      this.dir = dir.clone().normalize();
+      const g = new THREE.Group();
+      const box = P.boxMesh(0.5, 0.5, 0.5, P.mats.metal, 1);
+      g.add(box);
+      const lens = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10),
+        new THREE.MeshBasicMaterial({ color: 0xff4444 }));
+      lens.position.copy(this.dir.clone().multiplyScalar(0.28));
+      g.add(lens);
+      g.position.copy(pos);
+      scene.add(g);
+      this.mesh = g;
+      // pooled beam segment meshes
+      this.segMeshes = [];
+      this.scene = scene;
+      this.beamMat = new THREE.MeshBasicMaterial({
+        color: 0xff3b30, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending
+      });
+      this.zapT = 0;
+    }
+    _segMesh(i) {
+      while (this.segMeshes.length <= i) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.055, 1), this.beamMat);
+        m.visible = false;
+        this.scene.add(m);
+        this.segMeshes.push(m);
+      }
+      return this.segMeshes[i];
+    }
+    // nearest open-portal crossing of ray, closer than maxT
+    _portalHit(origin, dir, maxT) {
+      if (!P.portals.bothOpen()) return null;
+      let best = null;
+      for (const key of ['blue', 'orange']) {
+        const p = P.portals[key];
+        const dn = dir.dot(p.normal);
+        if (dn > -1e-6) continue;                     // must enter the front face
+        const t = p.pos.clone().sub(origin).dot(p.normal) / dn;
+        if (t < 0.05 || t > maxT) continue;
+        const pt = origin.clone().add(dir.clone().multiplyScalar(t));
+        const off = p.planeOffset(pt);
+        const D = P.PORTAL_DIMS;
+        if (Math.abs(off.x) < D.W / 2 && Math.abs(off.y) < D.H / 2) {
+          if (!best || t < best.t) best = { t, portal: p, point: pt };
+        }
+      }
+      return best;
+    }
+    update(dt, player) {
+      const segs = [];
+      let origin = this.pos.clone().add(this.dir.clone().multiplyScalar(0.3));
+      let dir = this.dir.clone();
+      let receiverHit = null;
+      for (let hop = 0; hop < 4; hop++) {
+        let dist = Math.min(P.world.raycast(origin, dir, 80, false), 80);
+        const ph = this._portalHit(origin, dir, dist);
+        let end = origin.clone().add(dir.clone().multiplyScalar(ph ? ph.t : dist));
+        let stop = true;
+        // does this segment hit a receiver first?
+        for (const rc of P.game.receivers) {
+          const toR = rc.pos.clone().sub(origin);
+          const t = toR.dot(dir);
+          if (t > 0 && t < (ph ? ph.t : dist)) {
+            const closest = origin.clone().add(dir.clone().multiplyScalar(t));
+            if (closest.distanceTo(rc.pos) < 0.5) { end = closest; receiverHit = rc; ph && (stop = true); break; }
+          }
+        }
+        segs.push([origin.clone(), end.clone()]);
+        if (receiverHit) break;
+        if (ph) {
+          const other = P.portals.other(ph.portal);
+          const T = P.portals.teleportMatrix(ph.portal, other);
+          const R = new THREE.Matrix4().extractRotation(T);
+          origin = ph.point.clone().applyMatrix4(T);
+          dir = dir.clone().applyMatrix4(R).normalize();
+          origin.add(dir.clone().multiplyScalar(0.06));
+          stop = false;
+        }
+        if (stop) break;
+      }
+      // draw segments
+      for (let i = 0; i < this.segMeshes.length; i++) this.segMeshes[i].visible = false;
+      segs.forEach(([a, b], i) => {
+        const m = this._segMesh(i);
+        const len = a.distanceTo(b);
+        m.visible = len > 0.01;
+        m.position.copy(a).lerp(b, 0.5);
+        m.scale.set(1, 1, len);
+        m.lookAt(b);
+      });
+      // sting the player
+      if (player.alive) {
+        const pc = player.center().add(V3(0, 0.3, 0));
+        for (const [a, b] of segs) {
+          const ab = b.clone().sub(a), len = ab.length();
+          if (len < 0.01) continue;
+          ab.divideScalar(len);
+          const t = P.clamp(pc.clone().sub(a).dot(ab), 0, len);
+          if (a.clone().add(ab.multiplyScalar(t)).distanceTo(pc) < 0.45) {
+            player.damage(26 * dt, true);
+            this.zapT -= dt;
+            if (this.zapT <= 0) { this.zapT = 0.18; P.audio.laserZap(); }
+            break;
+          }
+        }
+      }
+      if (receiverHit) receiverHit.hitThisFrame = true;
+    }
+  }
+  P.LaserEmitter = LaserEmitter;
+
+  class LaserReceiver {
+    constructor(scene, pos, normal, targets, opts) {
+      this.pos = pos.clone();
+      this.targets = targets;
+      this.latch = !!(opts && opts.latch);
+      this.active = false;
+      this.hitThisFrame = false;
+      const g = new THREE.Group();
+      const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.3, 18), P.mats.buttonBase);
+      housing.rotation.x = Math.PI / 2;
+      g.add(housing);
+      this.eye = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12),
+        new THREE.MeshBasicMaterial({ color: 0x552222 }));
+      this.eye.position.copy(normal.clone().multiplyScalar(0.16));
+      g.add(this.eye);
+      g.position.copy(pos);
+      g.lookAt(pos.clone().add(normal));
+      scene.add(g);
+      this.mesh = g;
+    }
+    update() {
+      const hit = this.hitThisFrame || (this.latch && this.active);
+      this.hitThisFrame = false;
+      if (hit !== this.active) {
+        this.active = hit;
+        if (hit) P.audio.receiverOn(); else P.audio.receiverOff();
+        for (const id of this.targets) {
+          const d = P.game.doorById(id);
+          if (d) d.setOpen(hit);
+        }
+      }
+      this.eye.material.color.setHex(this.active ? 0xff9d33 : 0x552222);
+    }
+  }
+  P.LaserReceiver = LaserReceiver;
 
 })(window.PORTAL);

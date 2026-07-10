@@ -54,7 +54,10 @@
     update(dt) {
       if (!this.alive) return;
       const k = this.keys;
-      const speed = 5.2;
+      let speed = 5.2;
+      // propulsion gel underfoot: go fast
+      for (const gz of P.game.gels)
+        if (gz.type === 'speed' && this.onGround && gz.contains(this.pos)) { speed = 12.5; break; }
       const f = V3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
       const r = V3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
       let wish = V3(0, 0, 0);
@@ -85,12 +88,24 @@
 
       this.vel.y -= P.GRAVITY * dt;
       this.vel.y = Math.max(this.vel.y, -P.TERMINAL);
+      const vyBefore = this.vel.y;
 
       const c = this.center();
       const res = P.world.move(c, this.half, this.vel, dt);
       this.pos.copy(c).sub(V3(0, 0.9, 0));
       const wasAir = !this.onGround;
       this.onGround = res.onGround;
+      if (this.onGround) {
+        // repulsion gel: bounce, growing a little each time (capped)
+        for (const gz of P.game.gels) {
+          if (gz.type === 'bounce' && gz.contains(this.pos)) {
+            this.vel.y = P.clamp(Math.max(11, Math.abs(vyBefore) * 1.15), 11, 22);
+            this.onGround = false;
+            P.audio.boing();
+            break;
+          }
+        }
+      }
       if (this.onGround) {
         if (wasAir && this._airtime > 0.35) P.audio.land();
         this._airtime = 0;
@@ -227,11 +242,11 @@
     }
 
     /* ---- health ------------------------------------------------------ */
-    damage(amount) {
+    damage(amount, quiet) {
       if (!this.alive) return;
       this.health -= amount;
       this.hurtCooldown = 2.5;
-      P.audio.hurt();
+      if (!quiet) P.audio.hurt();
       if (this.health <= 0) this.kill('turret');
     }
 

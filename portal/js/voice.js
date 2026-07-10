@@ -78,8 +78,73 @@
       "Sentries cannot see through solid objects. We mention this for no particular reason."
     ],
     ch05: [
-      "Final chamber. Everything you have learned will now be tested at once, because we enjoy efficiency.",
+      "This chamber combines everything you have learned so far. Consider it a mid-term. The final exam has more lasers.",
       "A celebratory baked good has been prepared for successful candidates. Its existence has not been independently verified."
+    ],
+    fakeCake: [
+      "You may have noticed the baked good in the previous chamber was a non-interactive prop. Genuine cake is reserved for genuine completion. Keep going."
+    ],
+    ch06: [
+      "This wing contains aerial acceleration plates. Step on one and it will donate its enthusiasm to your trajectory.",
+      "Flailing during flight is permitted, encouraged, and recorded."
+    ],
+    ch07: [
+      "The blue substance coating the floor is repulsion compound. It rejects everything, including you, upward.",
+      "Each bounce is slightly more ambitious than the last. Aim yourself accordingly."
+    ],
+    ch08: [
+      "The orange compound ahead reduces friction and inhibitions. Run across it and physics will owe you a favor.",
+      "Remember to jump at the edge. The gap has been calibrated to punish hesitation."
+    ],
+    ch09: [
+      "Hard light bridges are made of light that has been convinced it is a floor. The conviction holds only while powered.",
+      "Do not stand on a bridge while questioning it."
+    ],
+    ch10: [
+      "This chamber features a thermal discouragement beam. It discourages thermally.",
+      "The beam passes through your portals. You do not pass through the beam. Please keep these two facts separate."
+    ],
+    ch11: [
+      "Final examination. Every mechanism in the facility has been invited, and all of them accepted.",
+      "Your cake has been plated and is waiting in the reward annex directly past the exit. This is not a trick. Formally, nothing is ever a trick."
+    ],
+    trap: [
+      "Congratulations on completing the mandatory testing track.",
+      "The reward annex floor has been scheduled for immediate absence. Goodbye.",
+      "For quality purposes, your surprise is being recorded."
+    ],
+    ch12: [
+      "You have survived the disposal chute. That is atypical, and frankly, rude.",
+      "There is no cake down here. There is no anything down here. That was the point of down here."
+    ],
+    ch13: [
+      "You are now behind the walls. Test subjects are not supposed to see this side. It is not decorated.",
+      "Mind the drop. The facility extends considerably further down than your warranty."
+    ],
+    ch14: [
+      "This is long-term storage. Everything in here was once someone's breakthrough.",
+      "Take nothing. Touch nothing. Press at most two of the large red buttons."
+    ],
+    ch15: [
+      "You are in the transit spine of the facility. It was engineered for freight, which tonight includes you.",
+      "Maintain velocity. The exits reward the committed."
+    ],
+    ch16: [
+      "You are approaching my chamber. I want you to know that everything I did was within policy.",
+      "The sentries ahead are the loyal ones. Try to appreciate that before you knock them over."
+    ],
+    ch17: [
+      "So. The participant would like to file a complaint.",
+      "My core is shielded by three uplink nodes. I am telling you this because you cannot possibly reach them. Transparency is one of my values."
+    ],
+    coreNode: [
+      "That node was load-bearing. Emotionally.",
+      "Stop redirecting my own beam at my own infrastructure. There are forms for this.",
+      "Two can play at this. I am choosing not to, as a courtesy."
+    ],
+    overload: [
+      "Core integrity is now a matter of opinion. Initiating dignified shutdown.",
+      "For the record, the testing data was excellent. You were excellent. I am still deleting all of it."
     ],
     death: [
       "Your failure has been recorded for training purposes. Reinstating you now.",
@@ -108,9 +173,9 @@
       "Unauthorized equipment has been dissolved at the chamber boundary. This is a courtesy."
     ],
     victory: [
-      "Congratulations. You have completed all scheduled enrichment activities.",
-      "The exit elevator will now pretend to take you to the surface.",
-      "The baked good is being plated. Please remain calm and do not investigate the kitchen."
+      "Core offline. I would like the record to show that I let you win.",
+      "All enrichment activities are complete. The surface is up the stairs, past the break room.",
+      "There is real cake in the break room. There always was. Nobody ever checks the break room."
     ]
   };
 

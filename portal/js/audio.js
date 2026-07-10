@@ -85,5 +85,11 @@
   A.splash = () => noise(0.4, 0.18, 600, 0, 0.8);
   A.throwCube = () => noise(0.12, 0.08, 900, 0, 1.5);
   A.blip = () => tone('sine', 880, 880, 0.05, 0.07);
+  A.boing = () => { tone('sine', 140, 420, 0.22, 0.16); tone('sine', 280, 700, 0.18, 0.08, 0.02); };
+  A.sproing = () => { tone('sawtooth', 180, 850, 0.28, 0.14); tone('sine', 350, 1200, 0.24, 0.10, 0.04); noise(0.12, 0.06, 1500, 0, 2); };
+  A.bridgeOn = () => { tone('sine', 220, 660, 0.35, 0.10); tone('sine', 440, 880, 0.3, 0.06, 0.1); };
+  A.laserZap = () => noise(0.08, 0.12, 4000, 0, 4);
+  A.receiverOn = () => { tone('sine', 660, 660, 0.08, 0.10); tone('sine', 990, 990, 0.14, 0.10, 0.09); };
+  A.receiverOff = () => tone('sine', 990, 500, 0.15, 0.08);
 
 })(window.PORTAL);

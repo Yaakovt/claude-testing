@@ -48,12 +48,17 @@ window.PORTAL = window.PORTAL || {};
     const white = panelTexture('#cfd3d4', 'rgba(90,96,100,0.55)', 0.05);
     const metal = panelTexture('#3a4045', 'rgba(12,14,16,0.8)', 0.10);
     const floor = panelTexture('#565d63', 'rgba(20,22,25,0.85)', 0.12);
+    const rust = panelTexture('#54422f', 'rgba(20,12,6,0.9)', 0.30);
+    const scorch = panelTexture('#98948a', 'rgba(45,40,34,0.75)', 0.22);
 
     P.mats = {
       // portal-friendly white wall panels
       white: new THREE.MeshLambertMaterial({ map: white }),
       // dark metal — portals refuse to stick
       metal: new THREE.MeshLambertMaterial({ map: metal }),
+      // backstage surfaces: corroded plate (no portals) & scorched panel (portals OK)
+      rust: new THREE.MeshLambertMaterial({ map: rust }),
+      scorch: new THREE.MeshLambertMaterial({ map: scorch }),
       floorm: new THREE.MeshLambertMaterial({ map: floor }),
       glass: new THREE.MeshLambertMaterial({
         color: 0xbfe8ff, transparent: true, opacity: 0.22,

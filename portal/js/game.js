@@ -8,7 +8,8 @@
     scene: null, camera: null, renderer: null,
     levelGroup: null, levelIndex: 0,
     cubes: [], buttons: [], doors: [], goos: [], grills: [], turrets: [],
-    elevator: null, cakePos: null, lockOrange: false,
+    gels: [], plates: [], bridges: [], lasers: [], receivers: [],
+    elevator: null, cakePos: null, trapPos: null, lockOrange: false,
     player: null, running: false, transitioning: false,
     testMode: /[?&]test=1/.test(location.search),
   };
@@ -97,7 +98,9 @@
     P.portals.clearAll();
     G.cubes = []; G.buttons = []; G.doors = []; G.goos = [];
     G.grills = []; G.turrets = []; G.elevator = null; G.cakePos = null;
-    G.lockOrange = false;
+    G.gels = []; G.plates = []; G.bridges = []; G.lasers = []; G.receivers = [];
+    G.trapPos = null; G.lockOrange = false;
+    def.onUpdate = null; // build() may install a per-level script hook
 
     G.levelGroup = new THREE.Group();
     G.scene.add(G.levelGroup);
@@ -118,12 +121,14 @@
     // HUD chamber card
     const card = document.getElementById('chamber-card');
     card.querySelector('.num').textContent = def.title;
+    card.querySelector('.lbl').textContent = def.cardLabel || 'TEST CHAMBER';
     card.classList.add('show');
     setTimeout(() => card.classList.remove('show'), 4200);
 
     document.getElementById('fade').classList.add('clear');
 
     if (quiet) return;
+    if (def.preVoice) P.voice.say(P.voice.lines[def.preVoice]);
     if (first) P.voice.say(P.voice.lines.wake.concat(P.voice.lines[def.voice] || []));
     else if (def.voice) P.voice.say(P.voice.lines[def.voice]);
   };
@@ -150,7 +155,17 @@
   };
 
   G.doorById = function (id) {
-    return G.doors.find(d => d.id === id) || null;
+    return G.doors.find(d => d.id === id) || G.bridges.find(b => b.id === id) || null;
+  };
+
+  // chamber 11's "reward": the floor of the story opens instead
+  G.springTrap = function () {
+    if (G.transitioning) return;
+    G.transitioning = true;
+    P.voice.interrupt(P.voice.lines.trap);
+    P.audio.fizzleObject();
+    document.getElementById('fade').classList.remove('clear');
+    setTimeout(() => G.loadLevel(G.levelIndex + 1), 1600);
   };
 
   G.nextLevel = function () {
@@ -171,12 +186,14 @@
     P.voice.interrupt(P.voice.lines.victory);
     const v = document.getElementById('victory');
     document.getElementById('victory-text').innerHTML =
-      'All six enrichment chambers were completed by a live participant.<br>' +
-      'No refunds are available for expended portals.<br><br>' +
-      'This experiment was conducted safely at home in your browser:<br>' +
-      'real-time portals, conservation of momentum, storage cubes,<br>' +
-      'sentry units, emancipation fields, and one (1) baked good.<br><br>' +
-      '<i>The facility thanks you. The facility always thanks you.</i>';
+      'The Overseer\'s core has gone into standby, which it insists was voluntary.<br>' +
+      'Eighteen chambers, one betrayal, and a great deal of unauthorized momentum later,<br>' +
+      'you have reached the one room in this facility with working lights and a table.<br><br>' +
+      'On the table there is a cake. It is real. It was in the break room the whole time.<br><br>' +
+      'Featured technology: real-time portals, conservation of momentum, storage cubes,<br>' +
+      'sentry units, repulsion and propulsion gel, aerial plates, hard light bridges,<br>' +
+      'thermal beams, emancipation fields, and one (1) genuine baked good.<br><br>' +
+      '<i>The facility thanks you. The facility has been advised to stop thanking you.</i>';
     v.classList.remove('hidden');
   };
 
@@ -304,6 +321,13 @@
       for (const d of G.doors) d.update(dt);
       for (const gr of G.grills) gr.update(dt, G.player, G.cubes);
       for (const tu of G.turrets) tu.update(dt, G.player);
+      for (const gz of G.gels) gz.update(dt);
+      for (const fp of G.plates) fp.update(dt, G.player, G.cubes);
+      for (const br of G.bridges) br.update(dt);
+      for (const ls of G.lasers) ls.update(dt, G.player);
+      for (const rc of G.receivers) rc.update(dt);
+      const ldef = P.levels[G.levelIndex];
+      if (ldef.onUpdate) ldef.onUpdate(dt);
       for (const go of G.goos) {
         go.update(dt);
         if (go.contains(G.player.pos.clone().add(V3(0, 0.15, 0)))) { P.audio.splash(); G.player.kill('goo'); }
@@ -326,6 +350,10 @@
       if (G.cakePos) {
         const p = G.player.center();
         if (p.distanceTo(G.cakePos) < 1.6) G.win();
+      }
+      if (G.trapPos) {
+        const p = G.player.center();
+        if (p.distanceTo(G.trapPos) < 2.6) G.springTrap();
       }
       G.updateHint();
       // damage vignette
