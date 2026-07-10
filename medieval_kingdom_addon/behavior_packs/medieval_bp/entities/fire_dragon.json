@@ -9,7 +9,14 @@
       "properties": {
         "md:state": {
           "type": "enum",
-          "values": ["fly", "fireball", "volley", "dive", "tailwhip", "sphere"],
+          "values": [
+            "fly",
+            "fireball",
+            "volley",
+            "dive",
+            "tailwhip",
+            "sphere"
+          ],
           "default": "fly",
           "client_sync": true
         },
@@ -24,8 +31,13 @@
       "dragon:ready": {
         "minecraft:timer": {
           "looping": false,
-          "time": [2.4, 4.0],
-          "time_down_event": { "event": "md:dragon_pick" }
+          "time": [
+            2.4,
+            4.0
+          ],
+          "time_down_event": {
+            "event": "md:dragon_pick"
+          }
         }
       },
       "dragon:fireball": {
@@ -36,18 +48,30 @@
           "attack_radius": 52,
           "burst_shots": 1
         },
-        "minecraft:timer": { "looping": false, "time": 1.0, "time_down_event": { "event": "md:dragon_end" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.0,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
       },
       "dragon:volley": {
         "minecraft:behavior.ranged_attack": {
           "priority": 1,
-          "attack_interval_min": 0.2,
-          "attack_interval_max": 0.25,
+          "attack_interval_min": 0.15,
+          "attack_interval_max": 0.2,
           "attack_radius": 52,
-          "burst_shots": 8,
-          "burst_interval": 0.16
+          "burst_shots": 14,
+          "burst_interval": 0.1
         },
-        "minecraft:timer": { "looping": false, "time": 1.9, "time_down_event": { "event": "md:dragon_end" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.8,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
       },
       "dragon:dive": {
         "minecraft:behavior.charge_attack": {
@@ -60,54 +84,114 @@
           "damage_range": 4.5,
           "damage_per_tick": 6,
           "cause": "entity_attack",
-          "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
         },
-        "minecraft:timer": { "looping": false, "time": 2.2, "time_down_event": { "event": "md:dragon_end" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.2,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
       },
       "dragon:tailwhip": {
+        "minecraft:physics": {
+          "has_gravity": true,
+          "has_collision": true
+        },
         "minecraft:area_attack": {
           "damage_range": 5.5,
-          "damage_per_tick": 7,
+          "damage_per_tick": 6,
           "cause": "entity_attack",
-          "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
         },
-        "minecraft:timer": { "looping": false, "time": 1.0, "time_down_event": { "event": "md:dragon_end" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 3.5,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
       },
       "dragon:sphere": {
-        "minecraft:spawn_entity": {
-          "entities": [
-            {
-              "min_wait_time": 1,
-              "max_wait_time": 1,
-              "num_to_spawn": 1,
-              "single_use": true,
-              "spawn_entity": "md:fire_sphere"
-            }
-          ]
-        },
-        "minecraft:timer": { "looping": false, "time": 2.6, "time_down_event": { "event": "md:dragon_end" } }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.6,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
       }
     },
     "components": {
-      "minecraft:type_family": { "family": ["monster", "boss", "medieval", "dragon"] },
-      "minecraft:collision_box": { "width": 3.0, "height": 3.0 },
-      "minecraft:health": { "value": 280, "max": 280 },
-      "minecraft:movement": { "value": 0.4 },
-      "minecraft:knockback_resistance": { "value": 0.85 },
+      "minecraft:type_family": {
+        "family": [
+          "monster",
+          "boss",
+          "medieval",
+          "dragon"
+        ]
+      },
+      "minecraft:collision_box": {
+        "width": 3.0,
+        "height": 3.0
+      },
+      "minecraft:health": {
+        "value": 280,
+        "max": 280
+      },
+      "minecraft:movement": {
+        "value": 0.4
+      },
+      "minecraft:knockback_resistance": {
+        "value": 0.85
+      },
       "minecraft:fire_immune": true,
       "minecraft:persistent": {},
       "minecraft:can_fly": {},
-      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
-      "minecraft:boss": { "should_darken_sky": true, "hud_range": 65, "name": "Fire Dragon" },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": false
+      },
+      "minecraft:boss": {
+        "should_darken_sky": true,
+        "hud_range": 65,
+        "name": "Fire Dragon"
+      },
       "minecraft:movement.fly": {},
-      "minecraft:navigation.fly": { "can_path_over_water": true, "can_path_from_air": true, "can_fly": true },
-      "minecraft:shooter": { "def": "md:dragon_fireball" },
-      "minecraft:physics": { "has_gravity": false, "has_collision": true },
+      "minecraft:navigation.fly": {
+        "can_path_over_water": true,
+        "can_path_from_air": true,
+        "can_fly": true
+      },
+      "minecraft:shooter": {
+        "def": "md:dragon_fireball"
+      },
+      "minecraft:physics": {
+        "has_gravity": false,
+        "has_collision": true
+      },
       "minecraft:conditional_bandwidth_optimization": {},
-      "minecraft:loot": { "table": "loot_tables/entities/fire_dragon.json" },
-      "minecraft:experience_reward": { "on_death": "60" },
-      "minecraft:behavior.float": { "priority": 0 },
-      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:loot": {
+        "table": "loot_tables/entities/fire_dragon.json"
+      },
+      "minecraft:experience_reward": {
+        "on_death": "60"
+      },
+      "minecraft:behavior.float": {
+        "priority": 0
+      },
+      "minecraft:behavior.hurt_by_target": {
+        "priority": 1
+      },
       "minecraft:behavior.nearest_attackable_target": {
         "priority": 2,
         "must_see": false,
@@ -115,42 +199,150 @@
         "scan_interval": 10,
         "within_radius": 70,
         "entity_types": [
-          { "filters": { "test": "is_family", "subject": "other", "value": "player" }, "max_dist": 70 }
+          {
+            "filters": {
+              "test": "is_family",
+              "subject": "other",
+              "value": "player"
+            },
+            "max_dist": 70
+          }
         ]
       },
-      "minecraft:behavior.move_towards_target": { "priority": 4, "speed_multiplier": 1.2, "within_radius": 45 },
+      "minecraft:behavior.move_towards_target": {
+        "priority": 4,
+        "speed_multiplier": 1.2,
+        "within_radius": 45
+      },
       "minecraft:behavior.random_hover": {
         "priority": 9,
         "xz_dist": 12,
         "y_dist": 8,
         "y_offset": -1,
-        "hover_height": [8, 14]
+        "hover_height": [
+          4,
+          9
+        ]
       },
-      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 40 }
+      "minecraft:behavior.look_at_player": {
+        "priority": 8,
+        "look_distance": 40
+      },
+      "minecraft:damage_sensor": {
+        "triggers": [
+          {
+            "cause": "entity_explosion",
+            "deals_damage": false
+          },
+          {
+            "cause": "block_explosion",
+            "deals_damage": false
+          }
+        ]
+      }
     },
     "events": {
       "minecraft:entity_spawned": {
-        "add": { "component_groups": ["dragon:ready"] },
-        "set_property": { "md:state": "fly", "md:grounded": false }
+        "add": {
+          "component_groups": [
+            "dragon:ready"
+          ]
+        },
+        "set_property": {
+          "md:state": "fly",
+          "md:grounded": false
+        }
       },
       "md:dragon_pick": {
         "sequence": [
-          { "remove": { "component_groups": ["dragon:ready"] } },
+          {
+            "remove": {
+              "component_groups": [
+                "dragon:ready"
+              ]
+            }
+          },
           {
             "randomize": [
-              { "weight": 3, "add": { "component_groups": ["dragon:fireball"] }, "set_property": { "md:state": "fireball" } },
-              { "weight": 2, "add": { "component_groups": ["dragon:volley"] }, "set_property": { "md:state": "volley" } },
-              { "weight": 2, "add": { "component_groups": ["dragon:dive"] }, "set_property": { "md:state": "dive" } },
-              { "weight": 2, "add": { "component_groups": ["dragon:tailwhip"] }, "set_property": { "md:state": "tailwhip" } },
-              { "weight": 2, "add": { "component_groups": ["dragon:sphere"] }, "set_property": { "md:state": "sphere" } }
+              {
+                "weight": 3,
+                "add": {
+                  "component_groups": [
+                    "dragon:fireball"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "fireball"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:volley"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "volley"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:dive"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "dive"
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:tailwhip"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "tailwhip",
+                  "md:grounded": true
+                }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:sphere"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "sphere"
+                }
+              }
             ]
           }
         ]
       },
       "md:dragon_end": {
-        "remove": { "component_groups": ["dragon:fireball", "dragon:volley", "dragon:dive", "dragon:tailwhip", "dragon:sphere"] },
-        "add": { "component_groups": ["dragon:ready"] },
-        "set_property": { "md:state": "fly" }
+        "remove": {
+          "component_groups": [
+            "dragon:fireball",
+            "dragon:volley",
+            "dragon:dive",
+            "dragon:tailwhip",
+            "dragon:sphere"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "dragon:ready"
+          ]
+        },
+        "set_property": {
+          "md:state": "fly",
+          "md:grounded": false
+        }
       }
     }
   }

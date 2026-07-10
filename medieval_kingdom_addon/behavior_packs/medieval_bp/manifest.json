@@ -4,20 +4,31 @@
     "name": "Medieval Kingdom — Behavior",
     "description": "Medieval mobs, a tower builder, and two bosses: the Animated Armor and the Fire Dragon.",
     "uuid": "75664af1-9972-4040-82c3-3abdeadcb556",
-    "version": [1, 0, 0],
-    "min_engine_version": [1, 20, 0]
+    "version": [1, 2, 0],
+    "min_engine_version": [1, 20, 60]
   },
   "modules": [
     {
       "type": "data",
       "uuid": "a1eea409-acca-4ebb-9d64-3acfaf85d56b",
-      "version": [1, 0, 0]
+      "version": [1, 2, 0]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "15a57cb2-3c13-4151-aa73-c2cf843563d6",
+      "entry": "scripts/main.js",
+      "version": [1, 2, 0]
     }
   ],
   "dependencies": [
     {
       "uuid": "4f955a14-fbe5-462d-8c8f-12b548cccd7e",
-      "version": [1, 0, 0]
+      "version": [1, 2, 0]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.9.0"
     }
   ]
 }

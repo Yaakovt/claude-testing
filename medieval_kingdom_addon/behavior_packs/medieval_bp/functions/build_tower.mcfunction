@@ -62,8 +62,40 @@ setblock ~4 ~21 ~-2 stonebrick
 setblock ~4 ~21 ~0 stonebrick
 setblock ~4 ~21 ~2 stonebrick
 
+# --- treasure: ground-floor strongbox ---
+setblock ~-2 ~1 ~2 chest
+replaceitem block ~-2 ~1 ~2 slot.container 0 iron_ingot 12
+replaceitem block ~-2 ~1 ~2 slot.container 1 bread 8
+replaceitem block ~-2 ~1 ~2 slot.container 2 arrow 32
+replaceitem block ~-2 ~1 ~2 slot.container 3 gold_ingot 5
+replaceitem block ~-2 ~1 ~2 slot.container 4 iron_sword 1
+replaceitem block ~-2 ~1 ~2 slot.container 5 shield 1
+replaceitem block ~-2 ~1 ~2 slot.container 6 torch 16
+
+# --- treasure: second-floor armory chest ---
+setblock ~2 ~7 ~2 chest
+replaceitem block ~2 ~7 ~2 slot.container 0 iron_chestplate 1
+replaceitem block ~2 ~7 ~2 slot.container 1 iron_helmet 1
+replaceitem block ~2 ~7 ~2 slot.container 2 crossbow 1
+replaceitem block ~2 ~7 ~2 slot.container 3 arrow 64
+replaceitem block ~2 ~7 ~2 slot.container 4 golden_apple 2
+replaceitem block ~2 ~7 ~2 slot.container 5 cooked_beef 10
+
+# --- treasure: top-floor royal vault ---
+setblock ~-2 ~13 ~2 chest
+replaceitem block ~-2 ~13 ~2 slot.container 0 diamond 4
+replaceitem block ~-2 ~13 ~2 slot.container 1 emerald 8
+replaceitem block ~-2 ~13 ~2 slot.container 2 gold_ingot 15
+replaceitem block ~-2 ~13 ~2 slot.container 3 golden_apple 3
+replaceitem block ~-2 ~13 ~2 slot.container 4 experience_bottle 12
+replaceitem block ~-2 ~13 ~2 slot.container 5 md:iron_plating 3
+replaceitem block ~-2 ~13 ~2 slot.container 6 md:dragon_scale 2
+replaceitem block ~-2 ~13 ~2 slot.container 7 diamond_sword 1
+setblock ~-2 ~13 ~1 gold_block
+setblock ~-1 ~13 ~2 gold_block
+
 # --- post two knight guards at the base ---
 summon md:knight ~-2 ~1 ~-2
 summon md:knight ~2 ~1 ~-2
 
-tellraw @s {"rawtext":[{"text":"§6Medieval watchtower raised! Guards posted."}]}
+tellraw @s {"rawtext":[{"text":"§6Medieval watchtower raised! Guards posted, treasure stocked on every floor."}]}

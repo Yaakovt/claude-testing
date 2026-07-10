@@ -51,7 +51,7 @@ Give yourself the spawn eggs from the creative inventory (search "Knight",
 
 | Command | What it does |
 |---|---|
-| `/function build_tower` | Builds a 9×9 stone-brick watchtower where you stand and posts two knight guards |
+| `/function build_tower` | Builds a 9×9 stone-brick watchtower where you stand, posts two knight guards, and stocks **three treasure chests** (strongbox, armory, and a gold-trimmed royal vault with diamonds) |
 | `/function summon_armor` | Spawns the Animated Armor boss in front of you |
 | `/function summon_dragon` | Spawns the Fire Dragon above and in front of you |
 
@@ -64,7 +64,7 @@ surface. The bosses are summon-only.
 
 ### 🛡️ Animated Armor (`md:animated_armor`)
 
-An empty suit of dark iron. 320 HP. Three attacks are chosen at random on a
+An empty suit of dark iron. 160 HP behind heavy plate. Three attacks are chosen at random on a
 2–3.5 s timer:
 
 1. **Hammer Swing** — a quick overhand strike (`attack_swing` animation, ~3.5 block reach).
@@ -73,28 +73,14 @@ An empty suit of dark iron. 320 HP. Three attacks are chosen at random on a
 3. **Spin** — holds the hammer out and spins a full 720°, hitting everything in a
    radius (`attack_spin` animation, ~4.5 block radius, longest window).
 
-**Armor-breaking damage model** (exactly as requested):
-
-| Stage | HP range | Incoming damage taken | Look |
-|---|---|---|---|
-| 0 — full plate | 320–241 | **20%** (takes *way* less damage) | intact, cyan eyes |
-| 1 — cracked | 240–161 | 40% | intact |
-| 2 — breaking | 160–81 | 70% | intact |
-| 3 — shattering | 80–0 | **100%** (full damage) | switches to the **broken** texture, ember-orange eyes |
-
-So the more damage you deal, the more the armor gives way — early hits barely
-scratch it, and once the plates are failing it takes full damage and dies when
-the last stage is destroyed. This is implemented with `minecraft:damage_sensor`
-`damage_multiplier` values that swap via component groups at each HP threshold,
-and a synced entity property (`md:stage`) that drives the texture swap in the
-render controller.
+Armor-breaking stages are detailed in **“The armor actually breaks now”** below.
 
 ### 🐉 Fire Dragon (`md:fire_dragon`)
 
-A flying fire dragon. 350 HP. Five attacks, chosen at random on a 3–5 s timer:
+A flying fire dragon. 280 HP, immune to fire and explosions. Five attacks, chosen at random on a 2.4–4 s timer:
 
 1. **Fireball** — spits a single `md:dragon_fireball` (`fireball` animation).
-2. **Volley** — a burst of ~6 fireballs while sweeping its head (`volley` animation).
+2. **Volley** — a barrage of ~14 homing fireballs while sweeping its head (`volley` animation).
 3. **Dive** — charges down onto the target and pulls back up (`dive` animation +
    `charge_attack` + splash damage).
 4. **Tail Whip** — sweeps its segmented tail to strike everything beside it
@@ -116,8 +102,11 @@ and vanilla loot. They also award XP.
 
 | Boss | Weapon | Trophy | Materials |
 |---|---|---|---|
-| Animated Armor | **Warhammer of the Fallen Knight** (9 dmg, 900 durability, enchantable) | **Helm of the Animated Armor** (glowing) | 2–5 Enchanted Iron Plating + 3–7 iron ingots |
-| Fire Dragon | **Searing Fang** (8 dmg, 750 durability, enchantable, glowing) | **Dragon Heart** (glowing) | 3–8 Dragon Scales + 3–8 gold ingots |
+| Animated Armor | **Warhammer of the Fallen Knight** — 14 dmg, 1200 durability, repairable with iron. **Ability:** every hit slams the ground, knocking the target flying and blasting everything near it with shockwave damage | **Helm of the Animated Armor** (glowing) | 2–5 Enchanted Iron Plating + 3–7 iron ingots |
+| Fire Dragon | **Searing Fang** — 12 dmg, 900 durability, repairable with Dragon Scales, glowing. **Ability:** every hit ignites the target and scorches everything around it | **Dragon Heart** (glowing) | 3–8 Dragon Scales + 3–8 gold ingots |
+
+Weapon abilities are implemented with the stable Script API (`@minecraft/server`),
+so the pack now requires **Minecraft 1.20.60+** (no experiments needed).
 
 All custom items appear in the creative menu too (search their names).
 
@@ -127,9 +116,14 @@ All custom items appear in the creative menu too (search their names).
   re-targeting) instead of wandering — the Armor pursues and faces you with
   `melee_attack`, the Dragon flies toward you between attacks.
 - Attacks hit harder and cycle faster, tuned for a solo player in iron/early-diamond gear.
-- The **Fire Sphere** no longer detonates on the dragon in the sky: it spawns a slow
-  homing orb that flies to the nearest player and explodes on contact (with a 2.6 s
-  timer fallback), setting the ground alight.
+- The **Fire Sphere** is conjured **at the player's position** (via script): it swells
+  there for ~2 seconds, then explodes — run! The dragon itself is immune to
+  explosions, so it can never bomb itself out of the sky.
+- **Fireballs home in** on their target and fly fast and flat; the **volley** now
+  unleashes ~14 fireballs in a sweeping barrage.
+- The dragon **lands for its tail whip** — it drops out of the sky, sweeps its tail
+  through everything around it, then takes off again — and it hovers lower overall
+  so melee players can reach it between attacks.
 
 ## The armor actually breaks now
 

@@ -3,17 +3,36 @@
   "minecraft:item": {
     "description": {
       "identifier": "md:searing_fang",
-      "menu_category": { "category": "equipment" }
+      "menu_category": {
+        "category": "equipment"
+      }
     },
     "components": {
       "minecraft:max_stack_size": 1,
-      "minecraft:icon": { "texture": "searing_fang" },
+      "minecraft:icon": {
+        "texture": "searing_fang"
+      },
       "minecraft:hand_equipped": true,
-      "minecraft:damage": 8,
-      "minecraft:durability": { "max_durability": 750 },
-      "minecraft:enchantable": { "value": 12, "slot": "sword" },
+      "minecraft:damage": 12,
+      "minecraft:durability": {
+        "max_durability": 900
+      },
+      "minecraft:enchantable": {
+        "value": 12,
+        "slot": "sword"
+      },
       "minecraft:foil": true,
-      "minecraft:hover_text_color": "red"
+      "minecraft:hover_text_color": "red",
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "md:dragon_scale"
+            ],
+            "repair_amount": 150
+          }
+        ]
+      }
     }
   }
 }

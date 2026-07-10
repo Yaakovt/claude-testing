@@ -13,14 +13,15 @@
       "minecraft:conditional_bandwidth_optimization": {},
       "minecraft:projectile": {
         "on_hit": {
-          "impact_damage": { "damage": 8, "knockback": true, "semi_random_diff_damage": false },
+          "impact_damage": { "damage": 9, "knockback": true, "semi_random_diff_damage": false },
           "catch_fire": { "fire_affected_by_griefing": true, "duration": 4 },
           "remove_on_hit": {}
         },
-        "power": 1.6,
-        "gravity": 0.01,
+        "power": 2.2,
+        "gravity": 0.0,
+        "homing": true,
         "angle_offset": 0.0,
-        "uncertainty_base": 4,
+        "uncertainty_base": 1,
         "uncertainty_multiplier": 0,
         "anchor": 1,
         "offset": [0, -1.5, 0]

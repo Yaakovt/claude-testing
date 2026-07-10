@@ -4,20 +4,20 @@
     "name": "Medieval Kingdom — Resources",
     "description": "Geometry, textures and animations for the Medieval Kingdom add-on.",
     "uuid": "4f955a14-fbe5-462d-8c8f-12b548cccd7e",
-    "version": [1, 0, 0],
-    "min_engine_version": [1, 20, 0]
+    "version": [1, 2, 0],
+    "min_engine_version": [1, 20, 60]
   },
   "modules": [
     {
       "type": "resources",
       "uuid": "427f98c6-1c31-47b0-8ec4-8c030011e162",
-      "version": [1, 0, 0]
+      "version": [1, 2, 0]
     }
   ],
   "dependencies": [
     {
       "uuid": "75664af1-9972-4040-82c3-3abdeadcb556",
-      "version": [1, 0, 0]
+      "version": [1, 2, 0]
     }
   ]
 }
