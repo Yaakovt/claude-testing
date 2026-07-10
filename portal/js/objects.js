@@ -641,6 +641,18 @@
         m.scale.set(1, 1, len);
         m.lookAt(b);
       });
+      // thermal beams disable sentries they touch
+      for (const tu of P.game.turrets) {
+        if (!tu.alive) continue;
+        const tp = tu.eyePos();
+        for (const [a, b] of segs) {
+          const ab = b.clone().sub(a), len = ab.length();
+          if (len < 0.01) continue;
+          ab.divideScalar(len);
+          const t = P.clamp(tp.clone().sub(a).dot(ab), 0, len);
+          if (a.clone().add(ab.multiplyScalar(t)).distanceTo(tp) < 0.55) { tu.die(); break; }
+        }
+      }
       // sting the player
       if (player.alive) {
         const pc = player.center().add(V3(0, 0.3, 0));
@@ -726,5 +738,193 @@
     }
   }
   P.LaserReceiver = LaserReceiver;
+
+  // ------------------------------------------------- Excursion funnel
+  // A gentle tractor stream: entities inside are carried along its axis.
+  // Like the beam, it passes through open portals.
+  class Funnel {
+    constructor(scene, pos, dir) {
+      this.pos = pos.clone();
+      this.dir = dir.clone().normalize();
+      this.scene = scene;
+      const g = new THREE.Group();
+      const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.05, 0.4, 22), P.mats.metal);
+      housing.rotation.x = Math.PI / 2;
+      g.add(housing);
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.75, 22),
+        new THREE.MeshBasicMaterial({ color: 0x7fd4ff, transparent: true, opacity: 0.9 }));
+      lens.position.z = 0.21;
+      g.add(lens);
+      g.position.copy(pos);
+      g.lookAt(pos.clone().add(this.dir));
+      scene.add(g);
+
+      this.tubeMat = new THREE.MeshBasicMaterial({
+        color: 0x63b9ff, transparent: true, opacity: 0.13,
+        blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+      });
+      this.ringMat = new THREE.MeshBasicMaterial({
+        color: 0x9fdcff, transparent: true, opacity: 0.5,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      this.tubes = []; this.rings = [];
+      this.t = 0;
+    }
+    _tube(i) {
+      while (this.tubes.length <= i) {
+        const m = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.92, 0.92, 1, 20, 1, true), this.tubeMat);
+        m.visible = false;
+        this.scene.add(m);
+        this.tubes.push(m);
+      }
+      return this.tubes[i];
+    }
+    _ring(i) {
+      while (this.rings.length <= i) {
+        const m = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.05, 8, 24), this.ringMat);
+        m.visible = false;
+        this.scene.add(m);
+        this.rings.push(m);
+      }
+      return this.rings[i];
+    }
+    _portalHit(origin, dir, maxT) {
+      if (!P.portals.bothOpen()) return null;
+      let best = null;
+      for (const key of ['blue', 'orange']) {
+        const p = P.portals[key];
+        const dn = dir.dot(p.normal);
+        if (dn > -1e-6) continue;
+        const t = p.pos.clone().sub(origin).dot(p.normal) / dn;
+        if (t < 0.05 || t > maxT) continue;
+        const pt = origin.clone().add(dir.clone().multiplyScalar(t));
+        const off = p.planeOffset(pt);
+        const D = P.PORTAL_DIMS;
+        if (Math.abs(off.x) < D.W / 2 && Math.abs(off.y) < D.H / 2) {
+          if (!best || t < best.t) best = { t, portal: p };
+        }
+      }
+      return best;
+    }
+    update(dt, player, cubes) {
+      this.t += dt;
+      // trace segments (portal hops like the laser)
+      const segs = [];
+      let origin = this.pos.clone().add(this.dir.clone().multiplyScalar(0.4));
+      let dir = this.dir.clone();
+      for (let hop = 0; hop < 3; hop++) {
+        const dist = Math.min(P.world.raycast(origin, dir, 60, false), 60);
+        const ph = this._portalHit(origin, dir, dist);
+        const len = ph ? ph.t : dist;
+        segs.push([origin.clone(), dir.clone(), len]);
+        if (!ph) break;
+        const other = P.portals.other(ph.portal);
+        const T = P.portals.teleportMatrix(ph.portal, other);
+        const R = new THREE.Matrix4().extractRotation(T);
+        dir = dir.clone().applyMatrix4(R).normalize();
+        origin = other.pos.clone().add(dir.clone().multiplyScalar(0.15));
+      }
+      // visuals
+      this.tubes.forEach(m => m.visible = false);
+      this.rings.forEach(m => m.visible = false);
+      let ringIdx = 0;
+      this.tubeMat.opacity = 0.11 + Math.sin(this.t * 3) * 0.03;
+      segs.forEach(([a, d, len], i) => {
+        const tube = this._tube(i);
+        tube.visible = len > 0.2;
+        const mid = a.clone().add(d.clone().multiplyScalar(len / 2));
+        tube.position.copy(mid);
+        tube.scale.set(1, len, 1);
+        tube.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+        // direction rings drifting along the stream
+        const spacing = 2.2, phase = (this.t * 2.6) % spacing;
+        for (let s = phase; s < len; s += spacing) {
+          const r = this._ring(ringIdx++);
+          r.visible = true;
+          r.position.copy(a).add(d.clone().multiplyScalar(s));
+          r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
+        }
+      });
+      // physics: gently carry entities inside any segment
+      const affect = (ent, isPlayer) => {
+        const p = isPlayer ? ent.center() : ent.pos;
+        for (const [a, d, len] of segs) {
+          const t = p.clone().sub(a).dot(d);
+          if (t < 0 || t > len - 0.6) continue;   // release cargo before the end wall
+          const axisPt = a.clone().add(d.clone().multiplyScalar(t));
+          const away = p.clone().sub(axisPt);
+          const dist = away.length();
+          if (dist > 1.0) continue;
+          const desired = d.clone().multiplyScalar(3.4);
+          if (dist > 0.02) desired.add(away.multiplyScalar(-4 / Math.max(dist, 0.25) * dist));
+          // players who are steering get a looser grip so they can exit
+          let k = 10;
+          if (isPlayer) {
+            const keys = ent.keys;
+            if (keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD']) k = 3.5;
+          }
+          ent.vel.lerp(desired, Math.min(1, k * dt));
+          if (isPlayer) ent.onGround = false;
+          return;
+        }
+      };
+      if (player.alive) affect(player, true);
+      for (const c of cubes) if (!c.dead && !c.carried) affect(c, false);
+    }
+  }
+  P.Funnel = Funnel;
+
+  // ------------------------------------------------ Pedestal button (timed)
+  class PedestalButton {
+    constructor(scene, pos, targets, duration) {
+      this.pos = pos.clone();
+      this.targets = targets;
+      this.duration = duration || 6;
+      this.timer = 0;
+      this._tick = 0;
+      const g = new THREE.Group();
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.0, 14), P.mats.buttonBase);
+      post.position.y = 0.5; g.add(post);
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 16), P.mats.doorFrame);
+      plate.position.y = 1.02; g.add(plate);
+      this.dome = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+        P.mats.button.clone());
+      this.dome.position.y = 1.05; g.add(this.dome);
+      g.position.copy(pos);
+      scene.add(g);
+      this.mesh = g;
+    }
+    topPos() { return this.pos.clone().add(P.V3(0, 1.05, 0)); }
+    press() {
+      this.timer = this.duration;
+      this._tick = 1;
+      P.audio.buttonDown();
+      for (const id of this.targets) {
+        const d = P.game.doorById(id);
+        if (d) d.setOpen(true);
+      }
+    }
+    update(dt) {
+      if (this.timer > 0) {
+        this.timer -= dt;
+        this._tick -= dt;
+        if (this._tick <= 0) { this._tick = 1; P.audio.blip(); }
+        this.dome.position.y = 1.0;
+        this.dome.material.emissive.setHex(0x661408);
+        if (this.timer <= 0) {
+          P.audio.buttonUp();
+          for (const id of this.targets) {
+            const d = P.game.doorById(id);
+            if (d) d.setOpen(false);
+          }
+        }
+      } else {
+        this.dome.position.y = 1.05;
+        this.dome.material.emissive.setHex(0x3a0c08);
+      }
+    }
+  }
+  P.PedestalButton = PedestalButton;
 
 })(window.PORTAL);

@@ -9,7 +9,9 @@
     levelGroup: null, levelIndex: 0,
     cubes: [], buttons: [], doors: [], goos: [], grills: [], turrets: [],
     gels: [], plates: [], bridges: [], lasers: [], receivers: [],
+    funnels: [], pedestals: [],
     elevator: null, cakePos: null, trapPos: null, lockOrange: false,
+    progress: 0,
     player: null, running: false, transitioning: false,
     testMode: /[?&]test=1/.test(location.search),
   };
@@ -48,6 +50,10 @@
       G.renderer.setSize(window.innerWidth, window.innerHeight);
       P.portals.setRTSize(window.innerWidth, window.innerHeight);
     });
+
+    try { G.progress = parseInt(localStorage.getItem('portalCloneProgress') || '0', 10) || 0; } catch (e) { G.progress = 0; }
+    G.progress = Math.min(G.progress, P.levels.length - 1);
+    G.buildChapters();
 
     G.bindInput();
     G.loadLevel(0, true);
@@ -99,6 +105,7 @@
     G.cubes = []; G.buttons = []; G.doors = []; G.goos = [];
     G.grills = []; G.turrets = []; G.elevator = null; G.cakePos = null;
     G.gels = []; G.plates = []; G.bridges = []; G.lasers = []; G.receivers = [];
+    G.funnels = []; G.pedestals = [];
     G.trapPos = null; G.lockOrange = false;
     def.onUpdate = null; // build() may install a per-level script hook
 
@@ -127,6 +134,13 @@
 
     document.getElementById('fade').classList.add('clear');
 
+    // remember how far the participant has been processed
+    if (idx > G.progress) {
+      G.progress = idx;
+      try { localStorage.setItem('portalCloneProgress', String(idx)); } catch (e) { /* private mode */ }
+      G.buildChapters();
+    }
+
     if (quiet) return;
     if (def.preVoice) P.voice.say(P.voice.lines[def.preVoice]);
     if (first) P.voice.say(P.voice.lines.wake.concat(P.voice.lines[def.voice] || []));
@@ -136,6 +150,28 @@
   G.restartLevel = function () {
     P.voice.interrupt(P.voice.rand('restart'));
     G.loadLevel(G.levelIndex, false, true);
+  };
+
+  // chapter-select buttons in the pause menu (unlocked up to best progress)
+  G.buildChapters = function () {
+    const wrap = document.getElementById('chapters');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    P.levels.forEach((def, i) => {
+      const b = document.createElement('div');
+      const open = i <= G.progress;
+      b.className = 'chap' + (open ? '' : ' locked');
+      b.textContent = def.title;
+      b.title = def.cardLabel || 'TEST CHAMBER';
+      if (open) b.addEventListener('click', () => {
+        P.audio.init();
+        G.loadLevel(i, false, true);
+        document.getElementById('menu').classList.add('hidden');
+        if (!G.testMode) G.renderer.domElement.requestPointerLock();
+        G.running = true;
+      });
+      wrap.appendChild(b);
+    });
   };
 
   G.prePlace = function (which, pos, normal) {
@@ -187,7 +223,7 @@
     const v = document.getElementById('victory');
     document.getElementById('victory-text').innerHTML =
       'The Overseer\'s core has gone into standby, which it insists was voluntary.<br>' +
-      'Eighteen chambers, one betrayal, and a great deal of unauthorized momentum later,<br>' +
+      'Thirty-six chambers, one betrayal, and a great deal of unauthorized momentum later,<br>' +
       'you have reached the one room in this facility with working lights and a table.<br><br>' +
       'On the table there is a cake. It is real. It was in the break room the whole time.<br><br>' +
       'Featured technology: real-time portals, conservation of momentum, storage cubes,<br>' +
@@ -294,7 +330,11 @@
     if (G.player.carrying) text = '[E] drop • [CLICK] throw';
     else {
       const eye = G.player.eye(), fwd = G.player.forwardVec();
-      for (const c of G.cubes) {
+      for (const pb of G.pedestals) {
+        const to = pb.topPos().sub(eye);
+        if (to.length() < 2.4 && to.normalize().dot(fwd) > 0.6) { text = '[E] press'; break; }
+      }
+      if (!text) for (const c of G.cubes) {
         if (c.dead) continue;
         const to = c.pos.clone().sub(eye);
         if (to.length() < 2.6 && to.normalize().dot(fwd) > 0.8) { text = '[E] pick up'; break; }
@@ -322,6 +362,8 @@
       for (const gr of G.grills) gr.update(dt, G.player, G.cubes);
       for (const tu of G.turrets) tu.update(dt, G.player);
       for (const gz of G.gels) gz.update(dt);
+      for (const fn of G.funnels) fn.update(dt, G.player, G.cubes);
+      for (const pb of G.pedestals) pb.update(dt);
       for (const fp of G.plates) fp.update(dt, G.player, G.cubes);
       for (const br of G.bridges) br.update(dt);
       for (const ls of G.lasers) ls.update(dt, G.player);

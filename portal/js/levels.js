@@ -490,9 +490,606 @@
       }
     },
 
-    /* ------------------------------- 11 : final examination (and reward) */
+    /* ------------------------------------------- 11 : excursion conduit */
     {
-      title: '11', voice: 'ch11', unlock: 2,
+      title: '11', voice: 'chF1', unlock: 2,
+      start: V3(-2.5, 0, 3), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // hall x -4..24 z -4..4 h 8 ; funnel rides over goo x 2..18
+        S(-4.5, -0.5, -4.5, 2, 0, 4.5, 'floorm');
+        S(2, -2.5, -4.5, 18, -2, 4.5, 'metal');
+        S(1.5, -2, -4.5, 2, 0, 4.5, 'metal');
+        S(18, -2, -4.5, 18.5, 0, 4.5, 'metal');
+        S(18, -0.5, -4.5, 24.5, 0, 4.5, 'floorm');
+        S(-4.5, 8, -4.5, 28.5, 8.5, 4.5, 'metal');
+        S(-5, 0, -4.5, -4.5, 8, 4.5, 'white');                          // west (funnel mount)
+        S(-4.5, 0, -5, 24.5, 8, -4.5, 'metal');
+        S(-4.5, 0, 4.5, 24.5, 8, 5, 'metal');
+        S(24, 0, -4.5, 24.5, 8, -1.1, 'metal');                         // east w/ door
+        S(24, 0, 1.1, 24.5, 8, 4.5, 'metal');
+        S(24, 3, -1.1, 24.5, 8, 1.1, 'metal');
+        // alcove
+        S(24.5, -0.5, -2.1, 28.5, 0, 2.1, 'floorm');
+        S(24.5, 0, -2.6, 28.5, 8, -2.1, 'metal');
+        S(24.5, 0, 2.1, 28.5, 8, 2.6, 'metal');
+        S(28, 0, -2.1, 28.5, 8, 2.1, 'metal');
+
+        ctx.light(0, 7, 0, 0.75); ctx.light(10, 7, 0, 0.7); ctx.light(20, 7, 0, 0.75);
+        ctx.light(26.5, 6, 0, 0.55, 8);
+        ctx.sign(11, -4.4, 2.8, 2, Math.PI / 2);
+
+        P.game.goos.push(new P.Goo(g, V3(2, -2, -4.5), V3(18, -1.3, 4.5)));
+        P.game.funnels.push(new P.Funnel(g, V3(-4.4, 2.2, 0), V3(1, 0, 0)));
+        P.game.cubes.push(new P.Cube(g, V3(-1, 0.6, -3)));
+        P.game.buttons.push(new P.Button(g, V3(20.5, 0, 3), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(24.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 0));
+      }
+    },
+
+    /* ------------------------------------------- 12 : conduit junction */
+    {
+      title: '12', voice: 'chF2', unlock: 2,
+      start: V3(-4, 0, 5), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // room 1: x -6..20 z -8..8 h 10 — funnel + portals lift you to the cube ledge
+        S(-6.5, -0.5, -8.5, 20.5, 0, 8.5, 'floorm');
+        S(-6.5, 10, -8.5, 20.5, 10.5, 8.5, 'metal');
+        S(-6.5, 0, -8.5, -6, 10, 8.5, 'white');                         // west (host)
+        S(-6.5, 0, -8.5, 20.5, 10, -8, 'white');                        // north (funnel dead-end, host)
+        S(-6.5, 0, 8, 20.5, 10, 8.5, 'metal');                          // south (funnel mount)
+        S(20, 0, -8.5, 20.5, 10, 4.9, 'metal');                         // east w/ door d0 at z 6
+        S(20, 0, 7.1, 20.5, 10, 8.5, 'metal');
+        S(20, 3, 4.9, 20.5, 10, 7.1, 'metal');
+        S(-6, 5.5, -2, -2, 6, 2, 'metal');                              // high cube ledge
+        S(-2, -0.45, -1, 0, 0.05, 1, 'white');                          // floor patch: aim the stream upward here
+        // room 2: x 20.5..38 z 3.5..8 — timed pedestal + gel sprint over goo
+        S(20.5, -0.5, 3.5, 28, 0, 8.5, 'floorm');
+        S(28, -2.5, 3.5, 34, -2, 8.5, 'metal');
+        S(27.5, -2, 3.5, 28, 0, 8.5, 'metal');
+        S(34, -2, 3.5, 34.5, 0, 8.5, 'metal');
+        S(34, -0.5, 3.5, 38.5, 0, 8.5, 'floorm');
+        S(20.5, 10, 3.5, 42.5, 10.5, 8.5, 'metal');                     // room2+alcove ceiling
+        S(20.5, 0, 3, 38.5, 10, 3.5, 'metal');
+        S(20.5, 0, 8.5, 38.5, 10, 9, 'metal');
+        S(38, 0, 3.5, 38.5, 10, 4.9, 'metal');                          // far wall w/ door d1 at z 6
+        S(38, 0, 7.1, 38.5, 10, 8.5, 'metal');
+        S(38, 3, 4.9, 38.5, 10, 7.1, 'metal');
+        // alcove
+        S(38.5, -0.5, 3.9, 42.5, 0, 8.1, 'floorm');
+        S(38.5, 0, 3.4, 42.5, 10, 3.9, 'metal');
+        S(38.5, 0, 8.1, 42.5, 10, 8.6, 'metal');
+        S(42, 0, 3.9, 42.5, 10, 8.1, 'metal');
+
+        ctx.light(0, 8.5, 0, 0.8); ctx.light(12, 8.5, 0, 0.7); ctx.light(25, 8, 6, 0.7);
+        ctx.light(36, 8, 6, 0.7); ctx.light(40.5, 7, 6, 0.5, 8);
+        ctx.sign(12, -5.9, 2.8, 3, Math.PI / 2);
+
+        // funnel flows north across the room at head height; portal its
+        // dead-end on the north wall, exit high on the west wall above the ledge
+        P.game.funnels.push(new P.Funnel(g, V3(4, 2.2, 7.9), V3(0, 0, -1)));
+        P.game.cubes.push(new P.Cube(g, V3(-4, 6.6, 0)));
+        P.game.buttons.push(new P.Button(g, V3(16, 0, 6), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(20.25, 0, 6), 'z', 2.2, 3));
+        P.game.pedestals.push(new P.PedestalButton(g, V3(22, 0, 4.5), ['d1'], 7));
+        P.game.gels.push(new P.GelZone(g, 'speed', V3(23, 0, 5), V3(28, 0, 7)));
+        P.game.goos.push(new P.Goo(g, V3(28, -2, 3.5), V3(34, -1.3, 8.5)));
+        P.game.doors.push(new P.Door(g, 'd1', V3(38.25, 0, 6), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(40.5, 0, 6));
+      }
+    },
+
+    /* --------------------------------------------- 13 : the double drop */
+    {
+      title: '13', voice: 'n13', unlock: 2,
+      start: V3(-1, 0, 3), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // two chained flings: shaft1 (-10) then shaft2 (-26), wall exits at 5 then 12
+        S(-2.5, -0.5, -4.5, 2, 0, 4.5, 'floorm');                       // start floor + shaft1 rim
+        S(5, -0.5, -4.5, 6, 0, 4.5, 'floorm');
+        S(2, -0.5, -4.5, 5, 0, -1.5, 'floorm');
+        S(2, -0.5, 1.5, 5, 0, 4.5, 'floorm');
+        S(1.5, -10, -2, 2, -0.4, 2, 'metal');
+        S(5, -10, -2, 5.5, -0.4, 2, 'metal');
+        S(2, -10, -2, 5, -0.4, -1.5, 'metal');
+        S(2, -10, 1.5, 5, -0.4, 2, 'metal');
+        S(1.5, -10.5, -2, 5.5, -10, 2, 'white');
+        S(6, -2.5, -4.5, 12, -2, 4.5, 'metal');                         // goo 1
+        S(5.5, -2, -4.5, 6, 0, 4.5, 'metal');
+        S(12, -2, -4.5, 12.5, 0, 4.5, 'metal');
+        S(12, -0.5, -4.5, 14, 0, 4.5, 'floorm');                        // mid platform + shaft2 rim
+        S(17, -0.5, -4.5, 18, 0, 4.5, 'floorm');
+        S(14, -0.5, -4.5, 17, 0, -1.5, 'floorm');
+        S(14, -0.5, 1.5, 17, 0, 4.5, 'floorm');
+        S(13.5, -26, -2, 14, -0.4, 2, 'metal');
+        S(17, -26, -2, 17.5, -0.4, 2, 'metal');
+        S(14, -26, -2, 17, -0.4, -1.5, 'metal');
+        S(14, -26, 1.5, 17, -0.4, 2, 'metal');
+        S(13.5, -26.5, -2, 17.5, -26, 2, 'white');
+        S(18, -2.5, -4.5, 30, -2, 4.5, 'metal');                        // goo 2
+        S(17.5, -2, -4.5, 18, 0, 4.5, 'metal');
+        S(30, -2, -4.5, 30.5, 0, 4.5, 'metal');
+        S(30, -0.5, -4.5, 40.5, 0, 4.5, 'floorm');                      // landing
+        S(-2.5, 16, -4.5, 44.5, 16.5, 4.5, 'metal');
+        S(-3, 0, -4.5, -2.5, 16, 4.5, 'white');                         // fling wall
+        S(-2.5, -2, -5, 40.5, 16, -4.5, 'metal');
+        S(-2.5, -2, 4.5, 40.5, 16, 5, 'metal');
+        S(40, 0, -4.5, 40.5, 16, -1.1, 'metal');
+        S(40, 0, 1.1, 40.5, 16, 4.5, 'metal');
+        S(40, 3, -1.1, 40.5, 16, 1.1, 'metal');
+        S(40.5, -0.5, -2.1, 44.5, 0, 2.1, 'floorm');
+        S(40.5, 0, -2.6, 44.5, 16, -2.1, 'metal');
+        S(40.5, 0, 2.1, 44.5, 16, 2.6, 'metal');
+        S(44, 0, -2.1, 44.5, 16, 2.1, 'metal');
+        ctx.light(0, 8, 0, 0.8); ctx.light(15, 8, 0, 0.8); ctx.light(30, 8, 0, 0.8);
+        ctx.light(3.5, -8, 0, 0.6, 9); ctx.light(15.5, -22, 0, 0.6, 9);
+        ctx.sign(13, -2.4, 2.8, -2, Math.PI / 2);
+        P.game.goos.push(new P.Goo(g, V3(6, -2, -4.5), V3(12, -1.3, 4.5)));
+        P.game.goos.push(new P.Goo(g, V3(18, -2, -4.5), V3(30, -1.3, 4.5)));
+        const d = new P.Door(g, 'd0', V3(40.25, 0, 0), 'z', 2.2, 3);
+        d.stayOpen = true; d.target = 1;
+        P.game.doors.push(d);
+        P.game.elevator = new P.Elevator(g, V3(42.5, 0, 0));
+      }
+    },
+
+    /* ---------------------------------------------- 14 : cargo tossing */
+    {
+      title: '14', voice: 'n14', unlock: 2,
+      start: V3(-1, 0, 3), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // one fling, but you bring the cube along
+        S(-2.5, -0.5, -4.5, 2, 0, 4.5, 'floorm');
+        S(5, -0.5, -4.5, 6, 0, 4.5, 'floorm');
+        S(2, -0.5, -4.5, 5, 0, -1.5, 'floorm');
+        S(2, -0.5, 1.5, 5, 0, 4.5, 'floorm');
+        S(1.5, -14, -2, 2, -0.4, 2, 'metal');
+        S(5, -14, -2, 5.5, -0.4, 2, 'metal');
+        S(2, -14, -2, 5, -0.4, -1.5, 'metal');
+        S(2, -14, 1.5, 5, -0.4, 2, 'metal');
+        S(1.5, -14.5, -2, 5.5, -14, 2, 'white');
+        S(6, -2.5, -4.5, 12, -2, 4.5, 'metal');
+        S(5.5, -2, -4.5, 6, 0, 4.5, 'metal');
+        S(12, -2, -4.5, 12.5, 0, 4.5, 'metal');
+        S(12, -0.5, -4.5, 24.5, 0, 4.5, 'floorm');
+        S(-2.5, 9, -4.5, 28.5, 9.5, 4.5, 'metal');
+        S(-3, 0, -4.5, -2.5, 9, 4.5, 'white');
+        S(-2.5, -2, -5, 24.5, 9, -4.5, 'metal');
+        S(-2.5, -2, 4.5, 24.5, 9, 5, 'metal');
+        S(24, 0, -4.5, 24.5, 9, -1.1, 'metal');
+        S(24, 0, 1.1, 24.5, 9, 4.5, 'metal');
+        S(24, 3, -1.1, 24.5, 9, 1.1, 'metal');
+        S(24.5, -0.5, -2.1, 28.5, 0, 2.1, 'floorm');
+        S(24.5, 0, -2.6, 28.5, 9, -2.1, 'metal');
+        S(24.5, 0, 2.1, 28.5, 9, 2.6, 'metal');
+        S(28, 0, -2.1, 28.5, 9, 2.1, 'metal');
+        ctx.light(0, 7, 0, 0.8); ctx.light(12, 7, 0, 0.7); ctx.light(20, 7, 0, 0.8);
+        ctx.light(3.5, -12, 0, 0.6, 9);
+        ctx.sign(14, -2.4, 2.8, -2, Math.PI / 2);
+        P.game.goos.push(new P.Goo(g, V3(6, -2, -4.5), V3(12, -1.3, 4.5)));
+        P.game.cubes.push(new P.Cube(g, V3(0, 0.6, -3)));
+        P.game.buttons.push(new P.Button(g, V3(18, 0, 3), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(24.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 0));
+      }
+    },
+
+    /* ---------------------------------------------- 15 : sentry purge */
+    {
+      title: '15', voice: 'n15', unlock: 2,
+      start: V3(0, 0, 4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        S(-2.5, -0.5, -6.5, 26.5, 0, 6.5, 'floorm');
+        S(-2.5, 6, -6.5, 30.5, 6.5, 6.5, 'white');                      // ceiling (host)
+        S(-3, 0, -6.5, -2.5, 6, 6.5, 'white');
+        S(-2.5, 0, -7, 26.5, 6, -6.5, 'metal');
+        S(-2.5, 0, 6.5, 26.5, 6, 7, 'metal');
+        S(26, 0, -6.5, 26.5, 6, -1.1, 'white');
+        S(26, 0, 1.1, 26.5, 6, 6.5, 'white');
+        S(26, 3, -1.1, 26.5, 6, 1.1, 'white');
+        S(4, 0, -1, 5, 1.4, 1, 'metal');                                // cover
+        S(26.5, -0.5, -2.1, 30.5, 0, 2.1, 'floorm');
+        S(26.5, 0, -2.6, 30.5, 6, -2.1, 'metal');
+        S(26.5, 0, 2.1, 30.5, 6, 2.6, 'metal');
+        S(30, 0, -2.1, 30.5, 6, 2.1, 'metal');
+        ctx.light(2, 5, 0, 0.8); ctx.light(12, 5, 0, 0.75); ctx.light(22, 5, 0, 0.75);
+        ctx.sign(15, -2.4, 2.8, 3.2, Math.PI / 2);
+        P.game.cubes.push(new P.Cube(g, V3(0, 0.6, -4)));
+        const ts = [
+          new P.Turret(g, V3(8, 0, -3), -Math.PI / 2),
+          new P.Turret(g, V3(10, 0, 0), -Math.PI / 2),
+          new P.Turret(g, V3(8, 0, 3), -Math.PI / 2),
+          new P.Turret(g, V3(16, 0, -2), -Math.PI / 2),
+          new P.Turret(g, V3(16, 0, 2), -Math.PI / 2),
+        ];
+        ts.forEach(t => P.game.turrets.push(t));
+        const d = new P.Door(g, 'd0', V3(26.25, 0, 0), 'z', 2.2, 3);
+        P.game.doors.push(d);
+        P.game.elevator = new P.Elevator(g, V3(28.5, 0, 0));
+        this.onUpdate = () => d.setOpen(ts.every(t => !t.alive));
+      }
+    },
+
+    /* ------------------------------------------------ 16 : beam relay */
+    {
+      title: '16', voice: 'n16', unlock: 2,
+      start: V3(0, 0, 4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // one beam, two collectors in sequence; low divider you can see over
+        S(-2.5, -0.5, -8.5, 24.5, 0, 8.5, 'floorm');
+        S(-2.5, 7, -8.5, 28.5, 7.5, 8.5, 'metal');
+        S(-2.5, 0, -8.5, -2, 7, 8.5, 'metal');                          // west (emitter)
+        S(-2.5, 0, -8.5, 24.5, 7, -8, 'white');                         // north (host)
+        S(-2.5, 0, 8, 24.5, 7, 8.5, 'white');                           // south (host)
+        S(6, 0, -5, 7, 3, -3, 'white');                                 // beam pillar
+        S(11, 0, -8.5, 11.5, 3, -1.1, 'metal');                         // low divider w/ gate
+        S(11, 0, 1.1, 11.5, 3, 8.5, 'metal');
+        S(24, 0, -8.5, 24.5, 7, -1.1, 'metal');                         // east w/ door d1
+        S(24, 0, 1.1, 24.5, 7, 8.5, 'metal');
+        S(24, 3, -1.1, 24.5, 7, 1.1, 'metal');
+        S(24.5, -0.5, -2.1, 28.5, 0, 2.1, 'floorm');
+        S(24.5, 0, -2.6, 28.5, 7, -2.1, 'metal');
+        S(24.5, 0, 2.1, 28.5, 7, 2.6, 'metal');
+        S(28, 0, -2.1, 28.5, 7, 2.1, 'metal');
+        ctx.light(4, 6, 0, 0.8); ctx.light(17, 6, 0, 0.8); ctx.light(26.5, 5, 0, 0.55, 8);
+        ctx.sign(16, -1.9, 2.8, 4, Math.PI / 2);
+        P.game.lasers.push(new P.LaserEmitter(g, V3(-1.75, 1.5, -4), V3(1, 0, 0)));
+        P.game.receivers.push(new P.LaserReceiver(g, V3(8, 5, -7.7), V3(0, 0, 1), ['g0']));
+        P.game.receivers.push(new P.LaserReceiver(g, V3(18, 5, 7.7), V3(0, 0, -1), ['d1']));
+        P.game.doors.push(new P.Door(g, 'g0', V3(11.25, 0, 0), 'z', 2.2, 3));
+        P.game.doors.push(new P.Door(g, 'd1', V3(24.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 0));
+      }
+    },
+
+    /* -------------------------------------------- 17 : bounce freight */
+    {
+      title: '17', voice: 'n17', unlock: 2,
+      start: V3(-6, 0, 4), yaw: -Math.PI / 2 - 0.4,
+      build(ctx, g) {
+        const S = ctx.S;
+        S(-8.5, -0.5, -6.5, 10.5, 0, 6.5, 'floorm');
+        S(-8.5, 10, -6.5, 14.5, 10.5, 6.5, 'metal');
+        S(-8.5, 0, -6.5, -8, 10, 6.5, 'white');
+        S(-8.5, 0, -6.5, 10.5, 10, -6, 'white');
+        S(-8.5, 0, 6, 10.5, 10, 6.5, 'metal');
+        S(10, 0, -6.5, 10.5, 10, -1.1, 'metal');
+        S(10, 0, 1.1, 10.5, 10, 6.5, 'metal');
+        S(10, 3, -1.1, 10.5, 10, 1.1, 'metal');
+        S(4, 4.5, -6, 8, 5, -2, 'metal');                               // button shelf
+        S(10.5, -0.5, -2.1, 14.5, 0, 2.1, 'floorm');
+        S(10.5, 0, -2.6, 14.5, 10, -2.1, 'metal');
+        S(10.5, 0, 2.1, 14.5, 10, 2.6, 'metal');
+        S(14, 0, -2.1, 14.5, 10, 2.1, 'metal');
+        ctx.light(0, 8.5, 0, 0.85); ctx.light(6, 8, -4, 0.6); ctx.light(12.5, 6, 0, 0.55, 8);
+        ctx.sign(17, -7.9, 2.8, 2, Math.PI / 2);
+        P.game.gels.push(new P.GelZone(g, 'bounce', V3(-4, 0, -4), V3(4, 0, 4)));
+        P.game.cubes.push(new P.Cube(g, V3(-6, 0.6, -4)));
+        P.game.turrets.push(new P.Turret(g, V3(7, 0, 4), -Math.PI / 2));
+        P.game.buttons.push(new P.Button(g, V3(6, 5, -4), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(10.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(12.5, 0, 0));
+      }
+    },
+
+    /* -------------------------------------------- 18 : velocity chicane */
+    {
+      title: '18', voice: 'n18', unlock: 2,
+      start: V3(-3, 0, 0), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // sprint east, gap, hard left turn north, second gap
+        S(-4.5, -0.5, -4.5, 14, 0, 4.5, 'floorm');
+        S(14, -2.5, -4.5, 20, -2, 4.5, 'metal');
+        S(13.5, -2, -4.5, 14, 0, 4.5, 'metal');
+        S(20, -2, -4.5, 20.5, 0, 4.5, 'metal');
+        S(20, -0.5, -4.5, 27.5, 0, 4.5, 'floorm');                      // corner
+        S(21, -0.5, 4.5, 27, 0, 16, 'floorm');                          // leg 2
+        S(21, -2.5, 16, 27, -2, 22, 'metal');
+        S(21, -2, 15.5, 27, 0, 16, 'metal');
+        S(21, -2, 22, 27, 0, 22.5, 'metal');
+        S(21, -0.5, 22, 27, 0, 30.5, 'floorm');
+        S(-4.5, 7, -5, 27.5, 7.5, 34.5, 'metal');                       // ceiling (covers both legs)
+        S(-5, 0, -4.5, -4.5, 7, 4.5, 'white');
+        S(-4.5, 0, -5, 27.5, 7, -4.5, 'metal');
+        S(-4.5, 0, 4.5, 21, 7, 5, 'metal');                             // south of leg1 (leg2 mouth open)
+        S(27.5, 0, -4.5, 28, 7, 4.5, 'metal');                          // east cap
+        S(20.5, 0, 4.5, 21, 7, 30.5, 'metal');                          // leg2 west
+        S(27, 0, 4.5, 27.5, 7, 30.5, 'metal');                          // leg2 east
+        S(21, 0, 30, 22.9, 7, 30.5, 'metal');                           // far wall w/ door
+        S(25.1, 0, 30, 27, 7, 30.5, 'metal');
+        S(22.9, 3, 30, 25.1, 7, 30.5, 'metal');
+        S(22, -0.5, 30.5, 26, 0, 34, 'floorm');
+        S(21.5, 0, 30.5, 22, 7, 34, 'metal');
+        S(26, 0, 30.5, 26.5, 7, 34, 'metal');
+        S(22, 0, 34, 26, 7, 34.5, 'metal');
+        ctx.light(2, 6, 0, 0.75); ctx.light(12, 6, 0, 0.7); ctx.light(24, 6, 1, 0.75);
+        ctx.light(24, 6, 12, 0.7); ctx.light(24, 6, 26, 0.75);
+        ctx.sign(18, -4.4, 2.8, 2, Math.PI / 2);
+        P.game.gels.push(new P.GelZone(g, 'speed', V3(-2, 0, -1.5), V3(14, 0, 1.5)));
+        P.game.goos.push(new P.Goo(g, V3(14, -2, -4.5), V3(20, -1.3, 4.5)));
+        P.game.gels.push(new P.GelZone(g, 'speed', V3(22.5, 0, 6), V3(25.5, 0, 16)));
+        P.game.goos.push(new P.Goo(g, V3(21, -2, 16), V3(27, -1.3, 22)));
+        P.game.grills.push(new P.Grill(g, V3(21, 0, 5), V3(27, 3, 5.15)));
+        const d = new P.Door(g, 'd0', V3(24, 0, 30.25), 'x', 2.2, 3);
+        d.stayOpen = true; d.target = 1;
+        P.game.doors.push(d);
+        P.game.elevator = new P.Elevator(g, V3(24, 0, 32.2));
+      }
+    },
+
+    /* --------------------------------------------- 19 : stream ladder */
+    {
+      title: '19', voice: 'n19', unlock: 2,
+      start: V3(-5, 0, 4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // re-base a vertical stream twice to climb the ledges
+        S(-6.5, -0.5, -6.5, 14.5, 0, 6.5, 'floorm');
+        S(-6.5, 15, -6.5, 14.5, 15.5, 6.5, 'metal');
+        S(-7, 0, -6.5, -6.5, 15, 6.5, 'metal');
+        S(-6.5, 0, -7, 14.5, 15, -6.5, 'white');                        // funnel dead-end (host)
+        S(-6.5, 0, 6.5, 14.5, 15, 7, 'metal');
+        S(14.5, 0, -6.5, 15, 15, 6.5, 'metal');
+        S(2, 4.5, -3, 6, 5, 1, 'white');                                // ledge 1 (white top = re-base here)
+        S(2, -0.45, 1, 6, 0.05, 5, 'white');                            // floor patch beside ledge 1
+        S(6, 9, -3, 10, 9.5, 1, 'metal');                               // ledge 2 (goal)
+        ctx.light(0, 13, 0, 0.8); ctx.light(8, 12, 0, 0.7); ctx.light(4, 7, 2, 0.6);
+        ctx.sign(19, -6.4, 2.8, 2, Math.PI / 2);
+        P.game.funnels.push(new P.Funnel(g, V3(0, 2, 6.2), V3(0, 0, -1)));
+        P.game.elevator = new P.Elevator(g, V3(8, 9.5, -1));
+      }
+    },
+
+    /* --------------------------------------- 20 : timed checkout annex */
+    {
+      title: '20', voice: 'n20', unlock: 2,
+      start: V3(0, 0, -4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // pedestal timer gates the cube vault; exit is in the south wall
+        S(-2.5, -0.5, -6.5, 14.5, 0, 6.5, 'floorm');
+        S(-2.5, 6, -6.5, 14.5, 6.5, 6.5, 'metal');
+        S(-3, 0, -6.5, -2.5, 6, 6.5, 'white');
+        S(-2.5, 0, -7, 14.5, 6, -6.5, 'metal');
+        S(14, 0, -6.5, 14.5, 6, 6.5, 'metal');                          // east cap (vault back)
+        S(8, 0, -6.5, 8.5, 6, -1.1, 'metal');                           // vault divider w/ door dA
+        S(8, 0, 1.1, 8.5, 6, 6.5, 'metal');
+        S(8, 3, -1.1, 8.5, 6, 1.1, 'metal');
+        S(-2.5, 0, 6, 1.9, 6, 6.5, 'metal');                            // south wall w/ door d0 at x 3
+        S(4.1, 0, 6, 8, 6, 6.5, 'metal');
+        S(1.9, 3, 6, 4.1, 6, 6.5, 'metal');
+        S(1, -0.5, 6.5, 5, 0, 10, 'floorm');                            // south alcove
+        S(0.5, 0, 6.5, 1, 6, 10, 'metal');
+        S(5, 0, 6.5, 5.5, 6, 10, 'metal');
+        S(1, 0, 10, 5, 6, 10.5, 'metal');
+        ctx.light(2, 5, 0, 0.8); ctx.light(11, 5, 0, 0.7); ctx.light(3, 5, 8, 0.6, 8);
+        ctx.sign(20, -2.4, 2.8, -2, Math.PI / 2);
+        P.game.pedestals.push(new P.PedestalButton(g, V3(5, 0, 3), ['dA'], 6));
+        P.game.pedestals.push(new P.PedestalButton(g, V3(12, 0, 3), ['dA'], 6));   // mercy switch inside
+        P.game.doors.push(new P.Door(g, 'dA', V3(8.25, 0, 0), 'z', 2.2, 3));
+        P.game.cubes.push(new P.Cube(g, V3(11.5, 0.6, -3)));
+        P.game.buttons.push(new P.Button(g, V3(0, 0, 2), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(3, 0, 6.25), 'x', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(3, 0, 8.4));
+      }
+    },
+
+    /* ------------------------------------------------ 21 : the ascent */
+    {
+      title: '21', voice: 'n21', unlock: 2,
+      start: V3(5, 0, 5), yaw: Math.PI / 4 + Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // gel to ledge A, then a chain of faith plates to the summit
+        S(-6.5, -0.5, -6.5, 6.5, 0, 6.5, 'floorm');
+        S(-6.5, 20, -6.5, 6.5, 20.5, 6.5, 'metal');
+        S(-7, 0, -6.5, -6.5, 20, 6.5, 'white');
+        S(-6.5, 0, -7, 6.5, 20, -6.5, 'metal');
+        S(-6.5, 0, 6.5, 6.5, 20, 7, 'metal');
+        S(6.5, 0, -6.5, 7, 20, 6.5, 'metal');
+        S(-6, 5.5, -6, -1, 6, -2, 'metal');                             // ledge A
+        S(0, 8.5, -6, 6, 9, -2, 'metal');                               // ledge B
+        S(2, 11.5, -1, 6, 12, 3, 'metal');                              // ledge C
+        S(-4, 14.5, -1, 0, 15, 3, 'metal');                             // summit
+        ctx.light(0, 18, 0, 0.8); ctx.light(-3, 8, -4, 0.55); ctx.light(4, 13, 1, 0.55);
+        ctx.sign(21, -6.4, 2.8, 2, Math.PI / 2);
+        P.game.gels.push(new P.GelZone(g, 'bounce', V3(-3, 0, -3), V3(3, 0, 3)));
+        P.game.plates.push(new P.FaithPlate(g, V3(-4, 6, -4), V3(5, 14, 0)));
+        P.game.plates.push(new P.FaithPlate(g, V3(4, 9, -4), V3(0, 14, 5)));
+        P.game.plates.push(new P.FaithPlate(g, V3(4, 12, 1), V3(-5, 14, 0)));
+        P.game.elevator = new P.Elevator(g, V3(-2, 15, 1));
+      }
+    },
+
+    /* ------------------------------------------------ 22 : tandem spans */
+    {
+      title: '22', voice: 'n22', unlock: 2,
+      start: V3(0, 0, 4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // one bridge, two crossings: freight must move both ways
+        S(-2.5, -0.5, -6.5, 4, 0, 6.5, 'floorm');
+        S(22, -0.5, -6.5, 26.5, 0, 6.5, 'floorm');
+        S(4, -8.5, -6.5, 22, -8, 6.5, 'metal');
+        S(3.5, -8, -6.5, 4, 0, 6.5, 'metal');
+        S(22, -8, -6.5, 22.5, 0, 6.5, 'metal');
+        S(-2.5, 8, -6.5, 30.5, 8.5, 6.5, 'metal');
+        S(-3, 0, -6.5, -2.5, 8, 6.5, 'white');
+        S(-2.5, -8, -7, 26.5, 8, -6.5, 'white');
+        S(-2.5, -8, 6.5, 26.5, 8, 7, 'metal');
+        S(26, 0, -6.5, 26.5, 8, -1.1, 'metal');
+        S(26, 0, 1.1, 26.5, 8, 6.5, 'metal');
+        S(26, 3, -1.1, 26.5, 8, 1.1, 'metal');
+        S(26.5, -0.5, -2.1, 30.5, 0, 2.1, 'floorm');
+        S(26.5, 0, -2.6, 30.5, 8, -2.1, 'metal');
+        S(26.5, 0, 2.1, 30.5, 8, 2.6, 'metal');
+        S(30, 0, -2.1, 30.5, 8, 2.1, 'metal');
+        ctx.light(0, 7, 0, 0.8); ctx.light(13, 7, 0, 0.75); ctx.light(24, 7, 0, 0.75);
+        ctx.sign(22, -2.4, 2.8, 3, Math.PI / 2);
+        P.game.goos.push(new P.Goo(g, V3(4, -8, -6.5), V3(22, -7.3, 6.5)));
+        P.game.bridges.push(new P.Bridge(g, 'b1', V3(3.8, -0.12, -1), V3(22.2, 0, 1)));
+        P.game.cubes.push(new P.Cube(g, V3(-1, 0.6, 0)));
+        P.game.cubes.push(new P.Cube(g, V3(24, 0.6, -4)));
+        P.game.buttons.push(new P.Button(g, V3(0, 0, -4), ['b1']));
+        P.game.buttons.push(new P.Button(g, V3(0, 0, 4), ['d0']));
+        P.game.turrets.push(new P.Turret(g, V3(23, 0, 3), -Math.PI / 2));
+        P.game.doors.push(new P.Door(g, 'd0', V3(26.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(28.5, 0, 0));
+      }
+    },
+
+    /* --------------------------------------------- 23 : the exemption */
+    {
+      title: '23', voice: 'n23', unlock: 2,
+      start: V3(-1, 0, 3), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // three fizzler fields; the overhead conduit ferries the cube across
+        S(-2.5, -0.5, -4.5, 28.5, 0, 4.5, 'floorm');
+        S(-2.5, 7, -4.5, 32.5, 7.5, 4.5, 'metal');
+        S(-3, 0, -4.5, -2.5, 7, 4.5, 'white');
+        S(-2.5, 0, -5, 28.5, 7, -4.5, 'metal');
+        S(-2.5, 0, 4.5, 28.5, 7, 5, 'metal');
+        S(28, 0, -4.5, 28.5, 7, -1.1, 'metal');
+        S(28, 0, 1.1, 28.5, 7, 4.5, 'metal');
+        S(28, 3, -1.1, 28.5, 7, 1.1, 'metal');
+        S(-2, 0, -4, 0, 1.2, -2, 'metal');                              // loading step
+        S(28.5, -0.5, -2.1, 32.5, 0, 2.1, 'floorm');
+        S(28.5, 0, -2.6, 32.5, 7, -2.1, 'metal');
+        S(28.5, 0, 2.1, 32.5, 7, 2.6, 'metal');
+        S(32, 0, -2.1, 32.5, 7, 2.1, 'metal');
+        ctx.light(0, 6, 0, 0.75); ctx.light(10, 6, 0, 0.7); ctx.light(20, 6, 0, 0.7);
+        ctx.light(26, 6, 0, 0.7);
+        ctx.sign(23, -2.4, 2.8, 2, Math.PI / 2);
+        P.game.funnels.push(new P.Funnel(g, V3(-2.4, 4.5, 0), V3(1, 0, 0)));
+        P.game.grills.push(new P.Grill(g, V3(8, 0, -4.5), V3(8.15, 3, 4.5)));
+        P.game.grills.push(new P.Grill(g, V3(14, 0, -4.5), V3(14.15, 3, 4.5)));
+        P.game.grills.push(new P.Grill(g, V3(20, 0, -4.5), V3(20.15, 3, 4.5)));
+        P.game.cubes.push(new P.Cube(g, V3(1, 0.6, 2)));
+        P.game.buttons.push(new P.Button(g, V3(26.2, 0, 0), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(28.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(30.5, 0, 0));
+      }
+    },
+
+    /* --------------------------------------------- 24 : pest control */
+    {
+      title: '24', voice: 'n24', unlock: 2,
+      start: V3(0, 0, 6), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // sweep the sentries with their master's own beam, then feed the collector
+        S(-2.5, -0.5, -8.5, 24.5, 0, 8.5, 'floorm');
+        S(-2.5, 7, -8.5, 28.5, 7.5, 8.5, 'metal');
+        S(-2.5, 0, -8.5, -2, 7, 8.5, 'metal');                          // west (emitter)
+        S(-2.5, 0, -8.5, 24.5, 7, -8, 'metal');                         // north (receiver mount)
+        S(-2.5, 0, 8, 24.5, 7, 8.5, 'white');                           // south (host)
+        S(8, 0, -7.5, 9, 2.5, -5.5, 'white');                           // beam pillar
+        S(2, 0, -2, 3, 1.4, 0, 'metal');                                // cover
+        S(24, 0, -8.5, 24.5, 7, -1.1, 'white');                         // east (host) w/ door
+        S(24, 0, 1.1, 24.5, 7, 8.5, 'white');
+        S(24, 3, -1.1, 24.5, 7, 1.1, 'white');
+        S(24.5, -0.5, -2.1, 28.5, 0, 2.1, 'floorm');
+        S(24.5, 0, -2.6, 28.5, 7, -2.1, 'metal');
+        S(24.5, 0, 2.1, 28.5, 7, 2.6, 'metal');
+        S(28, 0, -2.1, 28.5, 7, 2.1, 'metal');
+        ctx.light(4, 6, 0, 0.8); ctx.light(16, 6, 0, 0.8); ctx.light(26.5, 5, 0, 0.55, 8);
+        ctx.sign(24, -1.9, 2.8, 5.5, Math.PI / 2);
+        P.game.lasers.push(new P.LaserEmitter(g, V3(-1.75, 1.0, -6), V3(1, 0, 0)));
+        P.game.turrets.push(new P.Turret(g, V3(12, 0, -4), -Math.PI / 2));
+        P.game.turrets.push(new P.Turret(g, V3(14, 0, -1), -Math.PI / 2));
+        P.game.turrets.push(new P.Turret(g, V3(12, 0, 2), -Math.PI / 2));
+        P.game.turrets.push(new P.Turret(g, V3(14, 0, 5), -Math.PI / 2));
+        P.game.receivers.push(new P.LaserReceiver(g, V3(20, 5, -7.7), V3(0, 0, 1), ['d0']));
+        P.game.doors.push(new P.Door(g, 'd0', V3(24.25, 0, 0), 'z', 2.2, 3));
+        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 0));
+      }
+    },
+
+    /* ------------------------------------------- 25 : compound motion */
+    {
+      title: '25', voice: 'n25', unlock: 2,
+      start: V3(-3, 0, 0), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // orange for speed, blue for altitude: two ballistic hops up the plateaus
+        S(-4.5, -0.5, -5.5, 13, 0, 5.5, 'floorm');
+        S(13, -2.5, -5.5, 20, -2, 5.5, 'metal');
+        S(12.5, -2, -5.5, 13, 0, 5.5, 'metal');
+        S(20, -2, -5.5, 20.5, 1.5, 5.5, 'metal');
+        S(20, 1.5, -5.5, 31, 2, 5.5, 'metal');                          // plateau 1 (y2)
+        S(31, -2.5, -5.5, 36, -2, 5.5, 'metal');
+        S(30.5, -2, -5.5, 31, 2, 5.5, 'metal');                         // pit walls
+        S(36, -2, -5.5, 36.5, 3.5, 5.5, 'metal');
+        S(36, 3.5, -5.5, 44, 4, 5.5, 'metal');                          // plateau 2 (y4)
+        S(-4.5, 12, -5.5, 44.5, 12.5, 5.5, 'metal');
+        S(-5, 0, -5.5, -4.5, 12, 5.5, 'white');
+        S(-4.5, -2, -6, 44.5, 12, -5.5, 'metal');
+        S(-4.5, -2, 5.5, 44.5, 12, 6, 'metal');
+        S(44, 0, -5.5, 44.5, 12, 5.5, 'metal');
+        ctx.light(0, 9, 0, 0.75); ctx.light(16, 9, 0, 0.7); ctx.light(28, 9, 0, 0.75);
+        ctx.light(40, 9, 0, 0.75);
+        ctx.sign(25, -4.4, 2.8, 2, Math.PI / 2);
+        P.game.gels.push(new P.GelZone(g, 'speed', V3(-2, 0, -1.5), V3(10, 0, 1.5)));
+        P.game.gels.push(new P.GelZone(g, 'bounce', V3(10, 0, -2), V3(13, 0, 2)));
+        P.game.goos.push(new P.Goo(g, V3(13, -2, -5.5), V3(20, -1.3, 5.5)));
+        P.game.gels.push(new P.GelZone(g, 'speed', V3(23, 2, -1.5), V3(28, 2, 1.5)));
+        P.game.gels.push(new P.GelZone(g, 'bounce', V3(28, 2, -2), V3(31, 2, 2)));
+        P.game.goos.push(new P.Goo(g, V3(31, -2, -5.5), V3(36, -1.3, 5.5)));
+        P.game.elevator = new P.Elevator(g, V3(41, 4, 0));
+      }
+    },
+
+    /* -------------------------------------------- 26 : drop protocol */
+    {
+      title: '26', voice: 'n26', unlock: 2,
+      start: V3(0, 0, 4), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // six sentries, zero cubes, one very portal-friendly ceiling
+        S(-2.5, -0.5, -6.5, 26.5, 0, 6.5, 'floorm');
+        S(-2.5, 6.5, -6.5, 30.5, 7, 6.5, 'white');                      // ceiling (host)
+        S(-1, -0.45, -2, 1, 0.05, 2, 'white');                          // entry floor patch
+        S(-3, 0, -6.5, -2.5, 6.5, 6.5, 'white');
+        S(-2.5, 0, -7, 26.5, 6.5, -6.5, 'metal');
+        S(-2.5, 0, 6.5, 26.5, 6.5, 7, 'metal');
+        S(4, 0, -6.5, 5, 2, -1, 'metal');                               // spawn cover
+        S(4, 0, 1, 5, 2, 6.5, 'metal');
+        S(26, 0, -6.5, 26.5, 6.5, -1.1, 'metal');
+        S(26, 0, 1.1, 26.5, 6.5, 6.5, 'metal');
+        S(26, 3, -1.1, 26.5, 6.5, 1.1, 'metal');
+        S(26.5, -0.5, -2.1, 30.5, 0, 2.1, 'floorm');
+        S(26.5, 0, -2.6, 30.5, 6.5, -2.1, 'metal');
+        S(26.5, 0, 2.1, 30.5, 6.5, 2.6, 'metal');
+        S(30, 0, -2.1, 30.5, 6.5, 2.1, 'metal');
+        ctx.light(2, 5.5, 0, 0.75); ctx.light(12, 5.5, 0, 0.7); ctx.light(22, 5.5, 0, 0.75);
+        ctx.sign(26, -2.4, 2.8, 3.2, Math.PI / 2);
+        const ts = [
+          new P.Turret(g, V3(10, 0, -3), -Math.PI / 2),
+          new P.Turret(g, V3(12, 0, -2), -Math.PI / 2),
+          new P.Turret(g, V3(16, 0, 0), -Math.PI / 2),
+          new P.Turret(g, V3(18, 0, 2), -Math.PI / 2),
+          new P.Turret(g, V3(20, 0, 3), -Math.PI / 2),
+          new P.Turret(g, V3(22, 0, -1), -Math.PI / 2),
+        ];
+        ts.forEach(t => P.game.turrets.push(t));
+        const d = new P.Door(g, 'd0', V3(26.25, 0, 0), 'z', 2.2, 3);
+        P.game.doors.push(d);
+        P.game.elevator = new P.Elevator(g, V3(28.5, 0, 0));
+        this.onUpdate = () => d.setOpen(ts.every(t => !t.alive));
+      }
+    },
+
+    /* ------------------------------- 27 : final examination (and reward) */
+    {
+      title: '27', voice: 'ch11', unlock: 2,
       start: V3(-4, 0, 4), yaw: -Math.PI / 2 - 0.4,
       build(ctx, g) {
         const S = ctx.S;
@@ -540,7 +1137,7 @@
         ctx.light(31, 7, 0, 0.8); ctx.light(41, 3.5, 0, 0.55, 8);
         const warm = new THREE.PointLight(0xffd9a0, 1.3, 11);
         warm.position.set(48.5, 4, 0); g.add(warm);
-        ctx.sign(11, -6.4, 2.8, 2, Math.PI / 2);
+        ctx.sign(27, -6.4, 2.8, 2, Math.PI / 2);
 
         P.game.gels.push(new P.GelZone(g, 'bounce', V3(-2, 0, -4), V3(4, 0, 2)));
         P.game.cubes.push(new P.Cube(g, V3(6, 4.6, -4.5), { companion: true }));
@@ -564,7 +1161,7 @@
 
     /* ------------------------------------------------ 12 : disposal pit */
     {
-      title: '12', cardLabel: 'DISPOSAL PIT', voice: 'ch12', unlock: 2,
+      title: '28', cardLabel: 'DISPOSAL PIT', voice: 'ch12', unlock: 2,
       start: V3(2, 0, 2), yaw: Math.PI / 2,
       build(ctx, g) {
         const S = ctx.S;
@@ -596,7 +1193,7 @@
 
     /* --------------------------------------------- 13 : service catwalks */
     {
-      title: '13', cardLabel: 'SERVICE AREA', voice: 'ch13', unlock: 2,
+      title: '29', cardLabel: 'SERVICE AREA', voice: 'ch13', unlock: 2,
       start: V3(-3, 0, -2), yaw: -Math.PI / 2,
       build(ctx, g) {
         const S = ctx.S;
@@ -607,7 +1204,7 @@
         S(20, -0.5, -3, 30, 0, -1, 'rust');                             // catwalk C + exit
         ctx.light(0, 5, -2, 0.6, 14); ctx.light(11, 5, -2, 0.6, 14);
         ctx.light(24, 5, -2, 0.6, 14); ctx.light(28, 4, -2, 0.6, 10);
-        ctx.sign(13, 0, 2.5, -3.95, 0);
+        ctx.sign(29, 0, 2.5, -3.95, 0);
 
         P.game.turrets.push(new P.Turret(g, V3(11, 0, -2), -Math.PI / 2));
         P.game.turrets.push(new P.Turret(g, V3(21, 0, -2), -Math.PI / 2));
@@ -618,7 +1215,7 @@
 
     /* ------------------------------------------- 14 : long-term storage */
     {
-      title: '14', cardLabel: 'LONG-TERM STORAGE', voice: 'ch14', unlock: 2,
+      title: '30', cardLabel: 'LONG-TERM STORAGE', voice: 'ch14', unlock: 2,
       start: V3(-6, 0, 5), yaw: -Math.PI / 2,
       build(ctx, g) {
         const S = ctx.S;
@@ -643,7 +1240,7 @@
         S(20, 0, -2.1, 20.5, 8, 2.1, 'rust');
 
         ctx.light(0, 7, 0, 0.7); ctx.light(10, 7, -4, 0.6); ctx.light(18.5, 5, 0, 0.55, 8);
-        ctx.sign(14, -7.9, 2.8, 2, Math.PI / 2);
+        ctx.sign(30, -7.9, 2.8, 2, Math.PI / 2);
 
         P.game.cubes.push(new P.Cube(g, V3(0, 0.6, 4)));
         P.game.cubes.push(new P.Cube(g, V3(8, 4.6, -6.5)));
@@ -659,7 +1256,7 @@
 
     /* --------------------------------------------- 15 : transit spine */
     {
-      title: '15', cardLabel: 'TRANSIT SPINE', voice: 'ch15', unlock: 2,
+      title: '31', cardLabel: 'TRANSIT SPINE', voice: 'ch15', unlock: 2,
       start: V3(-3.5, 0, 0), yaw: -Math.PI / 2,
       build(ctx, g) {
         const S = ctx.S;
@@ -686,7 +1283,7 @@
 
         ctx.light(0, 9, 0, 0.7); ctx.light(16, 9, 0, 0.7); ctx.light(29, 8, 0, 0.7);
         ctx.light(29.5, -10, 0, 0.7, 10); ctx.light(16, 8, 0, 0.6);
-        ctx.sign(15, -4.4, 2.8, 2, Math.PI / 2);
+        ctx.sign(31, -4.4, 2.8, 2, Math.PI / 2);
 
         P.game.gels.push(new P.GelZone(g, 'speed', V3(-2, 0, -2), V3(14, 0, 2)));
         P.game.goos.push(new P.Goo(g, V3(14, -2, -4.5), V3(20, -1.3, 4.5)));
@@ -696,7 +1293,81 @@
 
     /* ---------------------------------------------- 16 : the approach */
     {
-      title: '16', cardLabel: 'THE APPROACH', voice: 'ch16', unlock: 2,
+      title: '32', cardLabel: 'MAINTENANCE SHAFTS', voice: 'n32', unlock: 2,
+      start: V3(-1, 0, 3), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // rusted void: zig-zag flings between scorched panels; missing = retrieval
+        S(-2, -0.5, -4, 4, 0, 4, 'rust');                               // P1 w/ shaft hole 0..3
+        S(-2.5, 0, -4, -2, 20, 4, 'scorch');                            // west panel wall
+        S(18, 0, -4, 18.5, 20, 4, 'scorch');                            // east panel wall
+        S(-2, 20, -4, 18.5, 20.5, 4, 'rust');                           // roof
+        // shaft 1 under P1 (hole x 0..3, z -1.5..1.5)
+        S(-2, -0.5, -4, 0, 0, 4, 'rust'); S(3, -0.5, -4, 4, 0, 4, 'rust');
+        S(0, -0.5, -4, 3, 0, -1.5, 'rust'); S(0, -0.5, 1.5, 3, 0, 4, 'rust');
+        S(-0.5, -12, -2, 0, -0.4, 2, 'rust'); S(3, -12, -2, 3.5, -0.4, 2, 'rust');
+        S(0, -12, -2, 3, -0.4, -1.5, 'rust'); S(0, -12, 1.5, 3, -0.4, 2, 'rust');
+        S(-0.5, -12.5, -2, 3.5, -12, 2, 'white');
+        // P2 mid-height, with its own shaft (hole 11..14)
+        S(10, 5.5, -4, 11, 6, 4, 'rust'); S(14, 5.5, -4, 16, 6, 4, 'rust');
+        S(11, 5.5, -4, 14, 6, -1.5, 'rust'); S(11, 5.5, 1.5, 14, 6, 4, 'rust');
+        S(10.5, -6, -2, 11, 5.6, 2, 'rust'); S(14, -6, -2, 14.5, 5.6, 2, 'rust');
+        S(11, -6, -2, 14, 5.6, -1.5, 'rust'); S(11, -6, 1.5, 14, 5.6, 2, 'rust');
+        S(10.5, -6.5, -2, 14.5, -6, 2, 'white');
+        // P3 high on the west side, exit
+        S(-2, 11.5, -4, 4, 12, 4, 'rust');
+        const glow = new THREE.PointLight(0xff8844, 0.6, 24);
+        glow.position.set(8, 4, 0); g.add(glow);
+        ctx.light(8, 18, 0, 0.55); ctx.light(1, 14, 0, 0.6, 12); ctx.light(13, 8, 0, 0.6, 12);
+        P.game.grills.push(new P.Grill(g, V3(12.4, 6, -4), V3(12.55, 9, 4)));
+        P.game.elevator = new P.Elevator(g, V3(1, 12, 2));
+      }
+    },
+
+    /* --------------------------------------------- 33 : the archives */
+    {
+      title: '33', cardLabel: 'THE ARCHIVES', voice: 'n33', unlock: 2,
+      start: V3(-6, 0, 5), yaw: -Math.PI / 2,
+      build(ctx, g) {
+        const S = ctx.S;
+        // confiscated-goods warehouse: dual weight signatures to check out
+        S(-8.5, -0.5, -8.5, 18.5, 0, 8.5, 'floorm');
+        S(-8.5, 8, -8.5, 22.5, 8.5, 8.5, 'white');                      // ceiling (host)
+        S(-8.5, 0, -8.5, -8, 8, 8.5, 'scorch');
+        S(-8.5, 0, -9, 18.5, 8, -8.5, 'rust');
+        S(-8.5, 0, 8.5, 18.5, 8, 9, 'rust');
+        S(18, 0, -8.5, 18.5, 8, -1.1, 'rust');
+        S(18, 0, 1.1, 18.5, 8, 8.5, 'rust');
+        S(18, 3, -1.1, 18.5, 8, 1.1, 'rust');
+        S(10, 4, -8.5, 14, 4.5, -5.5, 'rust');                          // high shelf (cube 2)
+        // crate rows
+        S(-4, 0, -6, -2, 2, -4, 'metal'); S(-2, 0, -6, 0, 1, -5, 'metal');
+        S(2, 0, -2, 4, 1.6, 0, 'metal'); S(4, 0, -2, 5.5, 0.9, -0.5, 'metal');
+        S(8, 0, 3, 10, 2, 5, 'metal'); S(10, 0, 3.5, 11.5, 1, 5, 'metal');
+        S(0, 0, 6, 2, 1.3, 8, 'metal');
+        S(-6, -0.45, 2, -4, 0.05, 4, 'white');                          // entry floor patch
+        S(18.5, -0.5, -2.1, 22.5, 0, 2.1, 'floorm');
+        S(18.5, 0, -2.6, 22.5, 8, -2.1, 'rust');
+        S(18.5, 0, 2.1, 22.5, 8, 2.6, 'rust');
+        S(22, 0, -2.1, 22.5, 8, 2.1, 'rust');
+        ctx.light(-2, 7, -2, 0.55); ctx.light(8, 7, 2, 0.55); ctx.light(14, 7, -4, 0.55);
+        ctx.light(20.5, 6, 0, 0.5, 8);
+        P.game.cubes.push(new P.Cube(g, V3(0, 0.6, -6.8)));
+        P.game.cubes.push(new P.Cube(g, V3(12, 5.1, -7)));
+        const b1 = new P.Button(g, V3(14, 0, 4), []);
+        const b2 = new P.Button(g, V3(-4, 0, -2), []);
+        P.game.buttons.push(b1, b2);
+        P.game.turrets.push(new P.Turret(g, V3(8, 0, 0), -Math.PI / 2));
+        const d = new P.Door(g, 'd0', V3(18.25, 0, 0), 'z', 2.2, 3);
+        P.game.doors.push(d);
+        P.game.elevator = new P.Elevator(g, V3(20.5, 0, 0));
+        this.onUpdate = () => d.setOpen(b1.pressed && b2.pressed);
+      }
+    },
+
+    /* ---------------------------------------------- 34 : the approach */
+    {
+      title: '34', cardLabel: 'THE APPROACH', voice: 'ch16', unlock: 2,
       start: V3(0, 0, 4), yaw: -Math.PI / 2,
       build(ctx, g) {
         const S = ctx.S;
@@ -722,7 +1393,7 @@
 
         ctx.light(4, 6, 0, 0.75); ctx.light(14, 6, 0, 0.7); ctx.light(24, 6, 0, 0.75);
         ctx.light(32.5, 5, 0, 0.55, 8);
-        ctx.sign(16, -1.9, 2.8, -2, Math.PI / 2);
+        ctx.sign(34, -1.9, 2.8, -2, Math.PI / 2);
 
         P.game.lasers.push(new P.LaserEmitter(g, V3(-1.75, 1.5, -3), V3(1, 0, 0)));
         P.game.receivers.push(new P.LaserReceiver(g, V3(12, 4.5, -6.2), V3(0, 0, 1), ['d0']));
@@ -740,7 +1411,7 @@
 
     /* ------------------------------------------- 17 : the Overseer core */
     {
-      title: '17', cardLabel: 'CENTRAL AI CHAMBER', voice: 'ch17', unlock: 2,
+      title: '35', cardLabel: 'CENTRAL AI CHAMBER', voice: 'ch17', unlock: 2,
       start: V3(0, 0, -11), yaw: Math.PI,
       build(ctx, g) {
         const S = ctx.S;

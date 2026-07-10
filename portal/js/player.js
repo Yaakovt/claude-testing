@@ -131,7 +131,7 @@
         const prev = this._sides[key];
         this._sides[key] = side;
         if (prev === undefined) continue;
-        if (prev > 0 && side <= 0 && Math.abs(side) < 1.2) {
+        if (prev > 0 && side <= 0 && Math.abs(side) < 3.0) {
           const off = p.planeOffset(cen);
           const D = P.PORTAL_DIMS;
           if (Math.abs(off.x) < D.HOLE_W + 0.15 && Math.abs(off.y) < D.HOLE_H + 0.5) {
@@ -168,6 +168,21 @@
         cen.y = Math.max(cen.y, to.pos.y + 0.95);
       }
       if (to.normal.y < -0.5 && this.vel.y > -1) this.vel.y = -1;
+      // depenetrate: if the exit placed us inside geometry (e.g. a ledge
+      // hugging the exit portal), push along the exit normal, then upward
+      const half = this.half;
+      const overlaps = (c) => {
+        for (const col of P.world.colliders) {
+          if (!col.enabled || col === to.hostCollider) continue;
+          if (c.x - half.x < col.max.x && c.x + half.x > col.min.x &&
+              c.y - half.y < col.max.y && c.y + half.y > col.min.y &&
+              c.z - half.z < col.max.z && c.z + half.z > col.min.z) return true;
+        }
+        return false;
+      };
+      for (let i = 0; i < 10 && overlaps(cen); i++)
+        cen.add(to.normal.clone().multiplyScalar(0.15));
+      for (let i = 0; i < 10 && overlaps(cen); i++) cen.y += 0.15;
       this.pos.copy(cen).sub(V3(0, 0.9, 0));
       this._sides = {};
       P.audio.teleport();
@@ -177,8 +192,13 @@
     interact() {
       if (!this.alive) return;
       if (this.carrying) { this.dropCube(); return; }
-      // find a cube in front of us
       const eye = this.eye(), fwd = this.forwardVec();
+      // pedestal buttons take priority
+      for (const pb of P.game.pedestals) {
+        const to = pb.topPos().sub(eye);
+        if (to.length() < 2.4 && to.normalize().dot(fwd) > 0.6) { pb.press(); return; }
+      }
+      // find a cube in front of us
       let best = null, bestD = 2.6;
       for (const c of P.game.cubes) {
         if (c.dead) continue;

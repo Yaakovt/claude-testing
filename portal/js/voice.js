@@ -104,6 +104,68 @@
       "This chamber features a thermal discouragement beam. It discourages thermally.",
       "The beam passes through your portals. You do not pass through the beam. Please keep these two facts separate."
     ],
+    chF1: [
+      "This wing contains excursion conduits. The blue stream is a low-commitment river of physics. Step in and it will carry you, judgment-free.",
+      "Objects also ride the conduit. So do you. Legally speaking, you are an object."
+    ],
+    chF2: [
+      "Conduits obey portals, because everything in this facility obeys portals. We have received complaints about that. From the conduits.",
+      "The crimson pedestal ahead is a timed switch. It believes its timer is generous. Prove something to it."
+    ],
+    n13: [
+      "This chamber requires two consecutive applications of falling. The second fall is load-bearing; do not waste it.",
+      "Re-aim your wall aperture between flights. Higher exit, longer story."
+    ],
+    n14: [
+      "Today you will fall while holding cargo. The cargo has no opinion about this. Try to match its composure."
+    ],
+    n15: [
+      "The door ahead unlocks when every sentry in this room stops working. We are not saying how. The sentries know how, and they are worried."
+    ],
+    n16: [
+      "One beam, two collectors, in order. Think of it as plumbing, if plumbing could see you and judged."
+    ],
+    n17: [
+      "Repulsion compound plus freight. Bounce with the cube. The cube trusts you. The cube has no choice."
+    ],
+    n18: [
+      "The next course includes a corner. At speed, corners are a belief system. Believe early.",
+      "The field mid-course will delete your portals. You will not need them. You will need traction."
+    ],
+    n19: [
+      "The conduit rises where your floor aperture tells it to. Re-base the stream as you climb. This is called a ladder, legally."
+    ],
+    n20: [
+      "The storage annex door is on a timer. The timer is not negotiable. The timer has heard every excuse."
+    ],
+    n21: [
+      "This chamber measures progress vertically. Gel, then plates, then more plates. The summit is real. We checked."
+    ],
+    n22: [
+      "One bridge, two crossings, two pieces of freight. If you leave a cube behind, it will not miss you. Probably."
+    ],
+    n23: [
+      "Every field in this room dissolves carried equipment. The overhead conduit is exempt, because we could not figure out how to stop it.",
+      "Throw the cube into the stream. Gravity will handle check-in at the far end."
+    ],
+    n24: [
+      "Sentries are, regrettably, beam-compatible. Redirect the thermal beam across their positions and they will stop volunteering.",
+      "After pest control, deliver the beam to the collector. Two birds. One increasingly useful beam."
+    ],
+    n25: [
+      "Orange makes you fast. Blue makes you airborne. Together they make you a projectile with feelings."
+    ],
+    n26: [
+      "Six sentries. No cube. A ceiling that accepts portals. We have every confidence that gravity remains on your side."
+    ],
+    n32: [
+      "These are the maintenance shafts. Nothing here was built for people. Fall with intent; the panels that still hold paint will hold a portal.",
+      "The gaps between platforms are not measured in meters. They are measured in commitment."
+    ],
+    n33: [
+      "The archives. Everything the facility ever confiscated, alphabetized by weight.",
+      "Checkout requires two simultaneous weight signatures. The archivist was very clear, and is very gone."
+    ],
     ch11: [
       "Final examination. Every mechanism in the facility has been invited, and all of them accepted.",
       "Your cake has been plated and is waiting in the reward annex directly past the exit. This is not a trick. Formally, nothing is ever a trick."

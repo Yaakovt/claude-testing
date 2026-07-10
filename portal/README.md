@@ -42,10 +42,17 @@ Or open `dist/portal.html` — a self-contained single-file build.
 - **Hard light bridges** — glowing walkable planes, wired to buttons.
 - **Thermal beams** — lasers that pass through your portals; redirect them
   into receivers to power doors (and, eventually, to ruin an AI's day).
-- **A story campaign in 18 chambers** — eleven official test chambers, a
-  betrayal involving dessert, and an escape through the facility's disposal
-  pit, service catwalks, storage, and transit spine to a final confrontation
-  with the Overseer's core.
+- **Excursion conduits** — tractor streams that carry you (and cargo) along
+  their axis, and obey portals like everything else here.
+- **Timed pedestal buttons** — press `E`, hear the ticking, beat the clock.
+- **A story campaign in 36 chambers** — twenty-eight official test chambers
+  (double flings, beam relays, sentry purges, stream ladders, gel ballistics,
+  fizzler gauntlets, and more), a betrayal involving dessert, and an escape
+  through the facility's disposal pit, catwalks, storage, transit spine,
+  maintenance shafts, and archives to a final confrontation with the
+  Overseer's core.
+- **Saved progress + chamber select** — your furthest chamber is remembered
+  (localStorage); jump to any unlocked chamber from the pause menu.
 - **Facility announcer** — original passive-aggressive lab-AI narration with
   subtitles and browser text-to-speech.
 - **Synthesized audio** — every sound effect is generated with WebAudio.

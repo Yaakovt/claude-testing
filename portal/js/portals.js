@@ -250,8 +250,10 @@
       const set = new Set();
       for (const p of [this.blue, this.orange]) {
         if (!p.hostCollider) continue;
-        const d = Math.abs(p.sideOf(center));
-        if (d > 1.2) continue;
+        // wide in FRONT so fast fallers punch through before contact,
+        // shallow BEHIND so walls can't be walked through from the back
+        const d = p.sideOf(center);
+        if (d > 3.0 || d < -0.6) continue;
         const off = p.planeOffset(center);
         if (Math.abs(off.x) < HOLE_W && Math.abs(off.y) < HOLE_H) set.add(p.hostCollider);
       }
@@ -274,7 +276,7 @@
         const prev = ent._sides[key];
         ent._sides[key] = side;
         if (prev === undefined) continue;
-        if (prev > 0 && side <= 0 && Math.abs(side) < 1.0) {
+        if (prev > 0 && side <= 0 && Math.abs(side) < 3.0) {
           const off = p.planeOffset(ent.pos);
           if (Math.abs(off.x) < HOLE_W + 0.1 && Math.abs(off.y) < HOLE_H + 0.4) {
             const T = this.teleportMatrix(p, this.other(p));
