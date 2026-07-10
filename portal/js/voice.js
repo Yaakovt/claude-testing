@@ -90,6 +90,16 @@
       "The fluid you touched is not water. Reassembling you from backup.",
       "Please avoid marinating in the byproduct."
     ],
+    void: [
+      "You have exited the test area without authorization. Retrieval was instantaneous and unflattering.",
+      "Congratulations on discovering the outside of the chamber. There is no science out there. Returning you to the science.",
+      "Participant lost outside mapped space. Deploying a fresh participant with your face on it."
+    ],
+    restart: [
+      "Chamber reset requested. We were not judging your previous attempt. We recorded it, but we were not judging it.",
+      "Resetting the chamber. All evidence of the last five minutes has been archived under 'learning experiences'.",
+      "Very well. The chamber will now pretend none of that happened."
+    ],
     turretDown: [
       "Sentry unit lost. It will be mourned by accounting.",
       "You have voided that sentry's warranty."

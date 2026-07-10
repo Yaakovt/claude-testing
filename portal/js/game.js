@@ -81,7 +81,7 @@
   };
 
   // ------------------------------------------------------------- lifecycle
-  G.loadLevel = function (idx, first) {
+  G.loadLevel = function (idx, first, quiet) {
     G.transitioning = false;
     G.levelIndex = idx;
     const def = P.levels[idx];
@@ -108,6 +108,13 @@
     G.player.spawnAt(def.start, def.yaw);
     G.updateCrosshair();
 
+    // level bounds: anything that escapes the map dies / respawns
+    const bmin = V3(Infinity, Infinity, Infinity), bmax = V3(-Infinity, -Infinity, -Infinity);
+    for (const c of P.world.colliders) { bmin.min(c.min); bmax.max(c.max); }
+    bmin.x -= 4; bmin.z -= 4; bmin.y -= 6;
+    bmax.x += 4; bmax.z += 4; bmax.y += 8;
+    G.bounds = { min: bmin, max: bmax };
+
     // HUD chamber card
     const card = document.getElementById('chamber-card');
     card.querySelector('.num').textContent = def.title;
@@ -116,8 +123,14 @@
 
     document.getElementById('fade').classList.add('clear');
 
+    if (quiet) return;
     if (first) P.voice.say(P.voice.lines.wake.concat(P.voice.lines[def.voice] || []));
     else if (def.voice) P.voice.say(P.voice.lines[def.voice]);
+  };
+
+  G.restartLevel = function () {
+    P.voice.interrupt(P.voice.rand('restart'));
+    G.loadLevel(G.levelIndex, false, true);
   };
 
   G.prePlace = function (which, pos, normal) {
@@ -170,7 +183,8 @@
   G.onPlayerDeath = function (cause) {
     if (G.transitioning) return;
     G.transitioning = true;
-    P.voice.interrupt(P.voice.rand(cause === 'goo' ? 'goo' : 'death'));
+    const bank = cause === 'goo' ? 'goo' : cause === 'void' ? 'void' : 'death';
+    P.voice.interrupt(P.voice.rand(bank));
     document.getElementById('fade').classList.remove('clear');
     setTimeout(() => {
       const def = P.levels[G.levelIndex];
@@ -188,6 +202,13 @@
 
     document.getElementById('btn-start').addEventListener('click', () => {
       P.audio.init();
+      if (!G.testMode) canvas.requestPointerLock();
+      menu.classList.add('hidden');
+      G.running = true;
+    });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      P.audio.init();
+      G.restartLevel();
       if (!G.testMode) canvas.requestPointerLock();
       menu.classList.add('hidden');
       G.running = true;
@@ -232,6 +253,7 @@
     document.addEventListener('keydown', e => {
       G.player.keys[e.code] = true;
       if (e.code === 'KeyE' && G.running) G.player.interact();
+      if (e.code === 'KeyR' && G.running && !G.transitioning) G.restartLevel();
       if (e.code === 'Space') e.preventDefault();
     });
     document.addEventListener('keyup', e => { G.player.keys[e.code] = false; });
@@ -286,6 +308,19 @@
         go.update(dt);
         if (go.contains(G.player.pos.clone().add(V3(0, 0.15, 0)))) { P.audio.splash(); G.player.kill('goo'); }
         for (const c of G.cubes) if (!c.dead && !c.carried && go.contains(c.pos)) c.fizzle();
+      }
+      // escaped the map? the facility notices.
+      if (G.bounds) {
+        const b = G.bounds, pc = G.player.center();
+        if (pc.x < b.min.x || pc.x > b.max.x || pc.y < b.min.y ||
+            pc.y > b.max.y || pc.z < b.min.z || pc.z > b.max.z) {
+          G.player.kill('void');
+        }
+        for (const c of G.cubes) {
+          if (c.dead || c.carried) continue;
+          if (c.pos.x < b.min.x || c.pos.x > b.max.x || c.pos.y < b.min.y ||
+              c.pos.y > b.max.y || c.pos.z < b.min.z || c.pos.z > b.max.z) c.respawn();
+        }
       }
       if (G.elevator && G.elevator.update(dt, G.player)) G.nextLevel();
       if (G.cakePos) {
