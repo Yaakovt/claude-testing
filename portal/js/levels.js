@@ -297,7 +297,7 @@
 
         // decorative baked good — strictly non-interactive (see chamber 06 briefing)
         bakeCake(g, 24, 2);
-        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 4.5));
+        P.game.elevator = new P.Elevator(g, V3(26.5, 0, 2));
       }
     },
 
