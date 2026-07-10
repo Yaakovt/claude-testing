@@ -238,32 +238,102 @@ radial(16, (255, 90, 60), (150, 12, 8), alpha_edge=True, core_white=False).save(
 radial(16, (240, 252, 255), (60, 140, 220)).save(os.path.join(ENT_DIR, "ice_shard.png"))
 radial(16, (220, 255, 120), (60, 120, 20)).save(os.path.join(ENT_DIR, "venom_glob.png"))
 
-# frost wisp — icy orb with sparkle
-wisp = radial(16, (235, 250, 255), (90, 160, 220))
-for (x, y) in [(4, 4), (11, 5), (6, 11), (10, 10)]:
-    wisp.set(x, y, (255, 255, 255, 255))
-wisp.save(os.path.join(ENT_DIR, "frost_wisp.png"))
+# frost wisp — 32x32 UV texture for geometry.frost_wisp
+# core cube 6x6x6 at uv (0,0); orbit shards 2x2x2 at uv (0,20)
+def frost_wisp():
+    img = Img(32, 32)
+    # core block region (0,0)-(24,12): icy gradient panels
+    img.grad_rect(0, 0, 24, 12, (200, 236, 252), (86, 150, 210))
+    for x0 in range(0, 24, 6):
+        img.panel(x0, 6, x0 + 6, 12, (60, 110, 170))
+    # bright "soul" on the front face (6,6)-(12,12)
+    img.grad_rect(7, 7, 11, 11, (255, 255, 255), (170, 230, 255))
+    img.set(8, 8, (255, 255, 255)); img.set(9, 9, (230, 250, 255))
+    # frost cracks
+    for _ in range(30):
+        x, y = random.randint(0, 23), random.randint(0, 11)
+        img.set(x, y, (235, 250, 255))
+    # shard region (0,20)-(8,26): crystalline white-blue
+    img.grad_rect(0, 20, 8, 26, (240, 252, 255), (120, 190, 240))
+    img.set(2, 21, (255, 255, 255)); img.set(5, 23, (255, 255, 255))
+    return img
 
 
-# plague rat — 32x32 mangy green-brown fur
+frost_wisp().save(os.path.join(ENT_DIR, "frost_wisp.png"))
+
+
+# plague rat — 32x32 painted per UV region of geometry.plague_rat
 def plague_rat():
     img = Img(32, 32)
     fur = (96, 84, 52)
     sick = (110, 130, 60)
-    img.noise_rect(0, 0, 32, 32, fur, 14)
-    for _ in range(120):
-        x, y = random.randint(0, 31), random.randint(0, 31)
-        img.set(x, y, sick)
-    # head front region gets eyes + nose
-    img.rect(2, 18, 4, 20, (200, 60, 200))   # sickly glowing eyes
-    img.rect(8, 18, 10, 20, (200, 60, 200))
-    img.rect(5, 21, 7, 22, (60, 40, 34))     # nose
-    # tail strip — bare pink
-    img.grad_rect(12, 16, 26, 23, (168, 120, 110), (120, 80, 74))
+    dark = (66, 56, 36)
+    # body box 4x3x7 at uv(0,0): region (0,0)-(22,10)
+    img.noise_rect(0, 0, 22, 10, fur, 12)
+    # spine stripe on top face (7,0)-(11,7): sickly green ridge
+    img.noise_rect(8, 0, 10, 7, sick, 10)
+    # mangy patches
+    for _ in range(26):
+        x, y = random.randint(0, 21), random.randint(0, 9)
+        img.set(x, y, sick if random.random() < 0.6 else dark)
+    # head box 3x3x3 at uv(0,16): region (0,16)-(12,22); front face (3,19)-(6,22)
+    img.noise_rect(0, 16, 12, 22, fur, 12)
+    img.set(3, 19, (216, 70, 216)); img.set(5, 19, (216, 70, 216))   # glowing eyes
+    img.set(4, 21, (54, 38, 32))                                      # nose
+    img.noise_rect(6, 19, 9, 22, (86, 74, 46), 8)                     # muzzle side shading
+    # ears 1x1x1 at uv(22,0): region (22,0)-(26,2) — pink inner
+    img.noise_rect(22, 0, 26, 2, (172, 116, 120), 10)
+    # tail 1x1x6 at uv(12,16): region (12,16)-(26,23) — bare pink, segmented
+    img.grad_rect(12, 16, 26, 23, (176, 126, 116), (118, 78, 72))
+    for x in range(14, 26, 3):
+        img.rect(x, 16, x + 1, 23, (140, 92, 86))
+    # legs 1x1x1 at uv(0,24): region (0,24)-(4,26) — dark claws
+    img.noise_rect(0, 24, 4, 26, dark, 8)
     return img
 
 
 plague_rat().save(os.path.join(ENT_DIR, "plague_rat.png"))
+
+
+# ---- worn armor layer textures (64x32, vanilla armor layout) --------------
+ARMOR_DIR = os.path.join(RP, "textures", "models", "armor")
+os.makedirs(ARMOR_DIR, exist_ok=True)
+
+
+def knight_helm_layer():
+    img = Img(64, 32)  # fully transparent except the helmet block
+    # helmet block (0,0)-(32,16), same layout as a head cube
+    img.grad_rect(0, 0, 32, 16, (96, 102, 112), (52, 56, 64))
+    for x0 in (0, 8, 16, 24):
+        img.panel(x0, 8, x0 + 8, 16, (40, 44, 52))
+    img.panel(8, 0, 16, 8, (40, 44, 52))
+    # face plate: dark void + glowing cyan slit on the front face (8,8)-(16,16)
+    img.rect(9, 10, 15, 15, (16, 18, 24))
+    img.rect(9, 11, 15, 13, (120, 235, 245))
+    # crest rivets
+    img.rivets([(10, 9), (13, 9), (12, 2)], (150, 200, 210))
+    return img
+
+
+def dragon_chest_layer():
+    img = Img(64, 32)
+    scale_hi = (196, 54, 36)
+    scale_lo = (110, 28, 24)
+    # torso (16,16)-(40,32)
+    img.grad_rect(16, 16, 40, 32, scale_hi, scale_lo)
+    for y in range(18, 32, 3):
+        img.rect(16, y, 40, y + 1, (150, 40, 28))
+    img.panel(20, 20, 36, 32, (80, 22, 18))
+    img.set(28, 22, (255, 180, 90)); img.set(27, 26, (255, 180, 90))  # ember studs
+    # arms (40,16)-(56,32) — scaled pauldron sleeves
+    img.grad_rect(40, 16, 56, 32, scale_hi, scale_lo)
+    for y in range(18, 32, 3):
+        img.rect(40, y, 56, y + 1, (150, 40, 28))
+    return img
+
+
+knight_helm_layer().save(os.path.join(ARMOR_DIR, "knight_helm_layer.png"))
+dragon_chest_layer().save(os.path.join(ARMOR_DIR, "dragon_chest_layer.png"))
 
 
 def dragon_chestplate():

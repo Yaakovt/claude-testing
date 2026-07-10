@@ -5,8 +5,11 @@
       "identifier": "md:frost_wisp",
       "materials": { "default": "entity_alphatest" },
       "textures": { "default": "textures/entity/frost_wisp" },
-      "geometry": { "default": "geometry.dragon_fireball" },
-      "scripts": { "scale": "1.3" },
+      "geometry": { "default": "geometry.frost_wisp" },
+      "animations": {
+        "hover": "animation.frost_wisp.hover"
+      },
+      "scripts": { "animate": ["hover"] },
       "spawn_egg": { "base_color": "#a8d8ee", "overlay_color": "#3c6ea0" },
       "render_controllers": ["controller.render.dragon_fireball"]
     }
