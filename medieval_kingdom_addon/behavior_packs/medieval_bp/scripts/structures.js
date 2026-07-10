@@ -11,6 +11,7 @@
 import { world, system } from "@minecraft/server";
 import { q, ri, groundY } from "./gen_util.js";
 import { buildVillage } from "./village.js";
+import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp } from "./arenas.js";
 
 const CELL = 320;
 const TRIGGER = 40; // build when a player is this close to the structure point
@@ -51,6 +52,7 @@ export function buildTower(dim, cx, cyG, cz) {
   q(dim, `replaceitem block ${cx - 2} ${Y(1)} ${cz + 2} slot.container 3 emerald 4`);
   q(dim, `summon md:knight ${cx - 2} ${Y(1)} ${cz - 2}`);
   q(dim, `summon md:archer ${cx} ${Y(21)} ${cz}`);
+  q(dim, `summon md:gargoyle ${cx + 2} ${Y(22)} ${cz + 2}`);
 }
 
 export function buildCastle(dim, ccx, cyG, ccz) {
@@ -135,6 +137,8 @@ export function buildCastle(dim, ccx, cyG, ccz) {
   q(dim, `summon md:knight ${ccx + 2} ${Y(0)} ${ccz - 15}`);
   q(dim, `summon md:knight ${ccx - 7} ${Y(0)} ${ccz + 7}`);
   q(dim, `summon md:knight ${ccx + 7} ${Y(0)} ${ccz + 7}`);
+  q(dim, `summon md:gargoyle ${ccx - R + 3} ${Y(TOWER + 2)} ${ccz - R + 3}`);
+  q(dim, `summon md:gargoyle ${ccx + R - 3} ${Y(TOWER + 2)} ${ccz + R - 3}`);
   q(dim, `summon md:fire_dragon ${ccx} ${Y(8)} ${ccz}`);
 }
 
@@ -189,8 +193,15 @@ function cellStructure(cellX, cellZ, salt) {
   const h = hash(cellX, cellZ, salt);
   if (h % 100 < 55) return null; // 45% of cells hold a structure
   const h2 = hash(cellX + 31, cellZ - 17, salt ^ 0x9e3779b9);
-  const roll = h % 20;
-  const type = roll < 7 ? "tower" : roll < 12 ? "shrine" : roll < 17 ? "village" : "castle";
+  const roll = h % 24;
+  const type =
+    roll < 6 ? "tower" :
+    roll < 10 ? "shrine" :
+    roll < 14 ? "village" :
+    roll < 17 ? "castle" :
+    roll < 19 ? "banditcamp" :
+    roll < 21 ? "graveyard" :
+    roll < 23 ? "siegecamp" : "arena";
   return {
     type,
     x: cellX * CELL + 40 + (h2 % (CELL - 80)),
@@ -203,8 +214,16 @@ const BUILDERS = {
   shrine: buildShrine,
   village: (dim, x, y, z) => buildVillage(dim, x, y, z),
   castle: buildCastle,
+  graveyard: buildGraveyard,
+  siegecamp: buildSiegeCamp,
+  arena: buildArena,
+  banditcamp: buildBanditCamp,
 };
-const NICE = { tower: "watchtower", shrine: "armor shrine", village: "village", castle: "castle" };
+const NICE = {
+  tower: "watchtower", shrine: "armor shrine", village: "village", castle: "castle",
+  graveyard: "haunted graveyard", siegecamp: "siege camp", arena: "jousting arena",
+  banditcamp: "bandit camp",
+};
 
 function record(type, x, z) {
   const key = `md:reg:${type}`;

@@ -1,0 +1,218 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "md:lich_king",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "md:state": {
+          "type": "enum",
+          "values": ["idle", "bolt", "summon", "nova"],
+          "default": "idle",
+          "client_sync": true
+        },
+        "md:stage": {
+          "type": "int",
+          "range": [0, 2],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "lich:ready": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": [2.0, 3.4],
+          "time_down_event": { "event": "md:lich_pick" }
+        }
+      },
+      "lich:ready_swift": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": [1.1, 2.0],
+          "time_down_event": { "event": "md:lich_pick" }
+        }
+      },
+      "lich:bolt": {
+        "minecraft:behavior.ranged_attack": {
+          "priority": 1,
+          "attack_interval_min": 0.4,
+          "attack_interval_max": 0.5,
+          "attack_radius": 30,
+          "burst_shots": 3,
+          "burst_interval": 0.3
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.8,
+          "time_down_event": { "event": "md:lich_end" }
+        }
+      },
+      "lich:summon": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.0,
+          "time_down_event": { "event": "md:lich_end" }
+        }
+      },
+      "lich:nova": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 3.0,
+          "time_down_event": { "event": "md:lich_end" }
+        }
+      },
+      "lich:stage0": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 160
+                },
+                "event": "md:lich_stage1"
+              }
+            }
+          ]
+        }
+      },
+      "lich:stage1": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 80
+                },
+                "event": "md:lich_stage2"
+              }
+            }
+          ]
+        }
+      },
+      "lich:wraith": {
+        "minecraft:movement": { "value": 0.32 }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["monster", "boss", "medieval", "undead", "lich"]
+      },
+      "minecraft:collision_box": { "width": 0.9, "height": 2.6 },
+      "minecraft:health": { "value": 240, "max": 240 },
+      "minecraft:movement": { "value": 0.25 },
+      "minecraft:knockback_resistance": { "value": 0.8 },
+      "minecraft:fire_immune": true,
+      "minecraft:persistent": {},
+      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
+      "minecraft:boss": {
+        "should_darken_sky": false,
+        "hud_range": 55,
+        "name": "Lich King"
+      },
+      "minecraft:nameable": {},
+      "minecraft:shooter": { "def": "md:soul_bolt" },
+      "minecraft:navigation.walk": { "can_path_over_water": true, "avoid_water": true },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:physics": {},
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:loot": { "table": "loot_tables/entities/lich_king.json" },
+      "minecraft:experience_reward": { "on_death": "50" },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": false,
+        "reselect_targets": true,
+        "scan_interval": 10,
+        "within_radius": 48,
+        "entity_types": [
+          {
+            "filters": { "test": "is_family", "subject": "other", "value": "player" },
+            "max_dist": 48
+          }
+        ]
+      },
+      "minecraft:behavior.move_towards_target": {
+        "priority": 4,
+        "speed_multiplier": 1.0,
+        "within_radius": 28
+      },
+      "minecraft:behavior.random_stroll": { "priority": 7, "speed_multiplier": 0.6 },
+      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 20 },
+      "minecraft:behavior.random_look_around": { "priority": 9 }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": { "component_groups": ["lich:stage0", "lich:ready"] },
+        "set_property": { "md:stage": 0, "md:state": "idle" }
+      },
+      "md:lich_pick": {
+        "sequence": [
+          { "remove": { "component_groups": ["lich:ready", "lich:ready_swift"] } },
+          {
+            "randomize": [
+              {
+                "weight": 4,
+                "add": { "component_groups": ["lich:bolt"] },
+                "set_property": { "md:state": "bolt" }
+              },
+              {
+                "weight": 2,
+                "add": { "component_groups": ["lich:summon"] },
+                "set_property": { "md:state": "summon" }
+              },
+              {
+                "weight": 2,
+                "add": { "component_groups": ["lich:nova"] },
+                "set_property": { "md:state": "nova" }
+              }
+            ]
+          }
+        ]
+      },
+      "md:lich_end": {
+        "sequence": [
+          {
+            "remove": {
+              "component_groups": ["lich:bolt", "lich:summon", "lich:nova"]
+            },
+            "set_property": { "md:state": "idle" }
+          },
+          {
+            "filters": { "test": "int_property", "domain": "md:stage", "operator": "<", "value": 2 },
+            "add": { "component_groups": ["lich:ready"] }
+          },
+          {
+            "filters": { "test": "int_property", "domain": "md:stage", "value": 2 },
+            "add": { "component_groups": ["lich:ready_swift"] }
+          }
+        ]
+      },
+      "md:lich_stage1": {
+        "remove": { "component_groups": ["lich:stage0"] },
+        "add": { "component_groups": ["lich:stage1"] },
+        "set_property": { "md:stage": 1 }
+      },
+      "md:lich_stage2": {
+        "remove": { "component_groups": ["lich:stage1"] },
+        "add": { "component_groups": ["lich:wraith"] },
+        "set_property": { "md:stage": 2 }
+      }
+    }
+  }
+}

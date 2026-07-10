@@ -1,0 +1,18 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": { "identifier": "md:greatsword_recipe" },
+    "tags": ["crafting_table"],
+    "pattern": [
+      " P ",
+      " P ",
+      " S "
+    ],
+    "key": {
+      "P": { "item": "md:iron_plating" },
+      "S": { "item": "minecraft:stick" }
+    },
+    "result": { "item": "md:greatsword" },
+    "unlock": [{ "item": "md:iron_plating" }]
+  }
+}

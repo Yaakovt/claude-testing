@@ -1,0 +1,16 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": { "identifier": "md:dragon_boots_recipe" },
+    "tags": ["crafting_table"],
+    "pattern": [
+      "S S",
+      "S S"
+    ],
+    "key": {
+      "S": { "item": "md:dragon_scale" }
+    },
+    "result": { "item": "md:dragon_boots" },
+    "unlock": [{ "item": "md:dragon_scale" }]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:black_knight",
+      "materials": { "default": "entity_alphatest" },
+      "textures": {
+        "default": "textures/entity/black_knight",
+        "berserk": "textures/entity/black_knight_berserk"
+      },
+      "geometry": { "default": "geometry.black_knight" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "guard": "animation.black_knight.guard",
+        "charge": "animation.black_knight.charge",
+        "move": "controller.animation.md_humanoid_move",
+        "combat": "controller.animation.bk_combat"
+      },
+      "scripts": { "animate": ["move", "combat"] },
+      "spawn_egg": { "base_color": "#1c1c22", "overlay_color": "#b02828" },
+      "render_controllers": ["controller.render.black_knight"]
+    }
+  }
+}

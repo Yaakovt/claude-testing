@@ -1,0 +1,23 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "item", "name": "md:golem_gauntlet", "weight": 1 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "item", "name": "md:golem_core", "weight": 1 }
+      ]
+    },
+    {
+      "rolls": { "min": 3, "max": 6 },
+      "entries": [
+        { "type": "item", "name": "md:iron_plating", "weight": 2 },
+        { "type": "item", "name": "minecraft:iron_ingot", "weight": 3 }
+      ]
+    }
+  ]
+}

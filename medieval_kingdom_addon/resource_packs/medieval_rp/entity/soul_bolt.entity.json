@@ -1,0 +1,12 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:soul_bolt",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/soul_bolt" },
+      "geometry": { "default": "geometry.dragon_fireball" },
+      "render_controllers": ["controller.render.dragon_fireball"]
+    }
+  }
+}

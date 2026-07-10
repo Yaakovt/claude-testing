@@ -1,0 +1,19 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:bandit",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/bandit" },
+      "geometry": { "default": "geometry.humanoid_medieval" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#5a4632", "overlay_color": "#28221c" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

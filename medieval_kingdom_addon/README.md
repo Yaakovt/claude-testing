@@ -1,11 +1,14 @@
 # Medieval Kingdom — Minecraft Bedrock Add-On
 
 A medieval-themed add-on for **Minecraft Bedrock Edition** (Windows 10/11, Pocket,
-Console, 1.20+). It adds medieval mobs, a tower you can raise with one command,
-and **two custom bosses** with full geometry, textures and animations:
+Console, 1.20+). It adds medieval mobs, natural structure generation, relic
+powers, and **five custom bosses** with full geometry, textures and animations:
 
-- 🛡️ **Animated Armor** — an empty suit of armor with **3 attacks**
-- 🐉 **Fire Dragon** — a flying dragon with **5 attacks**
+- 🛡️ **Animated Armor** — an empty suit of armor that sheds plates as it breaks
+- 🐉 **Fire Dragon** — a flying dragon with 3 elemental phases and super attacks
+- 💀 **Lich King** — a blink-teleporting necromancer in a haunted graveyard
+- 🗿 **Siege Golem** — a walking siege engine whose armor cracks off plate by plate
+- ⚔️ **Black Knight** — a duelist champion who loses shield, plume and cape as you win
 
 > This is a Bedrock add-on (behavior pack + resource pack), which is the format
 > where models (*geometry*), *textures* and *animations* are authored as the JSON
@@ -56,6 +59,11 @@ Give yourself the spawn eggs from the creative inventory (search "Knight",
 | `/function summon_dragon` | Spawns the Fire Dragon above and in front of you |
 | `/function build_village` | Generates a **random medieval village** (jigsaw-style): roads grow from a central plaza in random directions with random branches, and lots pick random rotated buildings — houses, blacksmith, tavern, farms, chapel, market stalls — that follow the terrain. Different every time |
 | `/function build_castle` | Builds a full **41×41 castle** around you — crenellated curtain walls, four corner towers, a gatehouse with portcullis, a rear keep — garrisoned by **8 archers on the battlements and 4 knights**, with a **gold treasure mound** in the courtyard where the **Fire Dragon spawns** atop its hoard |
+| `/function summon_lich` / `summon_golem` / `summon_champion` | Spawns the Lich King / Siege Golem / Black Knight in front of you |
+| `/function build_graveyard` | Raises the Lich King's **haunted graveyard** — iron-fenced yard, gravestones, dead tree, and a stone crypt with soul lanterns and the boss inside |
+| `/function build_siege_camp` | Builds a palisaded **siege camp** — trebuchet, tents, supply chest — garrisoned by bandits and the **Siege Golem** |
+| `/function build_arena` | Builds a **jousting arena** — tilt barrier, stands, banners, a pavilion with **war horse barding** in its chest — where the **Black Knight** and two war horses wait |
+| `/function build_bandit_camp` | Small roadside **bandit camp** — campfire, tents, a chest of stolen goods, three bandits and a stolen war horse |
 
 The two medieval mobs (Knight, Archer) **spawn naturally at night**, and the
 **Animated Armor** has a rare natural night spawn on the surface (normal/hard
@@ -66,8 +74,12 @@ difficulty).
 Structures also **generate naturally as you explore** — no commands needed. The
 world is divided into 320-block cells; each cell deterministically rolls whether
 it holds a **watchtower**, **armor shrine** (ruin guarded by an Animated Armor),
-**random village**, or **castle** (complete with dragon and hoard). When you
-wander near one, it rises out of the landscape.
+**random village**, **castle** (complete with dragon and hoard), **bandit camp**,
+or one of the rarer boss arenas — **haunted graveyard** (Lich King), **siege
+camp** (Siege Golem) or **jousting arena** (Black Knight). When you wander near
+one, it rises out of the landscape. Every builder **snaps to real terrain** over
+a wide vertical range, so structures sit on the ground even across valleys and
+hills — no more floating towers.
 
 Bedrock's vanilla `/locate` can't learn custom structures, so the pack keeps its
 own registry of everything generated:
@@ -76,6 +88,7 @@ own registry of everything generated:
 |---|---|
 | `/function locate_castle` | Nearest discovered castle — distance, direction, coordinates |
 | `/function locate_village` / `locate_tower` / `locate_shrine` | Same for the other structures |
+| `/function locate_graveyard` / `locate_siege_camp` / `locate_arena` / `locate_bandit_camp` | Same for the new arenas and camps |
 | `/function worldgen_off` / `worldgen_on` | Pause/resume natural generation |
 
 Tip: raise **Simulation Distance** to 6+ so large structures generate fully in
@@ -125,6 +138,102 @@ projectiles. Frost Wisps are floating ice orbs that pelt you with slowing shards
 Plague Rats are fast little biters whose bite poisons. The dragon also **lands
 beside you** for its tail whip (it slams down with an explosion of particles,
 whips, then takes off).
+
+**v2.0 dragon fixes & supers:**
+
+- **Altitude leash** — the dragon can never climb more than ~12 blocks above its
+  target. If it drifts higher, the script pulls it back down into the fight, so
+  it always stays in bow and melee range.
+- **Summons spawn at the player** — Frost Wisps and Plague Rats now materialize
+  in a ring **on the ground around you**, not in the sky next to the dragon.
+- **Every phase has a super attack.** Fire keeps its exploding **Fire Sphere**;
+  the Ice phase gains **Glacial Tempest** (a converging ring of 8 ice shards that
+  rain onto your position) and the Poison phase gains **Plague Storm** (9 venom
+  globs falling from the sky above you). Every super is **telegraphed for ~2
+  seconds** — expanding particle rings, a dragon roar, and an on-screen
+  “SHIELD UP!” warning — and every super is **blockable with a raised shield**
+  (they're projectiles and explosions, which shields mitigate).
+
+---
+
+## The three new bosses (v2.0)
+
+All three use the same **breaking-stage system as the Animated Armor**: entity
+properties drive both the AI *and* the renderer, so parts of the model visibly
+shatter off at HP thresholds.
+
+### 💀 Lich King (`md:lich_king`) — 240 HP
+
+Found in **haunted graveyards**. A robed skeleton sorcerer with a gold crown,
+a soul staff, and three orbiting soul shards.
+
+- **Soul Bolts** — bursts of 3 homing, withering projectiles.
+- **Summon** — raises 2–3 **Skeleton Mages** from the earth around him.
+- **Death Nova** — telegraphed for 2+ seconds (soul particles, warning text),
+  then a huge non-block-breaking explosion. Shield up or run.
+- **Blinks away** when struck (on a cooldown), trailing soul particles.
+- Breaking stages: **soul shards shatter** (stage 1) → **crown falls** (stage 2)
+  → he becomes a **glowing wraith** who casts nearly twice as fast.
+- Drops: **Soul Staff** relic + wearable **Crown of the Lich King** trophy.
+
+### 🗿 Siege Golem (`md:siege_golem`) — 320 HP
+
+Found in **siege camps**. A three-block-tall stone-and-iron construct.
+
+- **Boulder Throw** — lobs arcing boulders (12 dmg) at range.
+- **Ground Slam** — telegraphed fist-raise, then a shockwave explosion that
+  launches everything within ~6 blocks.
+- Breaking stages: **right pauldron** → **left pauldron** (texture cracks,
+  molten seams glow) → **chestplate falls, exposing its molten core** — it takes
+  30% *extra* damage but speeds up and hits for 16.
+- Drops: **Golem Gauntlet** relic + **Molten Golem Core** trophy + iron plating.
+
+### ⚔️ Black Knight (`md:black_knight`) — 200 HP
+
+Found in **jousting arenas** with his war horses. A human-scale duelist.
+
+- Fast sword work with a proper **guard stance** — while guarding he takes only
+  15% damage, so wait it out or circle behind.
+- **Rally Charge** — telegraphed blade-lower, then he lunges across the arena.
+- Breaking stages: **shield breaks** (he can no longer guard!) → **plume knocked
+  off** → **cape torn away** — then he **goes berserk**: faster, harder-hitting,
+  wreathed in embers.
+- Drops: **Champion's Banner** relic + **Champion's Crest** trophy, and sometimes
+  his **Knight's Greatsword**.
+
+---
+
+## Relics — player powers (v2.0)
+
+Boss-dropped relics give **you** active abilities (each has a built-in item
+cooldown and particle/sound feedback):
+
+| Relic | From | Use it to... |
+|---|---|---|
+| **Talon of the Fire Dragon** | Fire Dragon | **Dragonfire Dash** — launch forward in a burst of flame, igniting and damaging everything you dash through (6 s cooldown) |
+| **Soul Staff of the Lich King** | Lich King | Fire a homing **soul bolt**; **sneak-use** to summon **2 friendly Soul Wisps** that fight monsters for you for 45 s (30 s cooldown) |
+| **Gauntlet of the Siege Golem** | Siege Golem | **Ground Slam** — a shockwave ring that damages and launches nearby enemies (10 s cooldown) |
+| **Champion's Banner** | Black Knight | **Rally** — you and all players within 12 blocks gain Strength, Speed and Resistance for 20 s (25 s cooldown) |
+
+**Dragonscale armor set** — Dragon Scales now craft the **full set** (helmet,
+chestplate, leggings, boots — all render on your body with scale-red armor
+layers). Wearing all four pieces grants **permanent Fire Resistance** with a
+flicker of ember particles.
+
+**Knight's Greatsword** — craftable from 2 Enchanted Iron Plating + a stick.
+11 damage, and every hit **cleaves** everything around your target.
+
+---
+
+## New mobs (v2.0)
+
+| Mob | Where | Behaviour |
+|---|---|---|
+| 🏴 **Bandit** (`md:bandit`) | Night surface spawns in packs of 2–4, bandit camps, siege camps | Fast dagger rushes; attacks players, villagers *and* knights; drops emeralds/bread/plating |
+| 🗿 **Gargoyle** (`md:gargoyle`) | Perched on generated watchtowers & castle towers, rare night flyer | Stone-winged ambusher that dives from above |
+| 💀 **Skeleton Mage** (`md:skeleton_mage`) | Summoned by the Lich King, graveyards, rare night spawn | Ranged soul-bolt caster in violet robes |
+| 🐴 **War Horse** (`md:war_horse`) | Villages, jousting arenas, plains/savanna herds | **Tameable & rideable** — faster than a vanilla horse. Use **War Horse Barding** (craft: 5 iron plating + 2 leather, or loot the arena pavilion) on it for a fully armored steed: +10 HP, 40% damage reduction, steel barding skin |
+| 🔮 **Soul Wisp** (`md:soul_wisp`) | Summoned by your Soul Staff | Friendly spirit that shoots soul bolts at monsters, fades after 45 s |
 
 Projectiles: `md:dragon_fireball` (damaging, sets fire) and `md:fire_sphere`
 (the expanding blast) are their own entities so their timing and visuals are

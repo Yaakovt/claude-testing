@@ -1,0 +1,18 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": { "identifier": "md:horse_barding_recipe" },
+    "tags": ["crafting_table"],
+    "pattern": [
+      "P P",
+      "PPP",
+      "L L"
+    ],
+    "key": {
+      "P": { "item": "md:iron_plating" },
+      "L": { "item": "minecraft:leather" }
+    },
+    "result": { "item": "md:horse_barding" },
+    "unlock": [{ "item": "md:iron_plating" }]
+  }
+}

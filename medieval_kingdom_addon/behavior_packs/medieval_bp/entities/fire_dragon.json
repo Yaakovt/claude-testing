@@ -16,7 +16,8 @@
             "dive",
             "tailwhip",
             "sphere",
-            "summon"
+            "summon",
+            "super"
           ],
           "default": "fly",
           "client_sync": true
@@ -137,17 +138,6 @@
         }
       },
       "dragon:summon_wisps": {
-        "minecraft:spawn_entity": {
-          "entities": [
-            {
-              "min_wait_time": 1,
-              "max_wait_time": 1,
-              "num_to_spawn": 2,
-              "single_use": true,
-              "spawn_entity": "md:frost_wisp"
-            }
-          ]
-        },
         "minecraft:timer": {
           "looping": false,
           "time": 2.2,
@@ -157,20 +147,18 @@
         }
       },
       "dragon:summon_rats": {
-        "minecraft:spawn_entity": {
-          "entities": [
-            {
-              "min_wait_time": 1,
-              "max_wait_time": 1,
-              "num_to_spawn": 3,
-              "single_use": true,
-              "spawn_entity": "md:plague_rat"
-            }
-          ]
-        },
         "minecraft:timer": {
           "looping": false,
           "time": 2.2,
+          "time_down_event": {
+            "event": "md:dragon_end"
+          }
+        }
+      },
+      "dragon:super": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": 3.6,
           "time_down_event": {
             "event": "md:dragon_end"
           }
@@ -356,11 +344,11 @@
       "minecraft:behavior.random_hover": {
         "priority": 9,
         "xz_dist": 10,
-        "y_dist": 6,
+        "y_dist": 3,
         "y_offset": -1,
         "hover_height": [
-          3,
-          7
+          2,
+          5
         ]
       },
       "minecraft:behavior.look_at_player": {
@@ -516,6 +504,17 @@
                 "set_property": {
                   "md:state": "summon"
                 }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:super"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "super"
+                }
               }
             ]
           },
@@ -591,6 +590,17 @@
                 "set_property": {
                   "md:state": "sphere"
                 }
+              },
+              {
+                "weight": 2,
+                "add": {
+                  "component_groups": [
+                    "dragon:super"
+                  ]
+                },
+                "set_property": {
+                  "md:state": "super"
+                }
               }
             ]
           }
@@ -605,7 +615,8 @@
             "dragon:tailwhip",
             "dragon:sphere",
             "dragon:summon_wisps",
-            "dragon:summon_rats"
+            "dragon:summon_rats",
+            "dragon:super"
           ]
         },
         "add": {

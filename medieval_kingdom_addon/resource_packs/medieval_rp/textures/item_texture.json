@@ -8,6 +8,18 @@
     "dragon_heart": { "textures": "textures/items/dragon_heart" },
     "dragon_scale": { "textures": "textures/items/dragon_scale" },
     "searing_fang": { "textures": "textures/items/searing_fang" },
-    "dragon_chestplate": { "textures": "textures/items/dragon_chestplate" }
+    "dragon_chestplate": { "textures": "textures/items/dragon_chestplate" },
+    "dragon_helmet": { "textures": "textures/items/dragon_helmet" },
+    "dragon_leggings": { "textures": "textures/items/dragon_leggings" },
+    "dragon_boots": { "textures": "textures/items/dragon_boots" },
+    "dragon_talon": { "textures": "textures/items/dragon_talon" },
+    "soul_staff": { "textures": "textures/items/soul_staff" },
+    "golem_gauntlet": { "textures": "textures/items/golem_gauntlet" },
+    "champion_banner": { "textures": "textures/items/champion_banner" },
+    "greatsword": { "textures": "textures/items/greatsword" },
+    "horse_barding": { "textures": "textures/items/horse_barding" },
+    "lich_crown": { "textures": "textures/items/lich_crown" },
+    "golem_core": { "textures": "textures/items/golem_core" },
+    "champion_crest": { "textures": "textures/items/champion_crest" }
   }
 }

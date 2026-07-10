@@ -1,0 +1,26 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:lich_king",
+      "materials": { "default": "entity_alphatest" },
+      "textures": {
+        "default": "textures/entity/lich_king",
+        "wraith": "textures/entity/lich_king_wraith"
+      },
+      "geometry": { "default": "geometry.lich_king" },
+      "animations": {
+        "idle": "animation.lich_king.idle",
+        "walk": "animation.lich_king.walk",
+        "cast": "animation.lich_king.cast",
+        "summon": "animation.lich_king.summon",
+        "nova": "animation.lich_king.nova",
+        "move": "controller.animation.md_humanoid_move",
+        "combat": "controller.animation.lich_combat"
+      },
+      "scripts": { "animate": ["move", "combat"] },
+      "spawn_egg": { "base_color": "#2e1e46", "overlay_color": "#8de0d8" },
+      "render_controllers": ["controller.render.lich_king"]
+    }
+  }
+}

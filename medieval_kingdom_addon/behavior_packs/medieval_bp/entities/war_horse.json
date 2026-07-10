@@ -1,0 +1,86 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "md:war_horse",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "md:armored": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "war_horse:armored": {
+        "minecraft:damage_sensor": {
+          "triggers": [{ "cause": "all", "deals_damage": true, "damage_multiplier": 0.6 }]
+        },
+        "minecraft:health": { "value": 40, "max": 40 }
+      }
+    },
+    "components": {
+      "minecraft:type_family": { "family": ["mob", "medieval", "war_horse"] },
+      "minecraft:collision_box": { "width": 1.4, "height": 1.6 },
+      "minecraft:health": { "value": 30, "max": 30 },
+      "minecraft:movement": { "value": 0.34 },
+      "minecraft:navigation.walk": { "can_path_over_water": true, "avoid_water": true },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:physics": {},
+      "minecraft:persistent": {},
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:leashable": {},
+      "minecraft:tamemount": {},
+      "minecraft:is_tamed": {},
+      "minecraft:rideable": {
+        "seat_count": 1,
+        "family_types": ["player"],
+        "interact_text": "action.interact.ride.horse",
+        "seats": [{ "position": [0.0, 1.55, -0.2] }]
+      },
+      "minecraft:input_ground_controlled": {},
+      "minecraft:horse.jump_strength": { "value": 0.65 },
+      "minecraft:interact": {
+        "interactions": [
+          {
+            "on_interact": {
+              "filters": {
+                "all_of": [
+                  { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "md:horse_barding" },
+                  { "test": "is_family", "subject": "other", "value": "player" },
+                  { "test": "bool_property", "domain": "md:armored", "value": false }
+                ]
+              },
+              "event": "md:equip_barding"
+            },
+            "use_item": true,
+            "play_sounds": "armor.equip_iron",
+            "interact_text": "action.interact.equip"
+          }
+        ]
+      },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:behavior.panic": { "priority": 1, "speed_multiplier": 1.2 },
+      "minecraft:behavior.player_ride_tamed": {},
+      "minecraft:behavior.mount_pathing": {
+        "priority": 2,
+        "speed_multiplier": 1.5,
+        "target_dist": 0.0,
+        "track_target": true
+      },
+      "minecraft:behavior.random_stroll": { "priority": 6, "speed_multiplier": 0.7 },
+      "minecraft:behavior.look_at_player": { "priority": 7, "look_distance": 8 },
+      "minecraft:behavior.random_look_around": { "priority": 8 }
+    },
+    "events": {
+      "md:equip_barding": {
+        "add": { "component_groups": ["war_horse:armored"] },
+        "set_property": { "md:armored": true }
+      }
+    }
+  }
+}

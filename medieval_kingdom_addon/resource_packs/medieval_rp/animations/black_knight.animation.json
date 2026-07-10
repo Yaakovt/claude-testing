@@ -1,0 +1,26 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.black_knight.guard": {
+      "loop": true,
+      "bones": {
+        "leftArm": { "rotation": [-70, 25, 0] },
+        "shield": { "rotation": [0, -35, 0] },
+        "body": { "rotation": [0, 18, 0] },
+        "head": { "rotation": [0, -12, 0] },
+        "rightArm": { "rotation": [-15, 0, 8] }
+      }
+    },
+    "animation.black_knight.charge": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": [18, 0, 0] },
+        "rightArm": { "rotation": [-95, -10, 0] },
+        "leftArm": { "rotation": [25, 0, 0] },
+        "head": { "rotation": [-18, 0, 0] },
+        "cape": { "rotation": ["30 + math.sin(query.life_time * 240) * 8", 0, 0] },
+        "plume": { "rotation": ["math.sin(query.life_time * 240) * 6", 0, 0] }
+      }
+    }
+  }
+}

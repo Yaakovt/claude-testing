@@ -274,6 +274,9 @@ export function buildVillage(dim, cx, cyG, cz, announceTo) {
   q(dim, `summon md:knight ${cx - 2} ${pg + 1} ${cz + 3}`);
   q(dim, `summon md:archer ${cx - 3} ${pg + 1} ${cz - 3}`);
   q(dim, `summon md:archer ${cx + 3} ${pg + 1} ${cz + 3}`);
+  for (let i = 0; i < ri(1, 2); i++) {
+    q(dim, `summon md:war_horse ${cx + ri(-5, 5)} ${pg + 1} ${cz + ri(-5, 5)}`);
+  }
 
   const msg = `{"rawtext":[{"text":"§6A medieval village rises — ${lots} buildings along ${dirs.length} road${dirs.length > 1 ? "s" : ""}. No two are alike."}]}`;
   q(dim, announceTo ? `tellraw "${announceTo}" ${msg}` : `tellraw @a ${msg}`);

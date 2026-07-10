@@ -1,0 +1,19 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:skeleton_mage",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/skeleton_mage" },
+      "geometry": { "default": "geometry.humanoid_medieval" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#cfcfc4", "overlay_color": "#3c2e5a" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

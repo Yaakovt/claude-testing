@@ -1,0 +1,22 @@
+{
+  "format_version": "1.21.30",
+  "minecraft:item": {
+    "description": {
+      "identifier": "md:lich_crown",
+      "menu_category": { "category": "equipment" }
+    },
+    "components": {
+      "minecraft:max_stack_size": 1,
+      "minecraft:icon": "lich_crown",
+      "minecraft:wearable": { "slot": "slot.armor.head", "protection": 2 },
+      "minecraft:durability": { "max_durability": 300 },
+      "minecraft:foil": true,
+      "minecraft:hover_text_color": "dark_purple",
+      "minecraft:repairable": {
+        "repair_items": [
+          { "items": ["minecraft:gold_ingot"], "repair_amount": 75 }
+        ]
+      }
+    }
+  }
+}

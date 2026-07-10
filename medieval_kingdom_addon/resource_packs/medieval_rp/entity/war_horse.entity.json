@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:war_horse",
+      "materials": { "default": "entity_alphatest" },
+      "textures": {
+        "default": "textures/entity/war_horse",
+        "armored": "textures/entity/war_horse_armored"
+      },
+      "geometry": { "default": "geometry.war_horse" },
+      "animations": {
+        "idle": "animation.war_horse.idle",
+        "walk": "animation.war_horse.walk",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#4a3624", "overlay_color": "#8f9aa8" },
+      "render_controllers": ["controller.render.war_horse"]
+    }
+  }
+}

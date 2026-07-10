@@ -1,0 +1,239 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "md:black_knight",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "md:state": {
+          "type": "enum",
+          "values": ["idle", "guard", "charge"],
+          "default": "idle",
+          "client_sync": true
+        },
+        "md:stage": {
+          "type": "int",
+          "range": [0, 3],
+          "default": 0,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "bk:ready": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": [3.0, 5.0],
+          "time_down_event": { "event": "md:bk_pick" }
+        }
+      },
+      "bk:guard": {
+        "minecraft:damage_sensor": {
+          "triggers": [{ "cause": "all", "deals_damage": true, "damage_multiplier": 0.15 }]
+        },
+        "minecraft:movement": { "value": 0.08 },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.5,
+          "time_down_event": { "event": "md:bk_end" }
+        }
+      },
+      "bk:charge": {
+        "minecraft:area_attack": {
+          "damage_range": 2.6,
+          "damage_per_tick": 7,
+          "cause": "entity_attack",
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 2.2,
+          "time_down_event": { "event": "md:bk_end" }
+        }
+      },
+      "bk:stage0": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 140
+                },
+                "event": "md:bk_stage1"
+              }
+            }
+          ]
+        }
+      },
+      "bk:stage1": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 80
+                },
+                "event": "md:bk_stage2"
+              }
+            }
+          ]
+        }
+      },
+      "bk:stage2": {
+        "minecraft:damage_sensor": {
+          "triggers": [
+            {
+              "cause": "all",
+              "deals_damage": true,
+              "on_damage": {
+                "filters": {
+                  "test": "actor_health",
+                  "subject": "self",
+                  "operator": "<=",
+                  "value": 40
+                },
+                "event": "md:bk_stage3"
+              }
+            }
+          ]
+        }
+      },
+      "bk:berserk": {
+        "minecraft:movement": { "value": 0.36 },
+        "minecraft:attack": { "damage": 11 }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["monster", "boss", "medieval", "champion"]
+      },
+      "minecraft:collision_box": { "width": 0.7, "height": 2.1 },
+      "minecraft:health": { "value": 200, "max": 200 },
+      "minecraft:attack": { "damage": 8 },
+      "minecraft:movement": { "value": 0.3 },
+      "minecraft:knockback_resistance": { "value": 0.6 },
+      "minecraft:persistent": {},
+      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
+      "minecraft:boss": {
+        "should_darken_sky": false,
+        "hud_range": 55,
+        "name": "Black Knight"
+      },
+      "minecraft:nameable": {},
+      "minecraft:navigation.walk": { "can_path_over_water": true, "avoid_water": true },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:loot": { "table": "loot_tables/entities/black_knight.json" },
+      "minecraft:experience_reward": { "on_death": "45" },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": false,
+        "reselect_targets": true,
+        "scan_interval": 10,
+        "within_radius": 40,
+        "entity_types": [
+          {
+            "filters": { "test": "is_family", "subject": "other", "value": "player" },
+            "max_dist": 40
+          }
+        ]
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 3,
+        "track_target": true,
+        "reach_multiplier": 1.6,
+        "speed_multiplier": 1.25,
+        "cooldown_time": 0.9,
+        "melee_fov": 120
+      },
+      "minecraft:behavior.random_stroll": { "priority": 7, "speed_multiplier": 0.6 },
+      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 16 },
+      "minecraft:behavior.random_look_around": { "priority": 9 }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": { "component_groups": ["bk:stage0", "bk:ready"] },
+        "set_property": { "md:stage": 0, "md:state": "idle" }
+      },
+      "md:bk_pick": {
+        "sequence": [
+          { "remove": { "component_groups": ["bk:ready"] } },
+          {
+            "filters": { "test": "int_property", "domain": "md:stage", "value": 0 },
+            "randomize": [
+              {
+                "weight": 3,
+                "add": { "component_groups": ["bk:guard"] },
+                "set_property": { "md:state": "guard" }
+              },
+              {
+                "weight": 2,
+                "add": { "component_groups": ["bk:charge"] },
+                "set_property": { "md:state": "charge" }
+              },
+              {
+                "weight": 3,
+                "add": { "component_groups": ["bk:ready"] }
+              }
+            ]
+          },
+          {
+            "filters": { "test": "int_property", "domain": "md:stage", "operator": ">", "value": 0 },
+            "randomize": [
+              {
+                "weight": 3,
+                "add": { "component_groups": ["bk:charge"] },
+                "set_property": { "md:state": "charge" }
+              },
+              {
+                "weight": 3,
+                "add": { "component_groups": ["bk:ready"] }
+              }
+            ]
+          }
+        ]
+      },
+      "md:bk_end": {
+        "remove": { "component_groups": ["bk:guard", "bk:charge"] },
+        "add": { "component_groups": ["bk:ready"] },
+        "set_property": { "md:state": "idle" }
+      },
+      "md:bk_stage1": {
+        "remove": { "component_groups": ["bk:stage0"] },
+        "add": { "component_groups": ["bk:stage1"] },
+        "set_property": { "md:stage": 1 }
+      },
+      "md:bk_stage2": {
+        "remove": { "component_groups": ["bk:stage1"] },
+        "add": { "component_groups": ["bk:stage2"] },
+        "set_property": { "md:stage": 2 }
+      },
+      "md:bk_stage3": {
+        "remove": { "component_groups": ["bk:stage2"] },
+        "add": { "component_groups": ["bk:berserk"] },
+        "set_property": { "md:stage": 3 }
+      }
+    }
+  }
+}

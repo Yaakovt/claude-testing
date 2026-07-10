@@ -1,0 +1,17 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:gargoyle",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/gargoyle" },
+      "geometry": { "default": "geometry.gargoyle" },
+      "animations": {
+        "fly": "animation.gargoyle.fly"
+      },
+      "scripts": { "animate": ["fly"] },
+      "spawn_egg": { "base_color": "#7a7d85", "overlay_color": "#e05252" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

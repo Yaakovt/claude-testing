@@ -1,0 +1,25 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:siege_golem",
+      "materials": { "default": "entity_alphatest" },
+      "textures": {
+        "default": "textures/entity/siege_golem",
+        "cracked": "textures/entity/siege_golem_cracked"
+      },
+      "geometry": { "default": "geometry.siege_golem" },
+      "animations": {
+        "idle": "animation.siege_golem.idle",
+        "walk": "animation.siege_golem.walk",
+        "throw": "animation.siege_golem.throw",
+        "slam": "animation.siege_golem.slam",
+        "move": "controller.animation.md_humanoid_move",
+        "combat": "controller.animation.golem_combat"
+      },
+      "scripts": { "animate": ["move", "combat"] },
+      "spawn_egg": { "base_color": "#6b6f78", "overlay_color": "#ffb347" },
+      "render_controllers": ["controller.render.siege_golem"]
+    }
+  }
+}

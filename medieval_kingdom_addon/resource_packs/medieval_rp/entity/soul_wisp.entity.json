@@ -1,0 +1,17 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:soul_wisp",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/soul_wisp" },
+      "geometry": { "default": "geometry.frost_wisp" },
+      "animations": {
+        "hover": "animation.frost_wisp.hover"
+      },
+      "scripts": { "animate": ["hover"] },
+      "spawn_egg": { "base_color": "#6a4a9e", "overlay_color": "#c9b3f0" },
+      "render_controllers": ["controller.render.dragon_fireball"]
+    }
+  }
+}

@@ -46,6 +46,63 @@
       "geometry": "Geometry.default",
       "materials": [{ "*": "Material.sphere" }],
       "textures": ["Texture.default"]
+    },
+    "controller.render.lich_king": {
+      "arrays": {
+        "textures": {
+          "Array.skins": ["Texture.default", "Texture.wraith"]
+        }
+      },
+      "geometry": "Geometry.default",
+      "part_visibility": [
+        { "*": true },
+        { "shards": "query.property('md:stage') < 1" },
+        { "crown": "query.property('md:stage') < 2" }
+      ],
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
+    },
+    "controller.render.siege_golem": {
+      "arrays": {
+        "textures": {
+          "Array.skins": ["Texture.default", "Texture.cracked"]
+        }
+      },
+      "geometry": "Geometry.default",
+      "part_visibility": [
+        { "*": true },
+        { "rightPauldron": "query.property('md:stage') < 1" },
+        { "leftPauldron": "query.property('md:stage') < 2" },
+        { "chestPlate": "query.property('md:stage') < 3" }
+      ],
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
+    },
+    "controller.render.black_knight": {
+      "arrays": {
+        "textures": {
+          "Array.skins": ["Texture.default", "Texture.berserk"]
+        }
+      },
+      "geometry": "Geometry.default",
+      "part_visibility": [
+        { "*": true },
+        { "shield": "query.property('md:stage') < 1" },
+        { "plume": "query.property('md:stage') < 2" },
+        { "cape": "query.property('md:stage') < 3" }
+      ],
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Array.skins[(query.property('md:stage') >= 3) ? 1 : 0]"]
+    },
+    "controller.render.war_horse": {
+      "arrays": {
+        "textures": {
+          "Array.skins": ["Texture.default", "Texture.armored"]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Array.skins[query.property('md:armored') ? 1 : 0]"]
     }
   }
 }

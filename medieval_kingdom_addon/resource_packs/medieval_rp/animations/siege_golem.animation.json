@@ -1,0 +1,53 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.siege_golem.idle": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": ["math.sin(query.life_time * 25) * 1", 0, 0] },
+        "head": { "rotation": ["math.sin(query.life_time * 20) * 2", "math.sin(query.life_time * 15) * 4", 0] },
+        "rightArm": { "rotation": [0, 0, "math.cos(query.life_time * 30) * 1.5 + 2"] },
+        "leftArm": { "rotation": [0, 0, "-math.cos(query.life_time * 30) * 1.5 - 2"] }
+      }
+    },
+    "animation.siege_golem.walk": {
+      "loop": true,
+      "bones": {
+        "rightLeg": { "rotation": ["math.cos(query.modified_distance_moved * 20) * 28", 0, 0] },
+        "leftLeg": { "rotation": ["-math.cos(query.modified_distance_moved * 20) * 28", 0, 0] },
+        "rightArm": { "rotation": ["-math.cos(query.modified_distance_moved * 20) * 16", 0, 3] },
+        "leftArm": { "rotation": ["math.cos(query.modified_distance_moved * 20) * 16", 0, -3] },
+        "body": { "rotation": [0, 0, "math.cos(query.modified_distance_moved * 20) * 2"] }
+      }
+    },
+    "animation.siege_golem.throw": {
+      "loop": true,
+      "bones": {
+        "rightArm": { "rotation": ["-140 + math.sin(query.life_time * 180) * 20", 0, 8] },
+        "body": { "rotation": [0, "math.sin(query.life_time * 90) * 10", 0] },
+        "head": { "rotation": [-8, 0, 0] }
+      }
+    },
+    "animation.siege_golem.slam": {
+      "loop": true,
+      "animation_length": 3.0,
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0": [0, 0, 0], "0.8": [-175, 0, 12], "1.7": [-175, 0, 12], "1.85": [40, 0, 0], "2.4": [0, 0, 0]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0": [0, 0, 0], "0.8": [-175, 0, -12], "1.7": [-175, 0, -12], "1.85": [40, 0, 0], "2.4": [0, 0, 0]
+          }
+        },
+        "body": {
+          "rotation": {
+            "0.0": [0, 0, 0], "0.8": [-14, 0, 0], "1.7": [-14, 0, 0], "1.85": [22, 0, 0], "2.4": [0, 0, 0]
+          }
+        }
+      }
+    }
+  }
+}

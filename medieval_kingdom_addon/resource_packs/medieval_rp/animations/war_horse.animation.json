@@ -1,0 +1,25 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.war_horse.idle": {
+      "loop": true,
+      "bones": {
+        "head": { "rotation": ["math.sin(query.life_time * 30) * 3", "math.sin(query.life_time * 18) * 5", 0] },
+        "tail": { "rotation": ["30 + math.sin(query.life_time * 45) * 8", "math.sin(query.life_time * 60) * 10", 0] },
+        "neck": { "rotation": ["-20 + math.sin(query.life_time * 25) * 2", 0, 0] }
+      }
+    },
+    "animation.war_horse.walk": {
+      "loop": true,
+      "bones": {
+        "frontRightLeg": { "rotation": ["math.cos(query.modified_distance_moved * 33) * 42", 0, 0] },
+        "backLeftLeg": { "rotation": ["math.cos(query.modified_distance_moved * 33) * 42", 0, 0] },
+        "frontLeftLeg": { "rotation": ["-math.cos(query.modified_distance_moved * 33) * 42", 0, 0] },
+        "backRightLeg": { "rotation": ["-math.cos(query.modified_distance_moved * 33) * 42", 0, 0] },
+        "body": { "rotation": ["math.cos(query.modified_distance_moved * 66) * 1.5", 0, 0] },
+        "tail": { "rotation": ["38 + math.cos(query.modified_distance_moved * 33) * 10", 0, 0] },
+        "neck": { "rotation": ["-20 + math.cos(query.modified_distance_moved * 33) * 4", 0, 0] }
+      }
+    }
+  }
+}

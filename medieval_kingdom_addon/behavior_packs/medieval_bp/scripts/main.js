@@ -1,9 +1,19 @@
 import { world, system } from "@minecraft/server";
 import { buildVillage } from "./village.js";
 import { initWorldgen, locateStructure, setWorldgen } from "./structures.js";
+import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp } from "./arenas.js";
+import "./bosses.js";
+import "./relics.js";
+
+const ARENA_BUILDERS = {
+  graveyard: buildGraveyard,
+  siegecamp: buildSiegeCamp,
+  arena: buildArena,
+  banditcamp: buildBanditCamp,
+};
 
 // ---------------------------------------------------------------
-// scriptevent router (fired by /function build_village, locate_*, worldgen_*)
+// scriptevent router (fired by /function build_*, locate_*, worldgen_*)
 // ---------------------------------------------------------------
 try {
   system.afterEvents.scriptEventReceive.subscribe((ev) => {
@@ -11,6 +21,12 @@ try {
     if (!p) return;
     if (ev.id === "md:village") {
       buildVillage(p.dimension, Math.floor(p.location.x), Math.floor(p.location.y), Math.floor(p.location.z), p.name);
+    } else if (ev.id === "md:build") {
+      const kind = (ev.message || "").trim();
+      const builder = ARENA_BUILDERS[kind];
+      if (builder) {
+        builder(p.dimension, Math.floor(p.location.x) + 14, Math.floor(p.location.y), Math.floor(p.location.z));
+      }
     } else if (ev.id === "md:locate") {
       locateStructure(p, (ev.message || "").trim());
     } else if (ev.id === "md:worldgen") {

@@ -51,6 +51,47 @@
         }
       }
     },
+    "controller.animation.lich_combat": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "transitions": [
+            { "cast": "query.property('md:state') == 'bolt'" },
+            { "summon": "query.property('md:state') == 'summon'" },
+            { "nova": "query.property('md:state') == 'nova'" }
+          ]
+        },
+        "cast": { "animations": ["cast"], "transitions": [{ "idle": "query.property('md:state') != 'bolt'" }] },
+        "summon": { "animations": ["summon"], "transitions": [{ "idle": "query.property('md:state') != 'summon'" }] },
+        "nova": { "animations": ["nova"], "transitions": [{ "idle": "query.property('md:state') != 'nova'" }] }
+      }
+    },
+    "controller.animation.golem_combat": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "transitions": [
+            { "throw": "query.property('md:state') == 'throw'" },
+            { "slam": "query.property('md:state') == 'slam'" }
+          ]
+        },
+        "throw": { "animations": ["throw"], "transitions": [{ "idle": "query.property('md:state') != 'throw'" }] },
+        "slam": { "animations": ["slam"], "transitions": [{ "idle": "query.property('md:state') != 'slam'" }] }
+      }
+    },
+    "controller.animation.bk_combat": {
+      "initial_state": "idle",
+      "states": {
+        "idle": {
+          "transitions": [
+            { "guard": "query.property('md:state') == 'guard'" },
+            { "charge": "query.property('md:state') == 'charge'" }
+          ]
+        },
+        "guard": { "animations": ["guard"], "transitions": [{ "idle": "query.property('md:state') != 'guard'" }] },
+        "charge": { "animations": ["charge"], "transitions": [{ "idle": "query.property('md:state') != 'charge'" }] }
+      }
+    },
     "controller.animation.dragon_combat": {
       "initial_state": "none",
       "states": {

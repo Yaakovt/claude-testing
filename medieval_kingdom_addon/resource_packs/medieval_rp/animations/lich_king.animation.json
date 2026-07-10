@@ -1,0 +1,55 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.lich_king.idle": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": ["math.sin(query.life_time * 40) * 1.5", 0, 0] },
+        "head": { "rotation": ["math.sin(query.life_time * 30) * 3", "math.sin(query.life_time * 20) * 5", 0] },
+        "rightArm": { "rotation": [-18, 0, "math.cos(query.life_time * 45) * 3 + 4"] },
+        "leftArm": { "rotation": [0, 0, "-math.cos(query.life_time * 45) * 3 - 4"] },
+        "shards": { "rotation": [0, "query.life_time * 90", 0] },
+        "crown": { "position": [0, "math.sin(query.life_time * 55) * 0.3", 0] }
+      }
+    },
+    "animation.lich_king.walk": {
+      "loop": true,
+      "bones": {
+        "robe": { "rotation": ["math.cos(query.modified_distance_moved * 30) * 6", 0, 0] },
+        "rightArm": { "rotation": ["-math.cos(query.modified_distance_moved * 30) * 18 - 10", 0, 0] },
+        "leftArm": { "rotation": ["math.cos(query.modified_distance_moved * 30) * 18", 0, 0] },
+        "shards": { "rotation": [0, "query.life_time * 90", 0] }
+      }
+    },
+    "animation.lich_king.cast": {
+      "loop": true,
+      "bones": {
+        "rightArm": { "rotation": ["-150 + math.sin(query.life_time * 200) * 8", 0, 10] },
+        "staff": { "rotation": [0, "query.life_time * 240", 0] },
+        "head": { "rotation": [-10, 0, 0] },
+        "shards": { "rotation": [0, "query.life_time * 260", 0] }
+      }
+    },
+    "animation.lich_king.summon": {
+      "loop": true,
+      "bones": {
+        "rightArm": { "rotation": [-165, 0, 25] },
+        "leftArm": { "rotation": [-165, 0, -25] },
+        "head": { "rotation": [-16, 0, 0] },
+        "body": { "position": [0, "math.sin(query.life_time * 120) * 0.5", 0] },
+        "shards": { "rotation": [0, "query.life_time * 320", 0] }
+      }
+    },
+    "animation.lich_king.nova": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": [-12, 0, 0], "position": [0, "math.sin(query.life_time * 160) * 0.8", 0] },
+        "rightArm": { "rotation": [-90, 0, 55] },
+        "leftArm": { "rotation": [-90, 0, -55] },
+        "head": { "rotation": [-24, 0, 0] },
+        "crown": { "position": [0, "math.sin(query.life_time * 160) * 0.6 + 0.4", 0] },
+        "shards": { "rotation": [0, "query.life_time * 420", 0] }
+      }
+    }
+  }
+}
