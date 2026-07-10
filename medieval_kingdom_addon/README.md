@@ -109,6 +109,44 @@ self-contained.
 
 ---
 
+## Drops
+
+Both bosses drop a guaranteed custom weapon, a rare trophy, crafting materials,
+and vanilla loot. They also award XP.
+
+| Boss | Weapon | Trophy | Materials |
+|---|---|---|---|
+| Animated Armor | **Warhammer of the Fallen Knight** (9 dmg, 900 durability, enchantable) | **Helm of the Animated Armor** (glowing) | 2–5 Enchanted Iron Plating + 3–7 iron ingots |
+| Fire Dragon | **Searing Fang** (8 dmg, 750 durability, enchantable, glowing) | **Dragon Heart** (glowing) | 3–8 Dragon Scales + 3–8 gold ingots |
+
+All custom items appear in the creative menu too (search their names).
+
+## Difficulty & AI
+
+- Both bosses now **acquire and chase the player** (48–70 block detection, aggressive
+  re-targeting) instead of wandering — the Armor pursues and faces you with
+  `melee_attack`, the Dragon flies toward you between attacks.
+- Attacks hit harder and cycle faster, tuned for a solo player in iron/early-diamond gear.
+- The **Fire Sphere** no longer detonates on the dragon in the sky: it spawns a slow
+  homing orb that flies to the nearest player and explodes on contact (with a 2.6 s
+  timer fallback), setting the ground alight.
+
+## The armor actually breaks now
+
+The Animated Armor is a **purpose-built suit** — great helm, breastplate, pauldrons,
+faulds, gauntlets and a plume, each a separate bone — not a reskinned player. As you
+damage it, plates are physically shed stage by stage:
+
+| Stage | HP | Damage taken | Plates lost |
+|---|---|---|---|
+| 0 | 160–121 | 30% | full armor, cyan eyes |
+| 1 | 120–81 | 50% | plume + left pauldron gone |
+| 2 | 80–41 | 75% | faulds + right pauldron gone, texture rusts |
+| 3 | 40–0 | 100% | breastplate, visor & gauntlets gone — a shuddering frame with ember-orange eyes, then it falls |
+
+So it shrugs off most early damage, and the more you break it, the more it takes and
+the more armor visibly falls away — dying once the last plates are destroyed.
+
 ## How the animations are wired
 
 Each boss exposes a **client-synced entity property** `md:state`. When the

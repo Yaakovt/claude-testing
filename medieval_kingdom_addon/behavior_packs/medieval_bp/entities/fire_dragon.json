@@ -24,7 +24,7 @@
       "dragon:ready": {
         "minecraft:timer": {
           "looping": false,
-          "time": [3.0, 5.0],
+          "time": [2.4, 4.0],
           "time_down_event": { "event": "md:dragon_pick" }
         }
       },
@@ -33,7 +33,7 @@
           "priority": 1,
           "attack_interval_min": 0.3,
           "attack_interval_max": 0.4,
-          "attack_radius": 48,
+          "attack_radius": 52,
           "burst_shots": 1
         },
         "minecraft:timer": { "looping": false, "time": 1.0, "time_down_event": { "event": "md:dragon_end" } }
@@ -42,22 +42,22 @@
         "minecraft:behavior.ranged_attack": {
           "priority": 1,
           "attack_interval_min": 0.2,
-          "attack_interval_max": 0.3,
-          "attack_radius": 48,
-          "burst_shots": 6,
-          "burst_interval": 0.18
+          "attack_interval_max": 0.25,
+          "attack_radius": 52,
+          "burst_shots": 8,
+          "burst_interval": 0.16
         },
         "minecraft:timer": { "looping": false, "time": 1.9, "time_down_event": { "event": "md:dragon_end" } }
       },
       "dragon:dive": {
         "minecraft:behavior.charge_attack": {
           "priority": 1,
-          "speed_multiplier": 2.0,
+          "speed_multiplier": 2.4,
           "success_range": 2.0,
-          "charge_distance": 32
+          "charge_distance": 40
         },
         "minecraft:area_attack": {
-          "damage_range": 4.0,
+          "damage_range": 4.5,
           "damage_per_tick": 6,
           "cause": "entity_attack",
           "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
@@ -66,8 +66,8 @@
       },
       "dragon:tailwhip": {
         "minecraft:area_attack": {
-          "damage_range": 5.0,
-          "damage_per_tick": 8,
+          "damage_range": 5.5,
+          "damage_per_tick": 7,
           "cause": "entity_attack",
           "entity_filter": { "test": "is_family", "subject": "other", "value": "player" }
         },
@@ -91,8 +91,8 @@
     "components": {
       "minecraft:type_family": { "family": ["monster", "boss", "medieval", "dragon"] },
       "minecraft:collision_box": { "width": 3.0, "height": 3.0 },
-      "minecraft:health": { "value": 350, "max": 350 },
-      "minecraft:movement": { "value": 0.35 },
+      "minecraft:health": { "value": 280, "max": 280 },
+      "minecraft:movement": { "value": 0.4 },
       "minecraft:knockback_resistance": { "value": 0.85 },
       "minecraft:fire_immune": true,
       "minecraft:persistent": {},
@@ -104,26 +104,29 @@
       "minecraft:shooter": { "def": "md:dragon_fireball" },
       "minecraft:physics": { "has_gravity": false, "has_collision": true },
       "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:loot": { "table": "loot_tables/entities/fire_dragon.json" },
+      "minecraft:experience_reward": { "on_death": "60" },
       "minecraft:behavior.float": { "priority": 0 },
       "minecraft:behavior.hurt_by_target": { "priority": 1 },
       "minecraft:behavior.nearest_attackable_target": {
         "priority": 2,
         "must_see": false,
         "reselect_targets": true,
-        "within_radius": 60,
+        "scan_interval": 10,
+        "within_radius": 70,
         "entity_types": [
-          { "filters": { "test": "is_family", "subject": "other", "value": "player" }, "max_dist": 60 }
+          { "filters": { "test": "is_family", "subject": "other", "value": "player" }, "max_dist": 70 }
         ]
       },
-      "minecraft:behavior.move_towards_target": { "priority": 6, "speed_multiplier": 1.0, "within_radius": 40 },
+      "minecraft:behavior.move_towards_target": { "priority": 4, "speed_multiplier": 1.2, "within_radius": 45 },
       "minecraft:behavior.random_hover": {
-        "priority": 8,
+        "priority": 9,
         "xz_dist": 12,
         "y_dist": 8,
         "y_offset": -1,
-        "hover_height": [6, 12]
+        "hover_height": [8, 14]
       },
-      "minecraft:behavior.look_at_player": { "priority": 9, "look_distance": 24 }
+      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 40 }
     },
     "events": {
       "minecraft:entity_spawned": {
@@ -139,7 +142,7 @@
               { "weight": 2, "add": { "component_groups": ["dragon:volley"] }, "set_property": { "md:state": "volley" } },
               { "weight": 2, "add": { "component_groups": ["dragon:dive"] }, "set_property": { "md:state": "dive" } },
               { "weight": 2, "add": { "component_groups": ["dragon:tailwhip"] }, "set_property": { "md:state": "tailwhip" } },
-              { "weight": 1, "add": { "component_groups": ["dragon:sphere"] }, "set_property": { "md:state": "sphere" } }
+              { "weight": 2, "add": { "component_groups": ["dragon:sphere"] }, "set_property": { "md:state": "sphere" } }
             ]
           }
         ]

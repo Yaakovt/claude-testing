@@ -9,3 +9,10 @@ item.spawn_egg.entity.md:knight.name=Spawn Knight
 item.spawn_egg.entity.md:archer.name=Spawn Archer
 item.spawn_egg.entity.md:animated_armor.name=Spawn Animated Armor
 item.spawn_egg.entity.md:fire_dragon.name=Spawn Fire Dragon
+
+item.md:knight_hammer=Warhammer of the Fallen Knight
+item.md:knight_trophy=Helm of the Animated Armor
+item.md:iron_plating=Enchanted Iron Plating
+item.md:dragon_heart=Dragon Heart
+item.md:dragon_scale=Dragon Scale
+item.md:searing_fang=Searing Fang

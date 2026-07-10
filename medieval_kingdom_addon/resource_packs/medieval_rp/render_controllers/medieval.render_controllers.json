@@ -14,7 +14,7 @@
       },
       "geometry": "Geometry.default",
       "materials": [{ "*": "Material.default" }],
-      "textures": ["Array.skins[(query.property('md:stage') >= 3) ? 1 : 0]"]
+      "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
     },
     "controller.render.fire_dragon": {
       "geometry": "Geometry.default",

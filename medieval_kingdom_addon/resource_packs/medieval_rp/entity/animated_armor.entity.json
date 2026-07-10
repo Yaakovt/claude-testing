@@ -16,11 +16,12 @@
         "attack_swing": "animation.animated_armor.attack_swing",
         "attack_smash": "animation.animated_armor.attack_smash",
         "attack_spin": "animation.animated_armor.attack_spin",
+        "breaking": "animation.animated_armor.breaking",
         "move": "controller.animation.md_humanoid_move",
         "combat": "controller.animation.armor_combat"
       },
       "scripts": {
-        "animate": ["move", "combat"]
+        "animate": ["breaking", "move", "combat"]
       },
       "particle_effects": {
         "shockwave": "minecraft:knockback_roar_particle",

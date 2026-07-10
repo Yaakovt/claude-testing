@@ -1,0 +1,12 @@
+{
+  "resource_pack_name": "medieval_rp",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "knight_hammer": { "textures": "textures/items/knight_hammer" },
+    "knight_trophy": { "textures": "textures/items/knight_trophy" },
+    "iron_plating": { "textures": "textures/items/iron_plating" },
+    "dragon_heart": { "textures": "textures/items/dragon_heart" },
+    "dragon_scale": { "textures": "textures/items/dragon_scale" },
+    "searing_fang": { "textures": "textures/items/searing_fang" }
+  }
+}

@@ -94,6 +94,20 @@
         "1.1": { "effect": "spin_sparks" }
       },
       "sound_effects": { "0.2": { "effect": "hammer_spin" } }
+    },
+    "animation.animated_armor.breaking": {
+      "loop": true,
+      "bones": {
+        "plume": { "scale": "(query.property('md:stage') < 1) ? 1 : 0" },
+        "leftPauldron": { "scale": "(query.property('md:stage') < 1) ? 1 : 0" },
+        "faulds": { "scale": "(query.property('md:stage') < 2) ? 1 : 0" },
+        "rightPauldron": { "scale": "(query.property('md:stage') < 2) ? 1 : 0" },
+        "chestPlate": { "scale": "(query.property('md:stage') < 3) ? 1 : 0" },
+        "visor": { "scale": "(query.property('md:stage') < 3) ? 1 : 0" },
+        "leftGauntlet": { "scale": "(query.property('md:stage') < 3) ? 1 : 0" },
+        "rightGauntlet": { "scale": "(query.property('md:stage') < 3) ? 1 : 0" },
+        "head": { "rotation": ["(query.property('md:stage') >= 3) ? math.sin(query.life_time * 120) * 4 : 0", 0, 0] }
+      }
     }
   }
 }

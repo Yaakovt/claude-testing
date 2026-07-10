@@ -10,17 +10,17 @@
     "component_groups": {
       "sphere:detonate": {
         "minecraft:explode": {
-          "fuse_length": 0.1,
+          "fuse_length": 0.05,
           "fuse_lit": true,
           "power": 4,
-          "max_resistance": 20,
+          "max_resistance": 12,
           "causes_fire": true,
           "fire_affected_by_griefing": true,
           "destroy_affected_by_griefing": true
         },
         "minecraft:timer": {
           "looping": false,
-          "time": 0.5,
+          "time": 0.4,
           "time_down_event": { "event": "sphere:cleanup" }
         }
       },
@@ -29,7 +29,7 @@
       }
     },
     "components": {
-      "minecraft:collision_box": { "width": 0.2, "height": 0.2 },
+      "minecraft:collision_box": { "width": 0.4, "height": 0.4 },
       "minecraft:physics": { "has_gravity": false, "has_collision": false },
       "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
       "minecraft:fire_immune": true,
@@ -38,9 +38,30 @@
       "minecraft:damage_sensor": {
         "triggers": [{ "cause": "all", "deals_damage": false }]
       },
+      "minecraft:movement": { "value": 0.9 },
+      "minecraft:can_fly": {},
+      "minecraft:movement.fly": {},
+      "minecraft:navigation.fly": { "can_path_over_water": true, "can_path_from_air": true, "can_fly": true },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 1,
+        "must_see": false,
+        "within_radius": 40,
+        "entity_types": [
+          { "filters": { "test": "is_family", "subject": "other", "value": "player" }, "max_dist": 40 }
+        ]
+      },
+      "minecraft:behavior.move_towards_target": { "priority": 2, "speed_multiplier": 1.4, "within_radius": 40 },
+      "minecraft:environment_sensor": {
+        "triggers": [
+          {
+            "filters": { "test": "distance_to_nearest_player", "operator": "<=", "value": 2.5 },
+            "event": "sphere:boom"
+          }
+        ]
+      },
       "minecraft:timer": {
         "looping": false,
-        "time": 1.9,
+        "time": 2.6,
         "time_down_event": { "event": "sphere:boom" }
       }
     },

@@ -1,0 +1,15 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:item": {
+    "description": {
+      "identifier": "md:dragon_heart",
+      "menu_category": { "category": "items" }
+    },
+    "components": {
+      "minecraft:max_stack_size": 16,
+      "minecraft:icon": { "texture": "dragon_heart" },
+      "minecraft:foil": true,
+      "minecraft:hover_text_color": "red"
+    }
+  }
+}

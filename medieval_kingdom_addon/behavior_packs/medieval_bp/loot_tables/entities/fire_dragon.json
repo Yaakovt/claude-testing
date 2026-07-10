@@ -1,0 +1,33 @@
+{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "item", "name": "md:searing_fang", "weight": 1 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "item", "name": "md:dragon_heart", "weight": 1 }
+      ]
+    },
+    {
+      "rolls": { "min": 3, "max": 8 },
+      "entries": [
+        { "type": "item", "name": "md:dragon_scale", "weight": 1 }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:gold_ingot",
+          "weight": 1,
+          "functions": [{ "function": "set_count", "count": { "min": 3, "max": 8 } }]
+        }
+      ]
+    }
+  ]
+}
