@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PORTAL — Browser Clone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000;
+    font-family:"Segoe UI", Arial, sans-serif; user-select:none; }
+  #canvas-holder { position:absolute; inset:0; }
+  canvas { display:block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position:absolute; inset:0; pointer-events:none; }
+
+  #crosshair { position:absolute; left:50%; top:50%; width:44px; height:44px;
+    transform:translate(-50%,-50%); }
+  #crosshair svg { width:100%; height:100%; }
+
+  #subtitles { position:absolute; left:50%; bottom:9%; transform:translateX(-50%);
+    max-width:70%; text-align:center; color:#ffd76e; font-size:19px; line-height:1.45;
+    text-shadow:0 1px 3px #000, 0 0 12px rgba(0,0,0,.9); letter-spacing:.2px;
+    background:rgba(0,0,0,.35); padding:6px 16px; border-radius:4px;
+    opacity:0; transition:opacity .3s; }
+  #subtitles.show { opacity:1; }
+
+  #hint { position:absolute; left:50%; top:57%; transform:translateX(-50%);
+    color:#dff2ff; font-size:15px; text-shadow:0 1px 2px #000; opacity:0; transition:opacity .2s; }
+  #hint.show { opacity:.95; }
+
+  #chamber-card { position:absolute; left:38px; top:34px; color:#e8eef2;
+    opacity:0; transition:opacity .6s; }
+  #chamber-card .num { font-size:64px; font-weight:700; letter-spacing:2px;
+    border:4px solid #e8eef2; padding:2px 18px; display:inline-block; background:rgba(10,14,16,.55); }
+  #chamber-card .lbl { font-size:15px; letter-spacing:5px; margin-top:8px; opacity:.85; }
+  #chamber-card.show { opacity:1; }
+
+  #damage-vignette { position:absolute; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(200,20,10,.65) 100%); }
+  #fade { position:absolute; inset:0; background:#000; opacity:1; transition:opacity .8s; }
+  #fade.clear { opacity:0; }
+
+  /* ---------- Menus ---------- */
+  .panel { position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; background:rgba(4,8,10,.88);
+    color:#e6eef2; text-align:center; z-index:10; }
+  .panel h1 { font-size:64px; letter-spacing:14px; margin:0 0 4px; font-weight:300; }
+  .panel h1 b { font-weight:700; color:#37b6ff; }
+  .panel h1 span.o { color:#ff9a2a; font-weight:700; }
+  .panel .sub { opacity:.6; letter-spacing:4px; font-size:13px; margin-bottom:34px; }
+  .panel .btn { pointer-events:auto; cursor:pointer; font-size:20px; letter-spacing:3px;
+    border:2px solid #37b6ff; color:#dff2ff; padding:12px 44px; margin:8px;
+    background:rgba(20,40,55,.35); transition:background .15s; }
+  .panel .btn:hover { background:rgba(55,182,255,.25); }
+  .panel .controls { margin-top:30px; font-size:14px; color:#9fb4c0; line-height:1.9; }
+  .panel .controls b { color:#e6eef2; display:inline-block; min-width:130px; text-align:right;
+    margin-right:12px; font-weight:600; }
+  .hidden { display:none !important; }
+  #paused-note { font-size:15px; color:#8aa; margin-top:18px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+<div id="canvas-holder"></div>
+
+<div id="hud">
+  <div id="crosshair">
+    <svg viewBox="0 0 44 44">
+      <circle cx="22" cy="22" r="1.8" fill="#fff" opacity="0.9"/>
+      <path id="ch-blue"   d="M 12 22 A 10 10 0 0 1 32 22" fill="none" stroke="#2f9fff" stroke-width="2.4" opacity="0.25"/>
+      <path id="ch-orange" d="M 32 22 A 10 10 0 0 1 12 22" fill="none" stroke="#ff9a2a" stroke-width="2.4" opacity="0.25"/>
+    </svg>
+  </div>
+  <div id="chamber-card"><div class="num">00</div><div class="lbl">TEST CHAMBER</div></div>
+  <div id="hint"></div>
+  <div id="subtitles"></div>
+  <div id="damage-vignette"></div>
+  <div id="fade"></div>
+</div>
+
+<div id="menu" class="panel">
+  <h1>P<b>O</b>RTAL<span class="o">*</span></h1>
+  <div class="sub">*AN UNOFFICIAL BROWSER-BUILT HOMAGE &mdash; ENRICHMENT ANNEX</div>
+  <div class="btn" id="btn-start">BEGIN TESTING</div>
+  <div class="controls">
+    <div><b>W A S D</b> move</div>
+    <div><b>MOUSE</b> look</div>
+    <div><b>LEFT CLICK</b> blue portal</div>
+    <div><b>RIGHT CLICK</b> orange portal</div>
+    <div><b>E</b> pick up / drop objects</div>
+    <div><b>SPACE</b> jump &nbsp;&nbsp;<b>ESC</b> pause</div>
+  </div>
+  <div id="paused-note" class="hidden">PAUSED &mdash; CLICK BEGIN TO RESUME</div>
+</div>
+
+<div id="victory" class="panel hidden">
+  <h1>TEST<b>S</b> COMPLETE</h1>
+  <div class="sub">THANK YOU FOR PARTICIPATING IN THIS ENRICHMENT ACTIVITY</div>
+  <div id="victory-text" style="max-width:620px; color:#cfe0e8; line-height:2; font-size:16px;"></div>
+  <div class="btn" id="btn-again" style="margin-top:30px;">RE-ENTER TESTING</div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/objects.js"></script>
+<script src="js/portals.js"></script>
+<script src="js/player.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

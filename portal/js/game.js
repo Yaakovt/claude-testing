@@ -1,0 +1,310 @@
+/* game.js — bootstrap, main loop, level management, input & HUD. */
+'use strict';
+(function (P) {
+
+  const V3 = P.V3;
+
+  const G = P.game = {
+    scene: null, camera: null, renderer: null,
+    levelGroup: null, levelIndex: 0,
+    cubes: [], buttons: [], doors: [], goos: [], grills: [], turrets: [],
+    elevator: null, cakePos: null, lockOrange: false,
+    player: null, running: false, transitioning: false,
+    testMode: /[?&]test=1/.test(location.search),
+  };
+
+  // ------------------------------------------------------------------ setup
+  G.init = function () {
+    P.buildMaterials();
+
+    G.renderer = new THREE.WebGLRenderer({ antialias: true });
+    G.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    G.renderer.setSize(window.innerWidth, window.innerHeight);
+    G.renderer.outputEncoding = THREE.sRGBEncoding;
+    document.getElementById('canvas-holder').appendChild(G.renderer.domElement);
+
+    G.scene = new THREE.Scene();
+    G.scene.background = new THREE.Color(0x0b0e10);
+    G.scene.fog = new THREE.Fog(0x0b0e10, 30, 90);
+
+    G.camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.08, 200);
+
+    // persistent lighting
+    G.scene.add(new THREE.HemisphereLight(0xcfd8dd, 0x2a2f33, 0.75));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.35);
+    sun.position.set(3, 10, 2);
+    G.scene.add(sun);
+
+    P.portals.init(G.scene);
+    P.portals.setRTSize(window.innerWidth, window.innerHeight);
+
+    G.player = new P.Player(G.camera);
+    G.buildViewmodel();
+
+    window.addEventListener('resize', () => {
+      G.camera.aspect = window.innerWidth / window.innerHeight;
+      G.camera.updateProjectionMatrix();
+      G.renderer.setSize(window.innerWidth, window.innerHeight);
+      P.portals.setRTSize(window.innerWidth, window.innerHeight);
+    });
+
+    G.bindInput();
+    G.loadLevel(0, true);
+    G.lastT = performance.now();
+    requestAnimationFrame(G.loop);
+  };
+
+  // ------------------------------------------------------- portal-gun view
+  G.buildViewmodel = function () {
+    const vm = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.16, 4, 10), P.mats.turret);
+    body.rotation.x = Math.PI / 2;
+    vm.add(body);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), P.mats.cubeEdge);
+    shell.position.z = 0.1; vm.add(shell);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0x2f9fff }));
+    core.position.z = -0.14; vm.add(core);
+    for (const a of [0, 2.1, -2.1]) {
+      const prong = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.16, 6), P.mats.cubeEdge);
+      prong.position.set(Math.sin(a) * 0.055, Math.cos(a) * 0.055, -0.16);
+      prong.rotation.x = -Math.PI / 2;
+      vm.add(prong);
+    }
+    vm.position.set(0.28, -0.24, -0.5);
+    vm.rotation.y = 0.08;
+    vm.visible = false;
+    G.camera.add(vm);
+    G.scene.add(G.camera);
+    G.viewmodel = vm;
+    G.vmCore = core;
+  };
+
+  // ------------------------------------------------------------- lifecycle
+  G.loadLevel = function (idx, first) {
+    G.transitioning = false;
+    G.levelIndex = idx;
+    const def = P.levels[idx];
+
+    // teardown
+    if (G.levelGroup) {
+      G.scene.remove(G.levelGroup);
+      G.levelGroup.traverse(o => {
+        if (o.geometry) o.geometry.dispose();
+      });
+    }
+    P.world.clear();
+    P.portals.clearAll();
+    G.cubes = []; G.buttons = []; G.doors = []; G.goos = [];
+    G.grills = []; G.turrets = []; G.elevator = null; G.cakePos = null;
+    G.lockOrange = false;
+
+    G.levelGroup = new THREE.Group();
+    G.scene.add(G.levelGroup);
+    def.build(P.makeCtx(G.levelGroup), G.levelGroup);
+
+    P.portals.maxUnlocked = def.unlock;
+    G.viewmodel.visible = def.unlock > 0;
+    G.player.spawnAt(def.start, def.yaw);
+    G.updateCrosshair();
+
+    // HUD chamber card
+    const card = document.getElementById('chamber-card');
+    card.querySelector('.num').textContent = def.title;
+    card.classList.add('show');
+    setTimeout(() => card.classList.remove('show'), 4200);
+
+    document.getElementById('fade').classList.add('clear');
+
+    if (first) P.voice.say(P.voice.lines.wake.concat(P.voice.lines[def.voice] || []));
+    else if (def.voice) P.voice.say(P.voice.lines[def.voice]);
+  };
+
+  G.prePlace = function (which, pos, normal) {
+    let up;
+    if (Math.abs(normal.y) > 0.9) up = V3(0, 0, 1);
+    else up = V3(0, 1, 0);
+    // find host collider: small step behind the surface
+    const inside = pos.clone().sub(normal.clone().multiplyScalar(0.1));
+    let host = null;
+    for (const c of P.world.colliders) {
+      if (inside.x > c.min.x - 0.01 && inside.x < c.max.x + 0.01 &&
+          inside.y > c.min.y - 0.01 && inside.y < c.max.y + 0.01 &&
+          inside.z > c.min.z - 0.01 && inside.z < c.max.z + 0.01) { host = c; break; }
+    }
+    P.portals[which].place(pos, normal, up, host);
+    G.updateCrosshair();
+  };
+
+  G.doorById = function (id) {
+    return G.doors.find(d => d.id === id) || null;
+  };
+
+  G.nextLevel = function () {
+    if (G.transitioning) return;
+    G.transitioning = true;
+    P.audio.elevator();
+    document.getElementById('fade').classList.remove('clear');
+    setTimeout(() => {
+      const nxt = G.levelIndex + 1;
+      if (nxt >= P.levels.length) G.win();
+      else G.loadLevel(nxt);
+    }, 900);
+  };
+
+  G.win = function () {
+    G.running = false;
+    document.exitPointerLock && document.exitPointerLock();
+    P.voice.interrupt(P.voice.lines.victory);
+    const v = document.getElementById('victory');
+    document.getElementById('victory-text').innerHTML =
+      'All six enrichment chambers were completed by a live participant.<br>' +
+      'No refunds are available for expended portals.<br><br>' +
+      'This experiment was conducted safely at home in your browser:<br>' +
+      'real-time portals, conservation of momentum, storage cubes,<br>' +
+      'sentry units, emancipation fields, and one (1) baked good.<br><br>' +
+      '<i>The facility thanks you. The facility always thanks you.</i>';
+    v.classList.remove('hidden');
+  };
+
+  G.onPlayerDeath = function (cause) {
+    if (G.transitioning) return;
+    G.transitioning = true;
+    P.voice.interrupt(P.voice.rand(cause === 'goo' ? 'goo' : 'death'));
+    document.getElementById('fade').classList.remove('clear');
+    setTimeout(() => {
+      const def = P.levels[G.levelIndex];
+      G.player.spawnAt(def.start, def.yaw);
+      G.cubes.forEach(c => c.respawn());
+      G.transitioning = false;
+      document.getElementById('fade').classList.add('clear');
+    }, 1200);
+  };
+
+  // ------------------------------------------------------------------ input
+  G.bindInput = function () {
+    const canvas = G.renderer.domElement;
+    const menu = document.getElementById('menu');
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+      P.audio.init();
+      if (!G.testMode) canvas.requestPointerLock();
+      menu.classList.add('hidden');
+      G.running = true;
+    });
+    document.getElementById('btn-again').addEventListener('click', () => {
+      document.getElementById('victory').classList.add('hidden');
+      G.loadLevel(0, true);
+      if (!G.testMode) canvas.requestPointerLock();
+      G.running = true;
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+      if (G.testMode) return;
+      const locked = document.pointerLockElement === canvas;
+      if (!locked && G.running) {
+        G.running = false;
+        menu.classList.remove('hidden');
+        document.getElementById('paused-note').classList.remove('hidden');
+      }
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!G.running) return;
+      if (!G.testMode && document.pointerLockElement !== canvas) return;
+      G.player.look(e.movementX, e.movementY);
+    });
+
+    document.addEventListener('mousedown', e => {
+      if (!G.running) return;
+      if (e.button === 0) {
+        if (G.player.carrying) { G.player.dropCube(true); return; }
+        P.portals.shoot('blue', G.camera);
+        G.flashCore(0x2f9fff);
+      } else if (e.button === 2) {
+        if (G.lockOrange) { P.audio.denied(); return; }
+        P.portals.shoot('orange', G.camera);
+        G.flashCore(0xff9a2a);
+      }
+    });
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    document.addEventListener('keydown', e => {
+      G.player.keys[e.code] = true;
+      if (e.code === 'KeyE' && G.running) G.player.interact();
+      if (e.code === 'Space') e.preventDefault();
+    });
+    document.addEventListener('keyup', e => { G.player.keys[e.code] = false; });
+  };
+
+  G.flashCore = function (color) {
+    G.vmCore.material.color.setHex(color);
+    G.viewmodel.position.z = -0.44;
+    setTimeout(() => { G.viewmodel.position.z = -0.5; }, 90);
+  };
+
+  // -------------------------------------------------------------------- HUD
+  G.updateCrosshair = function () {
+    document.getElementById('ch-blue').style.opacity = P.portals.blue.active ? '1' : '0.25';
+    document.getElementById('ch-orange').style.opacity = P.portals.orange.active ? '1' : '0.25';
+  };
+
+  G.updateHint = function () {
+    const el = document.getElementById('hint');
+    let text = '';
+    if (G.player.carrying) text = '[E] drop • [CLICK] throw';
+    else {
+      const eye = G.player.eye(), fwd = G.player.forwardVec();
+      for (const c of G.cubes) {
+        if (c.dead) continue;
+        const to = c.pos.clone().sub(eye);
+        if (to.length() < 2.6 && to.normalize().dot(fwd) > 0.8) { text = '[E] pick up'; break; }
+      }
+    }
+    if (text !== G._hint) {
+      G._hint = text;
+      el.textContent = text;
+      el.classList.toggle('show', !!text);
+    }
+  };
+
+  // ------------------------------------------------------------------- loop
+  G.loop = function () {
+    requestAnimationFrame(G.loop);
+    const t = performance.now();
+    let dt = Math.min((t - G.lastT) / 1000, 0.05);
+    G.lastT = t;
+
+    if (G.running && !G.transitioning) {
+      G.player.update(dt);
+      for (const c of G.cubes) c.update(dt);
+      for (const b of G.buttons) b.update(dt, G.player, G.cubes);
+      for (const d of G.doors) d.update(dt);
+      for (const gr of G.grills) gr.update(dt, G.player, G.cubes);
+      for (const tu of G.turrets) tu.update(dt, G.player);
+      for (const go of G.goos) {
+        go.update(dt);
+        if (go.contains(G.player.pos.clone().add(V3(0, 0.15, 0)))) { P.audio.splash(); G.player.kill('goo'); }
+        for (const c of G.cubes) if (!c.dead && !c.carried && go.contains(c.pos)) c.fizzle();
+      }
+      if (G.elevator && G.elevator.update(dt, G.player)) G.nextLevel();
+      if (G.cakePos) {
+        const p = G.player.center();
+        if (p.distanceTo(G.cakePos) < 1.6) G.win();
+      }
+      G.updateHint();
+      // damage vignette
+      document.getElementById('damage-vignette').style.opacity =
+        String(P.clamp((100 - G.player.health) / 100 * 1.2, 0, 0.9));
+    }
+
+    P.portals.render(G.renderer, G.scene, G.camera);
+    G.renderer.render(G.scene, G.camera);
+  };
+
+  // debug hooks for automated testing
+  window.__portalGame = G;
+
+  window.addEventListener('load', G.init);
+
+})(window.PORTAL);
