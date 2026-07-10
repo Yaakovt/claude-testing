@@ -135,7 +135,13 @@
     ],
     ch17: [
       "So. The participant would like to file a complaint.",
-      "My core is shielded by three uplink nodes. I am telling you this because you cannot possibly reach them. Transparency is one of my values."
+      "My core is shielded by three uplink nodes — the ringed lights on the walls. Once corrupted, a node stays corrupted; the shield contract was awarded to the lowest bidder.",
+      "One pair of portals is plenty. Route my beam into a node, move your exit portal, repeat. I am telling you this because you cannot possibly manage it."
+    ],
+    coreOverlap: [
+      "You have installed a portal directly on my node. Bold. Wrong, but bold. The beam must ENTER your other portal, back where the beam actually is.",
+      "A portal is not a weapon. Put one portal in the red beam's path, and the other one facing this node from across the room.",
+      "Shooting the node with the portal device achieves paperwork, not damage. The beam does the damage. The very red, very visible beam."
     ],
     coreEye: [
       "You are pointing my own beam at my face. The shield finds this adorable. The uplink nodes on the walls find it irrelevant.",

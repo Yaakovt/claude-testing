@@ -785,7 +785,7 @@
         P.game.turrets.push(new P.Turret(g, V3(6, 0, 6), Math.PI));
         P.game.turrets.push(new P.Turret(g, V3(-6, 0, 6), Math.PI));
 
-        let lit = 0, overloadT = -1, t = 0, hintT = 14, tauntT = 3;
+        let lit = 0, overloadT = -1, t = 0, hintT = 14, tauntT = 3, overlapT = 4;
         const corePos = V3(0, 7, 0);
         const segNear = (a, b, p, r) => {
           const ab = b.clone().sub(a), len = ab.length();
@@ -811,6 +811,21 @@
                 }
               }
             }
+            // player parked a portal on/next to a node — correct them kindly(ish)
+            overlapT -= dt;
+            if (overlapT <= 0) {
+              outer: for (const key of ['blue', 'orange']) {
+                const p = P.portals[key];
+                if (!p.active) continue;
+                for (const r of [r1, r2, r3]) {
+                  if (!r.active && p.pos.distanceTo(r.pos) < 2.2) {
+                    overlapT = 24;
+                    P.voice.interrupt(P.voice.rand('coreOverlap'));
+                    break outer;
+                  }
+                }
+              }
+            }
             // periodic nudge toward the wall nodes while stuck
             if (lit < 3) {
               hintT -= dt;
@@ -824,6 +839,11 @@
           if (n > lit) {
             lit = n;
             P.voice.interrupt(P.voice.lines.coreNode[Math.min(lit - 1, 2)]);
+            if (lit < 3) {
+              const left = 3 - lit;
+              P.voice.say('Status: ' + left + (left === 1 ? ' node remains.' : ' nodes remain.') +
+                ' Corrupted nodes stay corrupted. Simply move your exit portal. Or leave. Leaving is also fine.');
+            }
             shieldMat.opacity = 0.22 * (1 - lit / 3);
           }
           if (lit === 3 && overloadT < 0) {
