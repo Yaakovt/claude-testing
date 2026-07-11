@@ -1,0 +1,117 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "md:dread_rider",
+      "is_spawnable": true,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "md:state": {
+          "type": "enum",
+          "values": ["idle", "sweep"],
+          "default": "idle",
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "rider:ready": {
+        "minecraft:timer": {
+          "looping": false,
+          "time": [2.4, 4.0],
+          "time_down_event": { "event": "md:rider_pick" }
+        }
+      },
+      "rider:sweep": {
+        "minecraft:area_attack": {
+          "damage_range": 3.0,
+          "damage_per_tick": 6,
+          "cause": "entity_attack",
+          "entity_filter": {
+            "test": "is_family",
+            "subject": "other",
+            "value": "player"
+          }
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": 1.8,
+          "time_down_event": { "event": "md:rider_end" }
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["monster", "boss", "medieval", "rider"]
+      },
+      "minecraft:collision_box": { "width": 0.7, "height": 2.0 },
+      "minecraft:health": { "value": 180, "max": 180 },
+      "minecraft:attack": { "damage": 8 },
+      "minecraft:movement": { "value": 0.3 },
+      "minecraft:knockback_resistance": { "value": 0.7 },
+      "minecraft:persistent": {},
+      "minecraft:pushable": { "is_pushable": false, "is_pushable_by_piston": false },
+      "minecraft:boss": {
+        "should_darken_sky": false,
+        "hud_range": 55,
+        "name": "Dread Rider"
+      },
+      "minecraft:nameable": {},
+      "minecraft:navigation.walk": { "can_path_over_water": true, "avoid_water": true },
+      "minecraft:movement.basic": {},
+      "minecraft:jump.static": {},
+      "minecraft:can_climb": {},
+      "minecraft:physics": {},
+      "minecraft:conditional_bandwidth_optimization": {},
+      "minecraft:loot": { "table": "loot_tables/entities/dread_rider.json" },
+      "minecraft:experience_reward": { "on_death": "45" },
+      "minecraft:behavior.float": { "priority": 0 },
+      "minecraft:behavior.hurt_by_target": { "priority": 1 },
+      "minecraft:behavior.nearest_attackable_target": {
+        "priority": 2,
+        "must_see": false,
+        "reselect_targets": true,
+        "scan_interval": 10,
+        "within_radius": 48,
+        "entity_types": [
+          {
+            "filters": { "test": "is_family", "subject": "other", "value": "player" },
+            "max_dist": 48
+          }
+        ]
+      },
+      "minecraft:behavior.melee_attack": {
+        "priority": 3,
+        "track_target": true,
+        "reach_multiplier": 2.0,
+        "speed_multiplier": 1.2,
+        "cooldown_time": 1.0,
+        "melee_fov": 150
+      },
+      "minecraft:behavior.random_stroll": { "priority": 7, "speed_multiplier": 0.6 },
+      "minecraft:behavior.look_at_player": { "priority": 8, "look_distance": 16 },
+      "minecraft:behavior.random_look_around": { "priority": 9 }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "add": { "component_groups": ["rider:ready"] },
+        "set_property": { "md:state": "idle" }
+      },
+      "md:rider_pick": {
+        "sequence": [
+          { "remove": { "component_groups": ["rider:ready"] } },
+          {
+            "add": { "component_groups": ["rider:sweep"] },
+            "set_property": { "md:state": "sweep" }
+          }
+        ]
+      },
+      "md:rider_end": {
+        "remove": { "component_groups": ["rider:sweep"] },
+        "add": { "component_groups": ["rider:ready"] },
+        "set_property": { "md:state": "idle" }
+      }
+    }
+  }
+}

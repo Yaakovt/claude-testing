@@ -11,7 +11,7 @@
 import { world, system } from "@minecraft/server";
 import { q, ri, groundY } from "./gen_util.js";
 import { buildVillage } from "./village.js";
-import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp } from "./arenas.js";
+import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp, buildBattlefield } from "./arenas.js";
 
 const CELL = 320;
 const TRIGGER = 40; // build when a player is this close to the structure point
@@ -193,7 +193,7 @@ function cellStructure(cellX, cellZ, salt) {
   const h = hash(cellX, cellZ, salt);
   if (h % 100 < 55) return null; // 45% of cells hold a structure
   const h2 = hash(cellX + 31, cellZ - 17, salt ^ 0x9e3779b9);
-  const roll = h % 24;
+  const roll = h % 26;
   const type =
     roll < 6 ? "tower" :
     roll < 10 ? "shrine" :
@@ -201,7 +201,8 @@ function cellStructure(cellX, cellZ, salt) {
     roll < 17 ? "castle" :
     roll < 19 ? "banditcamp" :
     roll < 21 ? "graveyard" :
-    roll < 23 ? "siegecamp" : "arena";
+    roll < 23 ? "siegecamp" :
+    roll < 25 ? "arena" : "battlefield";
   return {
     type,
     x: cellX * CELL + 40 + (h2 % (CELL - 80)),
@@ -218,11 +219,12 @@ const BUILDERS = {
   siegecamp: buildSiegeCamp,
   arena: buildArena,
   banditcamp: buildBanditCamp,
+  battlefield: buildBattlefield,
 };
 const NICE = {
   tower: "watchtower", shrine: "armor shrine", village: "village", castle: "castle",
   graveyard: "haunted graveyard", siegecamp: "siege camp", arena: "jousting arena",
-  banditcamp: "bandit camp",
+  banditcamp: "bandit camp", battlefield: "burnt battlefield",
 };
 
 function record(type, x, z) {

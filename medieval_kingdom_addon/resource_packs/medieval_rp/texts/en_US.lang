@@ -18,6 +18,8 @@ entity.md:war_horse.name=War Horse
 entity.md:soul_wisp.name=Soul Wisp
 entity.md:soul_bolt.name=Soul Bolt
 entity.md:boulder.name=Boulder
+entity.md:dread_rider.name=Dread Rider
+entity.md:war_charger.name=War Charger
 
 item.spawn_egg.entity.md:knight.name=Spawn Knight
 item.spawn_egg.entity.md:archer.name=Spawn Archer
@@ -32,6 +34,7 @@ item.spawn_egg.entity.md:bandit.name=Spawn Bandit
 item.spawn_egg.entity.md:gargoyle.name=Spawn Gargoyle
 item.spawn_egg.entity.md:skeleton_mage.name=Spawn Skeleton Mage
 item.spawn_egg.entity.md:war_horse.name=Spawn War Horse
+item.spawn_egg.entity.md:dread_rider.name=Spawn Dread Rider
 
 item.md:knight_hammer=Warhammer of the Fallen Knight
 item.md:knight_trophy=Helm of the Animated Armor

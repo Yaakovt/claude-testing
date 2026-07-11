@@ -1,7 +1,7 @@
 import { world, system } from "@minecraft/server";
 import { buildVillage } from "./village.js";
 import { initWorldgen, locateStructure, setWorldgen } from "./structures.js";
-import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp } from "./arenas.js";
+import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp, buildBattlefield } from "./arenas.js";
 import "./bosses.js";
 import "./relics.js";
 
@@ -10,6 +10,7 @@ const ARENA_BUILDERS = {
   siegecamp: buildSiegeCamp,
   arena: buildArena,
   banditcamp: buildBanditCamp,
+  battlefield: buildBattlefield,
 };
 
 // ---------------------------------------------------------------

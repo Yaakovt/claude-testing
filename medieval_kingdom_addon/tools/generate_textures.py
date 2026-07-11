@@ -1091,3 +1091,120 @@ dragon_leg_layer().save(os.path.join(ARMOR_DIR, "dragon_leg_layer.png"))
 dragon_boot_layer().save(os.path.join(ARMOR_DIR, "dragon_boot_layer.png"))
 lich_crown_layer().save(os.path.join(ARMOR_DIR, "lich_crown_layer.png"))
 print("v2.0 textures done")
+
+
+# =====================================================================
+#  v2.2 — Dread Rider (mounted boss) + nightmare War Charger
+# =====================================================================
+
+# ---- DREAD RIDER — 64x64 on the black_knight geometry, soul-lit dark plate ----
+def dread_rider():
+    img = Img(64, 64)
+    steel = (34, 30, 40)          # near-black iron with a violet cast
+    deep = (18, 16, 24)
+    glow = (176, 42, 74)          # dread crimson
+    soul = (150, 90, 200)         # soul-violet accents
+    silver = (96, 92, 108)
+    # helm block
+    img.grad_rect(0, 0, 32, 16, steel, deep)
+    img.panel(0, 0, 16, 16, (12, 10, 16))
+    img.rect(8, 8, 16, 16, (8, 7, 11))                   # face void
+    img.rect(9, 11, 15, 13, glow)                        # burning eye slit
+    img.set(8, 12, (soul[0] // 2, soul[1] // 2, soul[2] // 2))
+    # helm shell (hat layer) with soul-fire crest
+    img.grad_rect(32, 0, 64, 16, (steel[0] + 8, steel[1] + 6, steel[2] + 12), deep)
+    img.panel(32, 0, 48, 16, (10, 9, 14))
+    img.rect(40, 8, 48, 16, (7, 6, 10))
+    img.rect(41, 11, 47, 13, glow)
+    img.grad_rect(40, 0, 56, 4, soul, (soul[0] // 2, soul[1] // 2, soul[2] // 2))  # crest wisp
+    # cuirass with a soul-lit sigil
+    img.grad_rect(16, 16, 40, 32, steel, deep)
+    img.panel(20, 20, 36, 32, (12, 10, 16))
+    img.rect(27, 21, 29, 29, glow)
+    img.set(28, 24, soul); img.set(27, 26, soul)
+    img.rivets([(21, 21), (34, 21), (21, 30), (34, 30)], silver)
+    # arms
+    for (x0, y0) in [(40, 16), (32, 48)]:
+        img.grad_rect(x0, y0, x0 + 16, y0 + 16, steel, deep)
+        img.panel(x0 + 4, y0 + 2, x0 + 12, y0 + 14, (12, 10, 16))
+    # legs
+    for (x0, y0) in [(0, 16), (16, 48)]:
+        img.grad_rect(x0, y0, x0 + 16, y0 + 16, (steel[0] - 4, steel[1] - 4, steel[2] - 2), deep)
+        img.panel(x0 + 4, y0 + 2, x0 + 12, y0 + 14, (10, 9, 14))
+    # shield (0,32)-(18,41): black field, crimson gash
+    img.grad_rect(0, 32, 18, 41, (24, 20, 30), (12, 10, 16))
+    img.panel(0, 32, 18, 41, silver)
+    img.rect(8, 33, 10, 40, glow)
+    img.rect(3, 36, 15, 38, glow)
+    # cape (18,32)-(36,47): tattered dark crimson
+    img.grad_rect(18, 32, 36, 47, (86, 20, 34), (34, 10, 18))
+    img.rect(18, 44, 36, 47, (24, 8, 12))
+    for x in range(19, 36, 3):
+        img.set(x, 46, (14, 6, 8))                        # ragged hem
+    img.rect(26, 36, 28, 40, soul)                        # soul clasp
+    # plume (40,32)-(60,44): soul-fire bristles
+    img.grad_rect(40, 32, 60, 44, soul, (soul[0] // 2, soul[1] // 2, soul[2] // 2))
+    for x in range(40, 60, 2):
+        img.rect(x, 32, x + 1, 44, (glow[0], glow[1], glow[2]))
+    # embers drifting over the plate
+    for _ in range(80):
+        x, y = random.randint(0, 63), random.randint(16, 63)
+        img.set(x, y, (glow[0], random.randint(30, 70), random.randint(60, 90)))
+    return img
+
+
+dread_rider().save(os.path.join(ENT_DIR, "dread_rider.png"))
+
+
+# ---- WAR CHARGER — 64x64 on the war_horse geometry, nightmare steed ----
+def war_charger():
+    img = Img(64, 64)
+    coat = (26, 22, 30)           # pitch-black with a violet cast
+    coat_d = (14, 12, 18)
+    steel = (70, 66, 82)          # soul-forged dark barding
+    steel_d = (40, 36, 50)
+    eye = (230, 60, 60)           # ember-red
+    soul = (150, 90, 200)
+    # body (0,0)-(64,32)
+    img.grad_rect(0, 0, 64, 32, coat, coat_d)
+    img.noise_rect(0, 22, 64, 32, coat, 8)
+    # dark barding saddle across the back
+    img.rect(22, 8, 32, 15, steel_d)
+    img.rect(22, 8, 32, 9, soul)
+    img.rect(22, 14, 32, 15, soul)
+    img.rect(25, 9, 29, 14, (20, 16, 26))                 # seat
+    # girth straps
+    img.rect(8, 22, 10, 32, (10, 9, 14))
+    img.rect(40, 22, 42, 32, (10, 9, 14))
+    # neck (0,32)-(20,48)
+    img.grad_rect(0, 32, 20, 48, coat, coat_d)
+    img.grad_rect(0, 32, 20, 36, steel, steel_d)          # crinet plate
+    # head (20,32)-(48,46), front face (29,41)-(34,46)
+    img.grad_rect(20, 32, 48, 46, coat, coat_d)
+    img.grad_rect(29, 41, 34, 44, steel, steel_d)          # chamfron plate
+    img.set(28, 42, eye); img.set(35, 42, eye)             # burning eyes on the cheeks
+    img.set(28, 43, (120, 20, 20)); img.set(35, 43, (120, 20, 20))
+    img.rect(29, 44, 34, 46, (16, 12, 20))                 # muzzle
+    # ears (48,32)-(52,35)
+    img.noise_rect(48, 32, 52, 35, coat_d, 5)
+    # mane (48,36)-(62,48): soul-fire
+    img.grad_rect(48, 36, 62, 48, soul, (60, 30, 90))
+    for x in range(48, 62, 2):
+        img.rect(x, 36, x + 1, 48, (glow_c := (110, 40, 160)))
+    # legs (0,48)-(12,62): black with soul-lit hooves
+    img.grad_rect(0, 48, 12, 62, coat, coat_d)
+    img.rect(0, 58, 12, 62, (10, 9, 14))
+    img.rect(0, 60, 12, 62, (soul[0] // 2, soul[1] // 2, soul[2] // 2))   # glowing hooves
+    # tail (12,48)-(20,58): soul-fire
+    img.grad_rect(12, 48, 20, 58, soul, (52, 26, 80))
+    for x in range(12, 20, 2):
+        img.rect(x, 48, x + 1, 58, (90, 34, 130))
+    # smouldering flecks
+    for _ in range(40):
+        x, y = random.randint(0, 63), random.randint(0, 63)
+        img.set(x, y, (soul[0], 60, soul[2]))
+    return img
+
+
+war_charger().save(os.path.join(ENT_DIR, "war_charger.png"))
+print("v2.2 dread rider + war charger textures done")

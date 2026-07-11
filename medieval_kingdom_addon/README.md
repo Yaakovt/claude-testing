@@ -2,13 +2,14 @@
 
 A medieval-themed add-on for **Minecraft Bedrock Edition** (Windows 10/11, Pocket,
 Console, 1.20+). It adds medieval mobs, natural structure generation, relic
-powers, and **five custom bosses** with full geometry, textures and animations:
+powers, and **six custom bosses** with full geometry, textures and animations:
 
 - 🛡️ **Animated Armor** — an empty suit of armor that sheds plates as it breaks
 - 🐉 **Fire Dragon** — a flying dragon with 3 elemental phases and super attacks
-- 💀 **Lich King** — a blink-teleporting necromancer in a haunted graveyard
-- 🗿 **Siege Golem** — a walking siege engine whose armor cracks off plate by plate
-- ⚔️ **Black Knight** — a duelist champion who loses shield, plume and cape as you win
+- 💀 **Lich King** — a necromancer who erupts back to life the first time you drop him
+- 🗿 **Siege Golem** — a siege engine you crack open at its exposed molten core
+- ⚔️ **Black Knight** — a duelist who parries your blows and breaks as you win
+- 🐴 **Dread Rider** — a mounted boss; unhorse him and his nightmare steed becomes yours
 
 > This is a Bedrock add-on (behavior pack + resource pack), which is the format
 > where models (*geometry*), *textures* and *animations* are authored as the JSON
@@ -59,11 +60,12 @@ Give yourself the spawn eggs from the creative inventory (search "Knight",
 | `/function summon_dragon` | Spawns the Fire Dragon above and in front of you |
 | `/function build_village` | Generates a **random medieval village** (jigsaw-style): roads grow from a central plaza in random directions with random branches, and lots pick random rotated buildings — houses, blacksmith, tavern, farms, chapel, market stalls — that follow the terrain. Different every time |
 | `/function build_castle` | Builds a full **41×41 castle** around you — crenellated curtain walls, four corner towers, a gatehouse with portcullis, a rear keep — garrisoned by **8 archers on the battlements and 4 knights**, with a **gold treasure mound** in the courtyard where the **Fire Dragon spawns** atop its hoard |
-| `/function summon_lich` / `summon_golem` / `summon_champion` | Spawns the Lich King / Siege Golem / Black Knight in front of you |
+| `/function summon_lich` / `summon_golem` / `summon_champion` / `summon_rider` | Spawns the Lich King / Siege Golem / Black Knight / Dread Rider in front of you |
 | `/function build_graveyard` | Raises the Lich King's **haunted graveyard** — iron-fenced yard, gravestones, dead tree, and a stone crypt with soul lanterns and the boss inside |
 | `/function build_siege_camp` | Builds a palisaded **siege camp** — trebuchet, tents, supply chest — garrisoned by bandits and the **Siege Golem** |
 | `/function build_arena` | Builds a **jousting arena** — tilt barrier, stands, banners, a pavilion with **war horse barding** in its chest — where the **Black Knight** and two war horses wait |
 | `/function build_bandit_camp` | Small roadside **bandit camp** — campfire, tents, a chest of stolen goods, three bandits and a stolen war horse |
+| `/function build_battlefield` | Raises the **burnt battlefield** — scorched craters, broken pikes, torn banners, a cold war-camp with a supply chest, where the **Dread Rider** waits on his War Charger |
 
 The two medieval mobs (Knight, Archer) **spawn naturally at night**, and the
 **Animated Armor** has a rare natural night spawn on the surface (normal/hard
@@ -88,7 +90,7 @@ own registry of everything generated:
 |---|---|
 | `/function locate_castle` | Nearest discovered castle — distance, direction, coordinates |
 | `/function locate_village` / `locate_tower` / `locate_shrine` | Same for the other structures |
-| `/function locate_graveyard` / `locate_siege_camp` / `locate_arena` / `locate_bandit_camp` | Same for the new arenas and camps |
+| `/function locate_graveyard` / `locate_siege_camp` / `locate_arena` / `locate_bandit_camp` / `locate_battlefield` | Same for the new arenas, camps and battlefield |
 | `/function worldgen_off` / `worldgen_on` | Pause/resume natural generation |
 
 Tip: raise **Simulation Distance** to 6+ so large structures generate fully in
@@ -209,6 +211,22 @@ one boss that still visibly *breaks* as you win (it fits a knight in plate).
   → cape torn away → **berserk** (faster, harder-hitting, wreathed in embers).
 - Drops: **Champion's Banner** relic + **Champion's Crest** trophy, and sometimes
   his **Knight's Greatsword**.
+
+### 🐴 Dread Rider (`md:dread_rider`) — 180 HP · *unhorse him for his steed*
+
+Found on his **burnt battlefield**. A dark champion who bears down on you astride
+a **War Charger** — a pitch-black nightmare steed with ember eyes and soul-fire
+mane. The charger carries him into the fight (the script conjures and mounts it
+on spawn) and is **invulnerable while he rides** — so your blows have to land on
+the rider, not the horse.
+
+- **Lance Sweep** — a telegraphed spinning strike that carves everything around
+  him.
+- **⭐ Claim the steed (signature):** the instant you **unhorse him** (kill the
+  rider), his War Charger is **freed** — it stops fighting, calms, and becomes a
+  **tamed mount you can ride away**. Beating him literally gives you his horse.
+- Drops: iron, plating, emeralds, and often **War Horse Barding** for your new
+  steed.
 
 ---
 

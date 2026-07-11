@@ -544,11 +544,90 @@ try {
 // ---------------------------------------------------------------
 // watcher loop
 // ---------------------------------------------------------------
+// ---------------------------------------------------------------
+// Dread Rider — a boss that bears down on you astride a War Charger.
+// Unhorse him (kill the rider) and his steed is freed: it stops fighting
+// and becomes a tame mount you can ride away. "Loot," of a sort.
+// ---------------------------------------------------------------
+const dreadPair = new Map(); // riderId -> charger entity
+
+function isRiding(e) {
+  try {
+    return !!e.getComponent("minecraft:riding");
+  } catch {
+    return false;
+  }
+}
+
+function dreadRiderTick(dim, rider) {
+  // seat every rider on a freshly-conjured charger, exactly once
+  if (!dreadPair.has(rider.id) && !isRiding(rider)) {
+    const loc = rider.location;
+    let charger;
+    try {
+      charger = dim.spawnEntity("md:war_charger", { x: loc.x, y: loc.y, z: loc.z });
+    } catch {}
+    if (charger) {
+      dreadPair.set(rider.id, charger);
+      let mounted = false;
+      try {
+        const rc = charger.getComponent("minecraft:rideable");
+        if (rc && typeof rc.addRider === "function") mounted = rc.addRider(rider);
+      } catch {}
+      if (!mounted) {
+        // fallback for API versions without addRider: the /ride command
+        try {
+          rider.addTag("md_seat_r");
+          charger.addTag("md_seat_c");
+          dim.runCommand("ride @e[tag=md_seat_r,c=1] start_riding @e[tag=md_seat_c,c=1] teleport_rider");
+        } catch {}
+        try { rider.removeTag("md_seat_r"); } catch {}
+        try { charger.removeTag("md_seat_c"); } catch {}
+      }
+      safeParticle(dim, "minecraft:soul_particle", loc);
+      safeSound(dim, "mob.horse.angry", loc);
+    }
+  }
+
+  // lance-sweep flourish
+  let state;
+  try {
+    state = rider.getProperty("md:state");
+  } catch {
+    return;
+  }
+  if (state === "sweep") {
+    const loc = rider.location;
+    ring(dim, "minecraft:critical_hit_emitter", loc, 2.2, 10);
+    ring(dim, "minecraft:basic_flame_particle", loc, 2.8, 8);
+  }
+}
+
+// when the rider falls, free his charger into a tame steed
+try {
+  world.afterEvents.entityDie.subscribe((ev) => {
+    const dead = ev.deadEntity;
+    if (!dead || dead.typeId !== "md:dread_rider") return;
+    const charger = dreadPair.get(dead.id);
+    dreadPair.delete(dead.id);
+    if (!charger || !isAlive(charger)) return;
+    try {
+      charger.triggerEvent("md:charger_free");
+      const cl = charger.location;
+      const dim = charger.dimension;
+      for (let r = 1; r <= 4; r++) ring(dim, "minecraft:heart_particle", cl, r * 0.8, 6 + r * 3);
+      safeParticle(dim, "minecraft:knockback_roar_particle", cl);
+      safeSound(dim, "mob.horse.eat", cl);
+    } catch {}
+  });
+} catch {}
+
 const WATCHED = [
   ["md:fire_dragon", dragonTick],
   ["md:lich_king", lichTick],
   ["md:siege_golem", golemTick],
   ["md:black_knight", blackKnightTick],
+  ["md:dread_rider", dreadRiderTick],
 ];
 
 system.runInterval(() => {

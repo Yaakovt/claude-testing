@@ -168,6 +168,60 @@ export function buildArena(dim, cx, cyG, cz) {
 }
 
 // ---------------------------------------------------------------
+// Burnt Battlefield — the Dread Rider's haunt
+// ---------------------------------------------------------------
+export function buildBattlefield(dim, cx, cyG, cz) {
+  const g = groundY(dim, cx, cyG, cz);
+  const Y = (n) => g + 1 + n;
+  const F = (x0, y0, z0, x1, y1, z1, b) =>
+    q(dim, `fill ${cx + x0} ${Y(y0)} ${cz + z0} ${cx + x1} ${Y(y1)} ${cz + z1} ${b}`);
+  const S = (x, y, z, b) => q(dim, `setblock ${cx + x} ${Y(y)} ${cz + z} ${b}`);
+
+  // clear the air, scorch the ground
+  F(-12, 0, -12, 12, 8, 12, "air");
+  F(-12, -1, -12, 12, -1, 12, "grass");
+  F(-9, -1, -9, 9, -1, 9, "coarse_dirt");
+  // blast scars of netherrack + magma, still smouldering
+  for (const [bx, bz] of [[-5, -4], [4, -6], [-6, 5], [6, 4], [0, 0], [-2, 7], [7, -2]]) {
+    F(bx - 1, -1, bz - 1, bx + 1, -1, bz + 1, "netherrack");
+    S(bx, -1, bz, "magma");
+  }
+  // ring of broken pikes and torn banners
+  const banners = ["red_wool", "black_wool", "gray_wool"];
+  let bi = 0;
+  for (const [px, pz] of [[-8, -8], [8, -8], [-8, 8], [8, 8], [-9, 0], [9, 0], [0, -9], [0, 9]]) {
+    const h = 2 + ((px + pz) & 1);
+    F(px, 0, pz, px, h, pz, "oak_fence");
+    if (bi % 2 === 0) S(px, h + 1, pz, banners[bi % banners.length]);
+    else S(px, h, pz + 1, "air");
+    bi++;
+  }
+  // fallen soldiers' arms jammed in the dirt
+  for (const [wx, wz] of [[-3, -2], [2, 3], [-4, 4], [5, -3], [1, -5]]) {
+    S(wx, 0, wz, "iron_bars");
+  }
+  // a cold war-camp: dead campfire, supply cart, war banner
+  S(-6, 0, -6, "campfire");
+  q(dim, `setblock ${cx - 6} ${Y(0)} ${cz - 6} campfire ["extinguished"=true]`);
+  S(-6, 0, -5, "oak_log"); S(-5, 0, -6, "oak_log");
+  F(6, 0, 6, 7, 0, 7, "stripped_oak_log");
+  S(6, 1, 6, "chest");
+  q(dim, `replaceitem block ${cx + 6} ${Y(1)} ${cz + 6} slot.container 0 iron_ingot 6`);
+  q(dim, `replaceitem block ${cx + 6} ${Y(1)} ${cz + 6} slot.container 1 md:iron_plating 2`);
+  q(dim, `replaceitem block ${cx + 6} ${Y(1)} ${cz + 6} slot.container 2 md:horse_barding 1`);
+  q(dim, `replaceitem block ${cx + 6} ${Y(1)} ${cz + 6} slot.container 3 bone 8`);
+  q(dim, `replaceitem block ${cx + 6} ${Y(1)} ${cz + 6} slot.container 4 emerald 4`);
+  // his standard, planted at the centre
+  F(0, 0, 0, 0, 3, 0, "oak_fence");
+  S(0, 4, 0, "black_wool");
+  S(0, 3, 1, "red_wool");
+  // the Dread Rider himself — the script gives him his charger
+  q(dim, `summon md:dread_rider ${cx} ${Y(0)} ${cz + 2}`);
+  q(dim, `summon md:bandit ${cx - 5} ${Y(0)} ${cz - 3}`);
+  q(dim, `summon md:bandit ${cx + 5} ${Y(0)} ${cz + 3}`);
+}
+
+// ---------------------------------------------------------------
 // Bandit Camp — small roadside trouble
 // ---------------------------------------------------------------
 export function buildBanditCamp(dim, cx, cyG, cz) {

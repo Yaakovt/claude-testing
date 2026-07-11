@@ -1,0 +1,19 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:war_charger",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/war_charger" },
+      "geometry": { "default": "geometry.war_horse" },
+      "animations": {
+        "idle": "animation.war_horse.idle",
+        "walk": "animation.war_horse.walk",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#15121a", "overlay_color": "#b0202e" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}
