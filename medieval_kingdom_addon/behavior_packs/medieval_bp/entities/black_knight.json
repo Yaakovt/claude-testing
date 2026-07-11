@@ -199,7 +199,13 @@
             ]
           },
           {
-            "filters": { "test": "int_property", "domain": "md:stage", "operator": ">", "value": 0 },
+            "filters": {
+              "any_of": [
+                { "test": "int_property", "domain": "md:stage", "value": 1 },
+                { "test": "int_property", "domain": "md:stage", "value": 2 },
+                { "test": "int_property", "domain": "md:stage", "value": 3 }
+              ]
+            },
             "randomize": [
               {
                 "weight": 3,

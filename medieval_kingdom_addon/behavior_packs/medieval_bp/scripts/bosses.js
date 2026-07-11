@@ -63,6 +63,22 @@ function nearestPlayer(dim, loc, dist) {
   }
 }
 
+// robust liveness check across API versions (isValid is a method on older
+// @minecraft/server and a property on newer ones) — reading .location throws
+// once an entity is removed, so this doubles as the guard the timers need.
+function isAlive(e) {
+  if (!e) return false;
+  try {
+    const v = e.isValid;
+    if (typeof v === "function") return v.call(e);
+    if (typeof v === "boolean") return v;
+    void e.location;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // spawn a projectile and hurl it at a target point (shield-blockable)
 function hurl(dim, type, from, at, speed) {
   let proj;
@@ -165,44 +181,41 @@ function dragonTick(dim, dragon) {
           "§b§lThe dragon draws in a glacial breath — SHIELD UP!");
         ring(dim, "minecraft:snowflake_particle", target.location, 4, 16);
         system.runTimeout(() => {
-          if (!dragon.isValid?.() && !dragon.isValid) return;
-          let t2;
           try {
-            t2 = nearestPlayer(dim, dragon.location, 64);
+            const t2 = isAlive(dragon) ? nearestPlayer(dim, dragon.location, 64) : undefined;
+            const at = t2 ? t2.location : (isAlive(target) ? target.location : dloc);
+            for (let i = 0; i < 8; i++) {
+              const a = (i / 8) * Math.PI * 2;
+              const from = {
+                x: at.x + Math.cos(a) * 7,
+                y: at.y + 8,
+                z: at.z + Math.sin(a) * 7,
+              };
+              hurl(dim, "md:ice_shard", from, { x: at.x, y: at.y + 1, z: at.z }, 1.4);
+            }
+            ring(dim, "minecraft:snowflake_particle", at, 6, 24);
+            safeSound(dim, "random.glass", at);
           } catch {}
-          const at = t2 ? t2.location : target.location;
-          for (let i = 0; i < 8; i++) {
-            const a = (i / 8) * Math.PI * 2;
-            const from = {
-              x: at.x + Math.cos(a) * 7,
-              y: at.y + 8,
-              z: at.z + Math.sin(a) * 7,
-            };
-            hurl(dim, "md:ice_shard", from, { x: at.x, y: at.y + 1, z: at.z }, 1.4);
-          }
-          ring(dim, "minecraft:snowflake_particle", at, 6, 24);
-          safeSound(dim, "random.glass", at);
         }, 40);
       } else if (phase === 2) {
         telegraph(dim, dloc, "minecraft:splash_spell_emitter", "mob.enderdragon.growl",
           "§2§lThe dragon's throat swells with venom — SHIELD UP!");
         ring(dim, "minecraft:splash_spell_emitter", target.location, 4, 16);
         system.runTimeout(() => {
-          let t2;
           try {
-            t2 = nearestPlayer(dim, dragon.location, 64);
+            const t2 = isAlive(dragon) ? nearestPlayer(dim, dragon.location, 64) : undefined;
+            const at = t2 ? t2.location : (isAlive(target) ? target.location : dloc);
+            for (let i = 0; i < 9; i++) {
+              const from = {
+                x: at.x + (Math.random() - 0.5) * 8,
+                y: at.y + 9 + Math.random() * 2,
+                z: at.z + (Math.random() - 0.5) * 8,
+              };
+              hurl(dim, "md:venom_glob", from, { x: at.x, y: at.y + 1, z: at.z }, 1.3);
+            }
+            ring(dim, "minecraft:splash_spell_emitter", at, 6, 24);
+            safeSound(dim, "mob.slime.big", at);
           } catch {}
-          const at = t2 ? t2.location : target.location;
-          for (let i = 0; i < 9; i++) {
-            const from = {
-              x: at.x + (Math.random() - 0.5) * 8,
-              y: at.y + 9 + Math.random() * 2,
-              z: at.z + (Math.random() - 0.5) * 8,
-            };
-            hurl(dim, "md:venom_glob", from, { x: at.x, y: at.y + 1, z: at.z }, 1.3);
-          }
-          ring(dim, "minecraft:splash_spell_emitter", at, 6, 24);
-          safeSound(dim, "mob.slime.big", at);
         }, 40);
       }
     }
@@ -266,7 +279,7 @@ function lichTick(dim, lich) {
       telegraph(dim, center, "minecraft:soul_particle", "mob.evocation_illager.prepare_attack",
         "§5§lThe Lich King gathers a DEATH NOVA — shield or flee!");
       system.runTimeout(() => {
-        const at = lich.location ?? center;
+        const at = isAlive(lich) ? lich.location : center;
         try {
           dim.createExplosion(at, 4.5, { breaksBlocks: false, causesFire: false, source: lich });
         } catch {}
@@ -333,8 +346,9 @@ function golemTick(dim, golem) {
       golemSlamDone.add(golem.id);
       telegraph(dim, loc, "minecraft:basic_crit_particle", "mob.irongolem.throw",
         "§6§lThe Siege Golem raises its fists — GROUND SLAM incoming!");
+      const slamOrigin = { x: loc.x, y: loc.y, z: loc.z };
       system.runTimeout(() => {
-        const at = golem.location ?? loc;
+        const at = isAlive(golem) ? golem.location : slamOrigin;
         try {
           dim.createExplosion(at, 3.5, { breaksBlocks: false, causesFire: false, source: golem });
         } catch {}
@@ -410,16 +424,19 @@ function blackKnightTick(dim, bk) {
       telegraph(dim, loc, "minecraft:critical_hit_emitter", "mob.irongolem.repair",
         "§c§lThe Black Knight lowers his blade — CHARGE incoming!");
       system.runTimeout(() => {
-        const target = nearestPlayer(dim, bk.location ?? loc, 24);
-        if (!target) return;
         try {
-          const dx = target.location.x - bk.location.x;
-          const dz = target.location.z - bk.location.z;
+          if (!isAlive(bk)) return;
+          const here = bk.location;
+          const target = nearestPlayer(dim, here, 24);
+          if (!target || !isAlive(target)) return;
+          const dx = target.location.x - here.x;
+          const dz = target.location.z - here.z;
           const len = Math.max(0.01, Math.hypot(dx, dz));
           bk.applyKnockback(dx / len, dz / len, 3.6, 0.12);
-          safeSound(dim, "mob.enderdragon.flap", bk.location);
+          safeSound(dim, "mob.enderdragon.flap", here);
           for (let s = 0; s < 5; s++) {
             system.runTimeout(() => {
+              if (!isAlive(bk)) return;
               safeParticle(dim, "minecraft:critical_hit_emitter", bk.location);
               safeParticle(dim, "minecraft:basic_flame_particle", bk.location);
             }, s * 2);

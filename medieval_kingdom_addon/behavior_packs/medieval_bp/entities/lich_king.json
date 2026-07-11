@@ -194,7 +194,12 @@
             "set_property": { "md:state": "idle" }
           },
           {
-            "filters": { "test": "int_property", "domain": "md:stage", "operator": "<", "value": 2 },
+            "filters": {
+              "any_of": [
+                { "test": "int_property", "domain": "md:stage", "value": 0 },
+                { "test": "int_property", "domain": "md:stage", "value": 1 }
+              ]
+            },
             "add": { "component_groups": ["lich:ready"] }
           },
           {

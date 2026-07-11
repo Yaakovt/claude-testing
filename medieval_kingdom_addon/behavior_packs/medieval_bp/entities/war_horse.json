@@ -34,7 +34,6 @@
       "minecraft:persistent": {},
       "minecraft:conditional_bandwidth_optimization": {},
       "minecraft:leashable": {},
-      "minecraft:tamemount": {},
       "minecraft:is_tamed": {},
       "minecraft:rideable": {
         "seat_count": 1,
