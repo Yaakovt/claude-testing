@@ -96,9 +96,8 @@ world.afterEvents.itemUse.subscribe((ev) => {
     if (sneaking) {
       const now = system.currentTick;
       if ((wispSummonAt.get(p.id) ?? -700) + 600 > now) {
-        try {
-          p.onScreenDisplay.setActionBar("§7The staff's spirits are still resting...");
-        } catch {}
+        // still on cooldown — a soft click is the only feedback
+        safeSound(dim, "note.bass", loc);
         return;
       }
       wispSummonAt.set(p.id, now);
@@ -111,9 +110,6 @@ world.afterEvents.itemUse.subscribe((ev) => {
         } catch {}
       }
       safeSound(dim, "mob.evocation_illager.prepare_summon", loc);
-      try {
-        p.onScreenDisplay.setActionBar("§d Two soul wisps rise to fight beside you.");
-      } catch {}
     } else {
       let view = { x: 0, y: 0, z: 1 };
       try {
@@ -184,9 +180,6 @@ world.afterEvents.itemUse.subscribe((ev) => {
     }
     ring(dim, "minecraft:totem_particle", loc, 2.5, 16);
     safeSound(dim, "raid.horn", loc);
-    try {
-      p.onScreenDisplay.setActionBar("§6§lFOR THE KINGDOM! Nearby heroes rally to the banner.");
-    } catch {}
   }
 });
 

@@ -31,9 +31,10 @@ function ring(dim, name, center, radius, count) {
   }
 }
 
-// big visible wind-up: expanding rings + warning text so players can raise
-// a shield in time
-function telegraph(dim, center, particle, sound, warning) {
+// big visible wind-up so players can read the attack and raise a shield in
+// time: expanding particle rings + a distinct high-pitched growl. No text —
+// the particle colour and the sound ARE the tell.
+function telegraph(dim, center, particle, sound) {
   safeSound(dim, sound, center);
   for (let step = 0; step < 4; step++) {
     system.runTimeout(() => {
@@ -45,9 +46,6 @@ function telegraph(dim, center, particle, sound, warning) {
     players = dim.getPlayers({ location: center, maxDistance: 40 });
   } catch {}
   for (const p of players) {
-    try {
-      p.onScreenDisplay.setActionBar(warning);
-    } catch {}
     try {
       p.playSound("mob.enderdragon.growl", { volume: 0.6, pitch: 1.4 });
     } catch {}
@@ -177,8 +175,7 @@ function dragonTick(dim, dragon) {
       superDone.add(dragon.id);
       const dloc = { ...dragon.location };
       if (phase === 1) {
-        telegraph(dim, dloc, "minecraft:snowflake_particle", "mob.enderdragon.growl",
-          "§b§lThe dragon draws in a glacial breath — SHIELD UP!");
+        telegraph(dim, dloc, "minecraft:snowflake_particle", "mob.enderdragon.growl");
         ring(dim, "minecraft:snowflake_particle", target.location, 4, 16);
         system.runTimeout(() => {
           try {
@@ -198,8 +195,7 @@ function dragonTick(dim, dragon) {
           } catch {}
         }, 40);
       } else if (phase === 2) {
-        telegraph(dim, dloc, "minecraft:splash_spell_emitter", "mob.enderdragon.growl",
-          "§2§lThe dragon's throat swells with venom — SHIELD UP!");
+        telegraph(dim, dloc, "minecraft:splash_spell_emitter", "mob.enderdragon.growl");
         ring(dim, "minecraft:splash_spell_emitter", target.location, 4, 16);
         system.runTimeout(() => {
           try {
@@ -276,8 +272,7 @@ function lichTick(dim, lich) {
     if (!lichNovaDone.has(lich.id)) {
       lichNovaDone.add(lich.id);
       const center = { x: loc.x, y: loc.y, z: loc.z };
-      telegraph(dim, center, "minecraft:soul_particle", "mob.evocation_illager.prepare_attack",
-        "§5§lThe Lich King gathers a DEATH NOVA — shield or flee!");
+      telegraph(dim, center, "minecraft:soul_particle", "mob.evocation_illager.prepare_attack");
       system.runTimeout(() => {
         const at = isAlive(lich) ? lich.location : center;
         try {
@@ -344,8 +339,7 @@ function golemTick(dim, golem) {
   if (state === "slam") {
     if (!golemSlamDone.has(golem.id)) {
       golemSlamDone.add(golem.id);
-      telegraph(dim, loc, "minecraft:basic_crit_particle", "mob.irongolem.throw",
-        "§6§lThe Siege Golem raises its fists — GROUND SLAM incoming!");
+      telegraph(dim, loc, "minecraft:basic_crit_particle", "mob.irongolem.throw");
       const slamOrigin = { x: loc.x, y: loc.y, z: loc.z };
       system.runTimeout(() => {
         const at = isAlive(golem) ? golem.location : slamOrigin;
@@ -421,8 +415,7 @@ function blackKnightTick(dim, bk) {
   if (state === "charge") {
     if (!bkChargeDone.has(bk.id)) {
       bkChargeDone.add(bk.id);
-      telegraph(dim, loc, "minecraft:critical_hit_emitter", "mob.irongolem.repair",
-        "§c§lThe Black Knight lowers his blade — CHARGE incoming!");
+      telegraph(dim, loc, "minecraft:critical_hit_emitter", "mob.irongolem.repair");
       system.runTimeout(() => {
         try {
           if (!isAlive(bk)) return;
