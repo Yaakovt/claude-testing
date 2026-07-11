@@ -49,9 +49,15 @@
             "on_interact": {
               "filters": {
                 "all_of": [
-                  { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "md:horse_barding" },
                   { "test": "is_family", "subject": "other", "value": "player" },
-                  { "test": "bool_property", "domain": "md:armored", "value": false }
+                  { "test": "bool_property", "domain": "md:armored", "value": false },
+                  { "any_of": [
+                    { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "md:horse_barding" },
+                    { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "iron_horse_armor" },
+                    { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "golden_horse_armor" },
+                    { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "diamond_horse_armor" },
+                    { "test": "has_equipment", "subject": "other", "domain": "hand", "value": "leather_horse_armor" }
+                  ] }
                 ]
               },
               "event": "md:equip_barding"

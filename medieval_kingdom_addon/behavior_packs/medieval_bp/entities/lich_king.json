@@ -13,10 +13,9 @@
           "default": "idle",
           "client_sync": true
         },
-        "md:stage": {
-          "type": "int",
-          "range": [0, 2],
-          "default": 0,
+        "md:empowered": {
+          "type": "bool",
+          "default": false,
           "client_sync": true
         }
       }
@@ -65,7 +64,7 @@
           "time_down_event": { "event": "md:lich_end" }
         }
       },
-      "lich:stage0": {
+      "lich:mortal": {
         "minecraft:damage_sensor": {
           "triggers": [
             {
@@ -76,34 +75,15 @@
                   "test": "actor_health",
                   "subject": "self",
                   "operator": "<=",
-                  "value": 160
+                  "value": 85
                 },
-                "event": "md:lich_stage1"
+                "event": "md:lich_phylactery"
               }
             }
           ]
         }
       },
-      "lich:stage1": {
-        "minecraft:damage_sensor": {
-          "triggers": [
-            {
-              "cause": "all",
-              "deals_damage": true,
-              "on_damage": {
-                "filters": {
-                  "test": "actor_health",
-                  "subject": "self",
-                  "operator": "<=",
-                  "value": 80
-                },
-                "event": "md:lich_stage2"
-              }
-            }
-          ]
-        }
-      },
-      "lich:wraith": {
+      "lich:empowered": {
         "minecraft:movement": { "value": 0.32 }
       }
     },
@@ -158,8 +138,8 @@
     },
     "events": {
       "minecraft:entity_spawned": {
-        "add": { "component_groups": ["lich:stage0", "lich:ready"] },
-        "set_property": { "md:stage": 0, "md:state": "idle" }
+        "add": { "component_groups": ["lich:mortal", "lich:ready"] },
+        "set_property": { "md:empowered": false, "md:state": "idle" }
       },
       "md:lich_pick": {
         "sequence": [
@@ -194,29 +174,19 @@
             "set_property": { "md:state": "idle" }
           },
           {
-            "filters": {
-              "any_of": [
-                { "test": "int_property", "domain": "md:stage", "value": 0 },
-                { "test": "int_property", "domain": "md:stage", "value": 1 }
-              ]
-            },
+            "filters": { "test": "bool_property", "domain": "md:empowered", "value": false },
             "add": { "component_groups": ["lich:ready"] }
           },
           {
-            "filters": { "test": "int_property", "domain": "md:stage", "value": 2 },
+            "filters": { "test": "bool_property", "domain": "md:empowered", "value": true },
             "add": { "component_groups": ["lich:ready_swift"] }
           }
         ]
       },
-      "md:lich_stage1": {
-        "remove": { "component_groups": ["lich:stage0"] },
-        "add": { "component_groups": ["lich:stage1"] },
-        "set_property": { "md:stage": 1 }
-      },
-      "md:lich_stage2": {
-        "remove": { "component_groups": ["lich:stage1"] },
-        "add": { "component_groups": ["lich:wraith"] },
-        "set_property": { "md:stage": 2 }
+      "md:lich_phylactery": {
+        "remove": { "component_groups": ["lich:mortal"] },
+        "add": { "component_groups": ["lich:empowered"] },
+        "set_property": { "md:empowered": true }
       }
     }
   }

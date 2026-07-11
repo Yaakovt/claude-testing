@@ -158,46 +158,55 @@ whips, then takes off).
 
 ## The three new bosses (v2.0)
 
-All three use the same **breaking-stage system as the Animated Armor**: entity
-properties drive both the AI *and* the renderer, so parts of the model visibly
-shatter off at HP thresholds.
+Each new boss has its **own** signature — they don't just copy the Animated
+Armor's plate-shedding. Entity properties still drive both the AI and the
+renderer, but the mechanic behind each one is different.
 
-### 💀 Lich King (`md:lich_king`) — 240 HP
+### 💀 Lich King (`md:lich_king`) — 240 HP · *the undying one*
 
-Found in **haunted graveyards**. A robed skeleton sorcerer with a gold crown,
-a soul staff, and three orbiting soul shards.
+Found in **haunted graveyards**. A robed skeleton sorcerer with a gold crown
+and three **soul shards that orbit him the whole fight**.
 
 - **Soul Bolts** — bursts of 3 homing, withering projectiles.
 - **Summon** — raises 2–3 **Skeleton Mages** from the earth around him.
-- **Death Nova** — telegraphed for 2+ seconds (soul particles, warning text),
+- **Death Nova** — telegraphed for 2+ seconds (soul particles + a rising growl),
   then a huge non-block-breaking explosion. Shield up or run.
 - **Blinks away** when struck (on a cooldown), trailing soul particles.
-- Breaking stages: **soul shards shatter** (stage 1) → **crown falls** (stage 2)
-  → he becomes a **glowing wraith** who casts nearly twice as fast.
+- **⭐ Phylactery (signature):** the first time you'd bring him low, he *refuses
+  to die* — he erupts in a soul nova, drinks the dead back into himself
+  (**heals to ~150 HP**), turns into a **glowing wraith** that casts nearly
+  twice as fast, and raises a full honor guard of skeletons. Beat him a
+  second time to actually win.
 - Drops: **Soul Staff** relic + wearable **Crown of the Lich King** trophy.
 
-### 🗿 Siege Golem (`md:siege_golem`) — 320 HP
+### 🗿 Siege Golem (`md:siege_golem`) — 320 HP · *hit the weak point*
 
 Found in **siege camps**. A three-block-tall stone-and-iron construct.
 
 - **Boulder Throw** — lobs arcing boulders (12 dmg) at range.
 - **Ground Slam** — telegraphed fist-raise, then a shockwave explosion that
   launches everything within ~6 blocks.
-- Breaking stages: **right pauldron** → **left pauldron** (texture cracks,
-  molten seams glow) → **chestplate falls, exposing its molten core** — it takes
-  30% *extra* damage but speeds up and hits for 16.
+- **⭐ Exposed core (signature):** while armored he shrugs off **65% of all
+  damage** — you can barely dent him. But every **Ground Slam leaves his molten
+  core exposed for ~3 seconds** (it glows, the plating cracks, he takes **1.6×
+  damage** and pauses). Bait the slam, then punish the recovery window.
+- **Overheat:** below 30% HP the core can't cool — he vents fire, speeds up,
+  and stays cracked for the rest of the fight.
 - Drops: **Golem Gauntlet** relic + **Molten Golem Core** trophy + iron plating.
 
-### ⚔️ Black Knight (`md:black_knight`) — 200 HP
+### ⚔️ Black Knight (`md:black_knight`) — 200 HP · *the duelist*
 
-Found in **jousting arenas** with his war horses. A human-scale duelist.
+Found in **jousting arenas** with his war horses. A human-scale duelist — the
+one boss that still visibly *breaks* as you win (it fits a knight in plate).
 
 - Fast sword work with a proper **guard stance** — while guarding he takes only
-  15% damage, so wait it out or circle behind.
+  15% damage.
+- **⭐ Parry & riposte (signature):** strike his **raised shield** and he turns
+  it aside in a shower of sparks, then punishes you — **knockback + a bite of
+  damage**. Attacking into the guard is a mistake; wait it out or circle behind.
 - **Rally Charge** — telegraphed blade-lower, then he lunges across the arena.
-- Breaking stages: **shield breaks** (he can no longer guard!) → **plume knocked
-  off** → **cape torn away** — then he **goes berserk**: faster, harder-hitting,
-  wreathed in embers.
+- **Breaks as he loses:** shield breaks (no more guarding!) → plume knocked off
+  → cape torn away → **berserk** (faster, harder-hitting, wreathed in embers).
 - Drops: **Champion's Banner** relic + **Champion's Crest** trophy, and sometimes
   his **Knight's Greatsword**.
 
@@ -232,7 +241,7 @@ flicker of ember particles.
 | 🏴 **Bandit** (`md:bandit`) | Night surface spawns in packs of 2–4, bandit camps, siege camps | Fast dagger rushes; attacks players, villagers *and* knights; drops emeralds/bread/plating |
 | 🗿 **Gargoyle** (`md:gargoyle`) | Perched on generated watchtowers & castle towers, rare night flyer | Stone-winged ambusher that dives from above |
 | 💀 **Skeleton Mage** (`md:skeleton_mage`) | Summoned by the Lich King, graveyards, rare night spawn | Ranged soul-bolt caster in violet robes |
-| 🐴 **War Horse** (`md:war_horse`) | Villages, jousting arenas, plains/savanna herds | **Tameable & rideable** — faster than a vanilla horse. Use **War Horse Barding** (craft: 5 iron plating + 2 leather, or loot the arena pavilion) on it for a fully armored steed: +10 HP, 40% damage reduction, steel barding skin |
+| 🐴 **War Horse** (`md:war_horse`) | Villages, jousting arenas, plains/savanna herds | **Tameable & rideable** — faster than a vanilla horse. Armor it with **War Horse Barding** (craft: 5 iron plating + 2 leather, or loot the arena pavilion) **or any vanilla horse armor** (iron / gold / diamond / leather): +10 HP, 40% damage reduction, steel barding skin |
 | 🔮 **Soul Wisp** (`md:soul_wisp`) | Summoned by your Soul Staff | Friendly spirit that shoots soul bolts at monsters, fades after 45 s |
 
 Projectiles: `md:dragon_fireball` (damaging, sets fire) and `md:fire_sphere`

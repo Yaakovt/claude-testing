@@ -9,14 +9,18 @@
       "properties": {
         "md:state": {
           "type": "enum",
-          "values": ["idle", "throw", "slam"],
+          "values": ["idle", "throw", "slam", "exposed"],
           "default": "idle",
           "client_sync": true
         },
-        "md:stage": {
-          "type": "int",
-          "range": [0, 3],
-          "default": 0,
+        "md:exposed": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        },
+        "md:enraged": {
+          "type": "bool",
+          "default": false,
           "client_sync": true
         }
       }
@@ -48,75 +52,27 @@
         "minecraft:timer": {
           "looping": false,
           "time": 3.0,
-          "time_down_event": { "event": "md:golem_end" }
+          "time_down_event": { "event": "md:golem_expose" }
         }
       },
-      "golem:stage0": {
+      "golem:armored": {
         "minecraft:damage_sensor": {
           "triggers": [
-            {
-              "cause": "all",
-              "deals_damage": true,
-              "damage_multiplier": 0.6,
-              "on_damage": {
-                "filters": {
-                  "test": "actor_health",
-                  "subject": "self",
-                  "operator": "<=",
-                  "value": 240
-                },
-                "event": "md:golem_stage1"
-              }
-            }
+            { "cause": "all", "deals_damage": true, "damage_multiplier": 0.35 }
           ]
         }
       },
-      "golem:stage1": {
+      "golem:exposed": {
         "minecraft:damage_sensor": {
           "triggers": [
-            {
-              "cause": "all",
-              "deals_damage": true,
-              "damage_multiplier": 0.75,
-              "on_damage": {
-                "filters": {
-                  "test": "actor_health",
-                  "subject": "self",
-                  "operator": "<=",
-                  "value": 160
-                },
-                "event": "md:golem_stage2"
-              }
-            }
+            { "cause": "all", "deals_damage": true, "damage_multiplier": 1.6 }
           ]
-        }
-      },
-      "golem:stage2": {
-        "minecraft:damage_sensor": {
-          "triggers": [
-            {
-              "cause": "all",
-              "deals_damage": true,
-              "damage_multiplier": 0.9,
-              "on_damage": {
-                "filters": {
-                  "test": "actor_health",
-                  "subject": "self",
-                  "operator": "<=",
-                  "value": 80
-                },
-                "event": "md:golem_stage3"
-              }
-            }
-          ]
-        }
-      },
-      "golem:core_exposed": {
-        "minecraft:damage_sensor": {
-          "triggers": [{ "cause": "all", "deals_damage": true, "damage_multiplier": 1.3 }]
         },
-        "minecraft:movement": { "value": 0.3 },
-        "minecraft:attack": { "damage": 16 }
+        "minecraft:timer": {
+          "looping": false,
+          "time": 3.0,
+          "time_down_event": { "event": "md:golem_rearm" }
+        }
       }
     },
     "components": {
@@ -175,8 +131,8 @@
     },
     "events": {
       "minecraft:entity_spawned": {
-        "add": { "component_groups": ["golem:stage0", "golem:ready"] },
-        "set_property": { "md:stage": 0, "md:state": "idle" }
+        "add": { "component_groups": ["golem:armored", "golem:ready"] },
+        "set_property": { "md:exposed": false, "md:enraged": false, "md:state": "idle" }
       },
       "md:golem_pick": {
         "sequence": [
@@ -198,24 +154,19 @@
         ]
       },
       "md:golem_end": {
-        "remove": { "component_groups": ["golem:throw", "golem:slam"] },
+        "remove": { "component_groups": ["golem:throw"] },
         "add": { "component_groups": ["golem:ready"] },
         "set_property": { "md:state": "idle" }
       },
-      "md:golem_stage1": {
-        "remove": { "component_groups": ["golem:stage0"] },
-        "add": { "component_groups": ["golem:stage1"] },
-        "set_property": { "md:stage": 1 }
+      "md:golem_expose": {
+        "remove": { "component_groups": ["golem:slam", "golem:armored"] },
+        "add": { "component_groups": ["golem:exposed"] },
+        "set_property": { "md:state": "exposed", "md:exposed": true }
       },
-      "md:golem_stage2": {
-        "remove": { "component_groups": ["golem:stage1"] },
-        "add": { "component_groups": ["golem:stage2"] },
-        "set_property": { "md:stage": 2 }
-      },
-      "md:golem_stage3": {
-        "remove": { "component_groups": ["golem:stage2"] },
-        "add": { "component_groups": ["golem:core_exposed"] },
-        "set_property": { "md:stage": 3 }
+      "md:golem_rearm": {
+        "remove": { "component_groups": ["golem:exposed"] },
+        "add": { "component_groups": ["golem:armored", "golem:ready"] },
+        "set_property": { "md:state": "idle", "md:exposed": false }
       }
     }
   }

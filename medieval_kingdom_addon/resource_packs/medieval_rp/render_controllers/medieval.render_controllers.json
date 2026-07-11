@@ -54,13 +54,8 @@
         }
       },
       "geometry": "Geometry.default",
-      "part_visibility": [
-        { "*": true },
-        { "shards": "query.property('md:stage') < 1" },
-        { "crown": "query.property('md:stage') < 2" }
-      ],
       "materials": [{ "*": "Material.default" }],
-      "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
+      "textures": ["Array.skins[query.property('md:empowered') ? 1 : 0]"]
     },
     "controller.render.siege_golem": {
       "arrays": {
@@ -69,14 +64,8 @@
         }
       },
       "geometry": "Geometry.default",
-      "part_visibility": [
-        { "*": true },
-        { "rightPauldron": "query.property('md:stage') < 1" },
-        { "leftPauldron": "query.property('md:stage') < 2" },
-        { "chestPlate": "query.property('md:stage') < 3" }
-      ],
       "materials": [{ "*": "Material.default" }],
-      "textures": ["Array.skins[(query.property('md:stage') >= 2) ? 1 : 0]"]
+      "textures": ["Array.skins[(query.property('md:exposed') || query.property('md:enraged')) ? 1 : 0]"]
     },
     "controller.render.black_knight": {
       "arrays": {

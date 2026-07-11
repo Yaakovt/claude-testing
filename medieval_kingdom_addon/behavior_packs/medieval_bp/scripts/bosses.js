@@ -226,31 +226,62 @@ function dragonTick(dim, dragon) {
 const lichSummonDone = new Set();
 const lichNovaDone = new Set();
 const lichBlinkAt = new Map();
+const lichReborn = new Set();
 
 function lichTick(dim, lich) {
-  let state;
+  let state, empowered;
   try {
     state = lich.getProperty("md:state");
+    empowered = lich.getProperty("md:empowered");
   } catch {
     return;
   }
   const loc = lich.location;
 
-  // ambient soul flames
+  // ambient soul flames — thicker once the phylactery has flared
   safeParticle(dim, "minecraft:soul_particle", {
     x: loc.x + (Math.random() - 0.5) * 1.4,
     y: loc.y + 1.5 + Math.random(),
     z: loc.z + (Math.random() - 0.5) * 1.4,
   });
+  if (empowered) {
+    safeParticle(dim, "minecraft:soul_particle", {
+      x: loc.x + (Math.random() - 0.5) * 1.8,
+      y: loc.y + 2.2 + Math.random(),
+      z: loc.z + (Math.random() - 0.5) * 1.8,
+    });
+  }
+
+  // ---- Phylactery: the one time the Lich refuses to die ----
+  // The damage sensor flips md:empowered at low HP; the moment it does, he
+  // erupts, drinks the souls of the dead back into himself, and raises a wave
+  // of skeletons. Undying, once.
+  if (empowered && !lichReborn.has(lich.id)) {
+    lichReborn.add(lich.id);
+    try {
+      const hp = lich.getComponent("minecraft:health");
+      if (hp) hp.setCurrentValue(Math.min(hp.effectiveMax ?? 240, 150));
+    } catch {}
+    for (let r = 1; r <= 7; r++) ring(dim, "minecraft:soul_particle", loc, r, 8 + r * 5);
+    safeParticle(dim, "minecraft:huge_explosion_emitter", loc);
+    safeSound(dim, "mob.wither.spawn", loc);
+    safeSound(dim, "mob.evocation_illager.prepare_summon", loc);
+    // a full honor guard rises with him
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + 0.4;
+      const sx = loc.x + Math.cos(a) * 3.2, sz = loc.z + Math.sin(a) * 3.2;
+      const sy = groundAt(dim, sx, loc.y, sz);
+      try {
+        dim.spawnEntity("md:skeleton_mage", { x: sx, y: sy, z: sz });
+        safeParticle(dim, "minecraft:soul_particle", { x: sx, y: sy + 1, z: sz });
+      } catch {}
+    }
+  }
 
   if (state === "summon") {
     if (!lichSummonDone.has(lich.id)) {
       lichSummonDone.add(lich.id);
-      let stage = 0;
-      try {
-        stage = lich.getProperty("md:stage");
-      } catch {}
-      const n = stage >= 2 ? 3 : 2;
+      const n = empowered ? 3 : 2;
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2 + Math.random();
         const sx = loc.x + Math.cos(a) * 3;
@@ -319,20 +350,50 @@ try {
 // ---------------------------------------------------------------
 const golemSlamDone = new Set();
 
+const golemEnraged = new Set();
+
 function golemTick(dim, golem) {
-  let state, stage;
+  let state, exposed;
   try {
     state = golem.getProperty("md:state");
-    stage = golem.getProperty("md:stage");
+    exposed = golem.getProperty("md:exposed");
   } catch {
     return;
   }
   const loc = golem.location;
 
-  // exposed core sputters embers in the final stage
-  if (stage >= 3) {
+  // molten core flares whenever the plating is open — the weak-point tell
+  if (exposed) {
     safeParticle(dim, "minecraft:basic_flame_particle", {
-      x: loc.x + (Math.random() - 0.5), y: loc.y + 1.8, z: loc.z + (Math.random() - 0.5),
+      x: loc.x + (Math.random() - 0.5) * 1.6, y: loc.y + 2.4, z: loc.z - 1.2,
+    });
+    safeParticle(dim, "minecraft:rising_border_dust_particle", {
+      x: loc.x, y: loc.y + 2.4, z: loc.z - 1.4,
+    });
+  }
+
+  // ---- Overheat: below 30% HP the core can't cool between blows ----
+  if (!golemEnraged.has(golem.id)) {
+    let hp;
+    try {
+      hp = golem.getComponent("minecraft:health");
+    } catch {}
+    if (hp && hp.currentValue <= (hp.effectiveMax ?? 320) * 0.3) {
+      golemEnraged.add(golem.id);
+      try {
+        golem.setProperty("md:enraged", true);
+      } catch {}
+      try {
+        golem.addEffect("speed", 1000000, { amplifier: 1, showParticles: false });
+      } catch {}
+      for (let r = 1; r <= 4; r++) ring(dim, "minecraft:basic_flame_particle", loc, r, 6 + r * 4);
+      safeParticle(dim, "minecraft:large_explosion", { x: loc.x, y: loc.y + 1.5, z: loc.z });
+      safeSound(dim, "mob.irongolem.crack", loc);
+    }
+  } else {
+    // vents steam and embers for the rest of the fight
+    safeParticle(dim, "minecraft:basic_flame_particle", {
+      x: loc.x + (Math.random() - 0.5) * 2, y: loc.y + 1.6 + Math.random(), z: loc.z + (Math.random() - 0.5) * 2,
     });
   }
 
@@ -441,6 +502,44 @@ function blackKnightTick(dim, bk) {
     bkChargeDone.delete(bk.id);
   }
 }
+
+// Parry & riposte: strike the Black Knight while his shield is raised and he
+// turns it aside in a shower of sparks, then punishes you — knockback + a bite
+// of damage. His guard stance already soaks 85% of the hit (JSON); this makes
+// attacking into the guard actively dangerous, so you learn to wait it out.
+const bkParryAt = new Map();
+try {
+  world.afterEvents.entityHurt.subscribe((ev) => {
+    const bk = ev.hurtEntity;
+    if (!bk || bk.typeId !== "md:black_knight") return;
+    let state;
+    try {
+      state = bk.getProperty("md:state");
+    } catch {
+      return;
+    }
+    if (state !== "guard") return;
+    const attacker = ev.damageSource?.damagingEntity;
+    if (!attacker || !isAlive(attacker)) return;
+    const now = system.currentTick;
+    if ((bkParryAt.get(bk.id) ?? -100) + 12 > now) return;
+    bkParryAt.set(bk.id, now);
+    const dim = bk.dimension;
+    try {
+      const bl = bk.location;
+      ring(dim, "minecraft:critical_hit_emitter", bl, 1.4, 8);
+      safeParticle(dim, "minecraft:basic_crit_particle", { x: bl.x, y: bl.y + 1.2, z: bl.z });
+      safeSound(dim, "item.shield.block", bl);
+      safeSound(dim, "random.anvil_land", bl);
+      const dx = attacker.location.x - bl.x, dz = attacker.location.z - bl.z;
+      const len = Math.max(0.01, Math.hypot(dx, dz));
+      attacker.applyKnockback(dx / len, dz / len, 1.8, 0.5);
+      if (attacker.typeId === "minecraft:player" || attacker.getComponent?.("minecraft:health")) {
+        attacker.applyDamage(3);
+      }
+    } catch {}
+  });
+} catch {}
 
 // ---------------------------------------------------------------
 // watcher loop
