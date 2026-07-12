@@ -1,0 +1,31 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:runestone_tyrant",
+      "materials": { "default": "entity_emissive_alpha" },
+      "textures": {
+        "default": "textures/entity/runestone_tyrant"
+      },
+      "geometry": { "default": "geometry.runestone_tyrant" },
+      "animations": {
+        "idle": "animation.runestone_tyrant.idle",
+        "walk": "animation.runestone_tyrant.walk",
+        "attack": "animation.runestone_tyrant.attack",
+        "roar": "animation.runestone_tyrant.roar",
+        "tyrant": "controller.animation.tyrant"
+      },
+      "scripts": {
+        "animate": ["tyrant"]
+      },
+      "particle_effects": {
+        "rune_dust": "minecraft:rising_border_dust_particle"
+      },
+      "sound_effects": {
+        "step": "mob.stone_golem.step"
+      },
+      "spawn_egg": { "base_color": "#6c7278", "overlay_color": "#78f5cd" },
+      "render_controllers": ["controller.render.runestone_tyrant"]
+    }
+  }
+}

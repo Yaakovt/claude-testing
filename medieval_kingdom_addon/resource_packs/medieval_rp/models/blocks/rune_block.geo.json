@@ -1,0 +1,22 @@
+{
+  "format_version": "1.16.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.rune_block",
+        "texture_width": 64,
+        "texture_height": 64
+      },
+      "bones": [
+        {
+          "name": "rune",
+          "pivot": [8, 8, 8],
+          "cubes": [
+            { "origin": [0, 0, 0], "size": [16, 14, 16], "uv": [0, 0] },
+            { "origin": [4, 14, 4], "size": [8, 2, 8], "uv": [0, 33] }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -38,6 +38,38 @@
         }
       }
     },
+    "controller.animation.tyrant": {
+      "initial_state": "default",
+      "states": {
+        "default": {
+          "animations": ["idle"],
+          "blend_transition": 0.25,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            { "attacking": "query.property('md:state') != 'idle' || query.is_delayed_attacking" },
+            { "moving": "query.is_moving" }
+          ]
+        },
+        "moving": {
+          "animations": ["walk"],
+          "blend_transition": 0.25,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            { "attacking": "query.property('md:state') != 'idle' || query.is_delayed_attacking" },
+            { "default": "!query.is_moving" }
+          ]
+        },
+        "attacking": {
+          "animations": ["attack"],
+          "blend_transition": 0.2,
+          "blend_via_shortest_path": true,
+          "transitions": [
+            { "moving": "query.property('md:state') == 'idle' && !query.is_delayed_attacking && query.is_moving" },
+            { "default": "query.property('md:state') == 'idle' && !query.is_delayed_attacking" }
+          ]
+        }
+      }
+    },
     "controller.animation.dragon_move": {
       "initial_state": "fly",
       "states": {

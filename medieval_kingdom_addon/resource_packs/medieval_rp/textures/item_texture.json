@@ -20,6 +20,13 @@
     "horse_barding": { "textures": "textures/items/horse_barding" },
     "lich_crown": { "textures": "textures/items/lich_crown" },
     "golem_core": { "textures": "textures/items/golem_core" },
-    "champion_crest": { "textures": "textures/items/champion_crest" }
+    "champion_crest": { "textures": "textures/items/champion_crest" },
+    "runestone": { "textures": "textures/items/runestone" },
+    "tyrant_fang": { "textures": "textures/items/tyrant_fang" },
+    "runeheart": { "textures": "textures/items/runeheart" },
+    "runeplate_helmet": { "textures": "textures/items/runeplate_helmet" },
+    "runeplate_chestplate": { "textures": "textures/items/runeplate_chestplate" },
+    "runeplate_leggings": { "textures": "textures/items/runeplate_leggings" },
+    "runeplate_boots": { "textures": "textures/items/runeplate_boots" }
   }
 }

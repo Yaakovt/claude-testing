@@ -622,12 +622,152 @@ try {
   });
 } catch {}
 
+// ---------------------------------------------------------------
+// Runestone Tyrant — an ancient stone dinosaur with a full kit:
+//   Bite (melee), Tail Sweep (knockback ring), Seismic Stomp (telegraphed
+//   shockwave), Runeburst (ring of petrifying orbs), and its signature —
+//   the Rune Lure: the glowing crest flares and hauls you in, anglerfish-style.
+//   At half health its runes awaken and it fights faster and harder.
+// ---------------------------------------------------------------
+const tySweep = new Set();
+const tyStomp = new Set();
+const tyLure = new Set();
+const tyBurst = new Set();
+const tyWoke = new Set();
+
+function tyrantTick(dim, t) {
+  let state, awakened;
+  try {
+    state = t.getProperty("md:state");
+    awakened = t.getProperty("md:awakened");
+  } catch {
+    return;
+  }
+  const loc = t.location;
+
+  // ambient rune shimmer, brighter once awakened
+  if (Math.random() < 0.5) {
+    safeParticle(dim, "minecraft:rising_border_dust_particle", {
+      x: loc.x + (Math.random() - 0.5) * 2.4, y: loc.y + 2 + Math.random() * 2.4, z: loc.z + (Math.random() - 0.5) * 2.4,
+    });
+  }
+  if (awakened) {
+    if (!tyWoke.has(t.id)) {
+      tyWoke.add(t.id);
+      for (let r = 1; r <= 5; r++) ring(dim, "minecraft:rising_border_dust_particle", loc, r, 8 + r * 4);
+      safeParticle(dim, "minecraft:huge_explosion_emitter", { x: loc.x, y: loc.y + 2, z: loc.z });
+      safeSound(dim, "mob.ravager.roar", loc);
+    }
+    safeParticle(dim, "minecraft:rising_border_dust_particle", {
+      x: loc.x + (Math.random() - 0.5) * 2.6, y: loc.y + 3 + Math.random(), z: loc.z + (Math.random() - 0.5) * 2.6,
+    });
+  }
+
+  // Tail Sweep — a spinning knockback burst
+  if (state === "sweep") {
+    if (!tySweep.has(t.id)) {
+      tySweep.add(t.id);
+      safeSound(dim, "mob.ravager.attack", loc);
+      for (let k = 0; k < 3; k++) {
+        system.runTimeout(() => { if (isAlive(t)) ring(dim, "minecraft:critical_hit_emitter", t.location, 3 + k, 12 + k * 4); }, k * 3);
+      }
+      let victims = [];
+      try {
+        victims = dim.getEntities({ location: loc, maxDistance: 5, excludeTypes: ["minecraft:item", "minecraft:xp_orb"], excludeFamilies: ["tyrant"] });
+      } catch {}
+      for (const v of victims) {
+        try {
+          const dx = v.location.x - loc.x, dz = v.location.z - loc.z, len = Math.max(0.01, Math.hypot(dx, dz));
+          v.applyKnockback(dx / len, dz / len, 2.4, 0.5);
+        } catch {}
+      }
+    }
+  } else tySweep.delete(t.id);
+
+  // Seismic Stomp — telegraphed, then a shockwave that launches you up
+  if (state === "stomp") {
+    if (!tyStomp.has(t.id)) {
+      tyStomp.add(t.id);
+      telegraph(dim, loc, "minecraft:rising_border_dust_particle", "mob.ravager.roar");
+      const origin = { x: loc.x, y: loc.y, z: loc.z };
+      system.runTimeout(() => {
+        try {
+          const at = isAlive(t) ? t.location : origin;
+          try { dim.createExplosion(at, 3.5, { breaksBlocks: false, causesFire: false, source: t }); } catch {}
+          for (let r = 1; r <= 3; r++) {
+            system.runTimeout(() => {
+              ring(dim, "minecraft:knockback_roar_particle", at, r * 2.4, 8 + r * 6);
+              ring(dim, "minecraft:critical_hit_emitter", at, r * 2.4 + 1, 8 + r * 6);
+            }, r * 3);
+          }
+          let vic = [];
+          try { vic = dim.getEntities({ location: at, maxDistance: 6.5, excludeTypes: ["minecraft:item", "minecraft:xp_orb"], excludeFamilies: ["tyrant"] }); } catch {}
+          for (const v of vic) {
+            try {
+              const dx = v.location.x - at.x, dz = v.location.z - at.z, len = Math.max(0.01, Math.hypot(dx, dz));
+              v.applyKnockback(dx / len, dz / len, 1.4, 1.0);
+            } catch {}
+          }
+          safeSound(dim, "mob.ravager.stunned", at);
+        } catch {}
+      }, 30);
+    }
+  } else tyStomp.delete(t.id);
+
+  // Rune Lure — SIGNATURE: the crest flares and drags the nearest player in
+  if (state === "lure") {
+    if (!tyLure.has(t.id)) {
+      tyLure.add(t.id);
+      safeSound(dim, "mob.guardian.curse", loc);
+      for (let s = 0; s < 6; s++) {
+        system.runTimeout(() => {
+          try {
+            if (!isAlive(t)) return;
+            const tl = t.location;
+            safeParticle(dim, "minecraft:rising_border_dust_particle", { x: tl.x, y: tl.y + 3.8, z: tl.z });
+            const p = nearestPlayer(dim, tl, 40);
+            if (p && isAlive(p)) {
+              const dx = tl.x - p.location.x, dz = tl.z - p.location.z, len = Math.max(0.01, Math.hypot(dx, dz));
+              p.applyKnockback(dx / len, dz / len, 1.8, 0.12);
+              safeParticle(dim, "minecraft:rising_border_dust_particle", { x: p.location.x, y: p.location.y + 1, z: p.location.z });
+            }
+          } catch {}
+        }, s * 6);
+      }
+    }
+  } else tyLure.delete(t.id);
+
+  // Runeburst — a ring of homing petrifying orbs
+  if (state === "burst") {
+    if (!tyBurst.has(t.id)) {
+      tyBurst.add(t.id);
+      telegraph(dim, loc, "minecraft:rising_border_dust_particle", "mob.evocation_illager.prepare_attack");
+      const origin = { x: loc.x, y: loc.y, z: loc.z };
+      system.runTimeout(() => {
+        try {
+          const tl = isAlive(t) ? t.location : origin;
+          const p = nearestPlayer(dim, tl, 48);
+          const at = p && isAlive(p) ? p.location : tl;
+          for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2;
+            const from = { x: tl.x + Math.cos(a) * 2, y: tl.y + 3.4, z: tl.z + Math.sin(a) * 2 };
+            hurl(dim, "md:ice_shard", from, { x: at.x, y: at.y + 1, z: at.z }, 1.3);
+          }
+          ring(dim, "minecraft:rising_border_dust_particle", tl, 3, 16);
+          safeSound(dim, "mob.blaze.shoot", tl);
+        } catch {}
+      }, 28);
+    }
+  } else tyBurst.delete(t.id);
+}
+
 const WATCHED = [
   ["md:fire_dragon", dragonTick],
   ["md:lich_king", lichTick],
   ["md:siege_golem", golemTick],
   ["md:black_knight", blackKnightTick],
   ["md:dread_rider", dreadRiderTick],
+  ["md:runestone_tyrant", tyrantTick],
 ];
 
 system.runInterval(() => {

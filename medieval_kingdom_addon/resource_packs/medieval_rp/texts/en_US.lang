@@ -20,6 +20,9 @@ entity.md:soul_bolt.name=Soul Bolt
 entity.md:boulder.name=Boulder
 entity.md:dread_rider.name=Dread Rider
 entity.md:war_charger.name=War Charger
+entity.md:runestone_tyrant.name=Runestone Tyrant
+
+tile.md:rune_block.name=Rune Block
 
 item.spawn_egg.entity.md:knight.name=Spawn Knight
 item.spawn_egg.entity.md:archer.name=Spawn Archer
@@ -55,3 +58,11 @@ item.md:horse_barding=War Horse Barding
 item.md:lich_crown=Crown of the Lich King
 item.md:golem_core=Molten Golem Core
 item.md:champion_crest=Champion's Crest
+item.md:runestone=Runestone
+item.md:tyrant_fang=Fang of the Runestone Tyrant
+item.md:runeheart=Runeheart
+item.md:runeplate_helmet=Runeplate Helm
+item.md:runeplate_chestplate=Runeplate Chestplate
+item.md:runeplate_leggings=Runeplate Leggings
+item.md:runeplate_boots=Runeplate Boots
+item.spawn_egg.entity.md:runestone_tyrant.name=Spawn Runestone Tyrant

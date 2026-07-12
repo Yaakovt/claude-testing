@@ -1,0 +1,54 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.runestone_tyrant.idle": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": ["math.sin(query.life_time * 40) * 1.2", 0, 0], "position": [0, "math.sin(query.life_time * 40) * 0.2", 0] },
+        "head": { "rotation": ["math.sin(query.life_time * 32) * 2.5 - 2", "math.sin(query.life_time * 21) * 3", 0] },
+        "jaw": { "rotation": ["2 + math.sin(query.life_time * 60) * 2", 0, 0] },
+        "lure": { "rotation": ["math.sin(query.life_time * 90) * 6", 0, "math.cos(query.life_time * 70) * 5"] },
+        "tail0": { "rotation": [0, "math.sin(query.life_time * 45) * 6", 0] },
+        "tail1": { "rotation": [0, "math.sin(query.life_time * 45 - 35) * 9", 0] },
+        "tassel1": { "rotation": ["math.sin(query.life_time * 55) * 8", 0, 0] },
+        "tassel2": { "rotation": ["math.sin(query.life_time * 55 + 40) * 8", 0, 0] }
+      }
+    },
+    "animation.runestone_tyrant.walk": {
+      "loop": true,
+      "bones": {
+        "rightLeg": { "rotation": ["math.cos(query.modified_distance_moved * 26) * 38", 0, 0] },
+        "leftLeg": { "rotation": ["-math.cos(query.modified_distance_moved * 26) * 38", 0, 0] },
+        "rightArm": { "rotation": ["-math.cos(query.modified_distance_moved * 26) * 22 - 10", 0, 0] },
+        "leftArm": { "rotation": ["math.cos(query.modified_distance_moved * 26) * 22 - 10", 0, 0] },
+        "body": { "rotation": ["2 + math.cos(query.modified_distance_moved * 52) * 2", "math.cos(query.modified_distance_moved * 26) * 3", 0], "position": [0, "math.abs(math.cos(query.modified_distance_moved * 26)) * 0.8", 0] },
+        "head": { "rotation": ["math.cos(query.modified_distance_moved * 26) * 3 - 3", "math.cos(query.modified_distance_moved * 26) * 4", 0] },
+        "tail0": { "rotation": [0, "math.cos(query.modified_distance_moved * 26) * 12", 0] },
+        "tail1": { "rotation": [0, "math.cos(query.modified_distance_moved * 26 - 40) * 16", 0] },
+        "tassel1": { "rotation": ["math.cos(query.modified_distance_moved * 52) * 14", 0, 0] },
+        "tassel2": { "rotation": ["math.cos(query.modified_distance_moved * 52 + 30) * 14", 0, 0] }
+      }
+    },
+    "animation.runestone_tyrant.attack": {
+      "loop": true,
+      "bones": {
+        "body": { "rotation": ["8 + math.sin(query.life_time * 240) * 4", 0, 0], "position": [0, 0, "-1 - math.sin(query.life_time * 240) * 1"] },
+        "head": { "rotation": ["12 + math.sin(query.life_time * 240) * 8", 0, 0] },
+        "jaw": { "rotation": ["28 + math.sin(query.life_time * 240) * 14", 0, 0] },
+        "lure": { "rotation": ["math.sin(query.life_time * 240) * 14", 0, 0] },
+        "rightLeg": { "rotation": [-6, 0, 0] },
+        "leftLeg": { "rotation": [-6, 0, 0] }
+      }
+    },
+    "animation.runestone_tyrant.roar": {
+      "loop": false,
+      "animation_length": 2.0,
+      "bones": {
+        "body": { "rotation": { "0.0": [0, 0, 0], "0.4": [-14, 0, 0], "1.6": [-14, 0, 0], "2.0": [0, 0, 0] } },
+        "head": { "rotation": { "0.0": [0, 0, 0], "0.4": [-30, 0, 0], "1.6": [-24, 0, 0], "2.0": [0, 0, 0] } },
+        "jaw": { "rotation": { "0.0": [0, 0, 0], "0.5": [46, 0, 0], "1.6": [40, 0, 0], "2.0": [0, 0, 0] } },
+        "lure": { "rotation": { "0.0": [0, 0, 0], "0.5": [0, 0, 30], "1.0": [0, 0, -30], "1.5": [0, 0, 20], "2.0": [0, 0, 0] } }
+      }
+    }
+  }
+}

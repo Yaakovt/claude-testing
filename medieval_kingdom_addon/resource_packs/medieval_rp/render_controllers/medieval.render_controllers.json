@@ -83,6 +83,11 @@
       "materials": [{ "*": "Material.default" }],
       "textures": ["Array.skins[(query.property('md:stage') >= 3) ? 1 : 0]"]
     },
+    "controller.render.runestone_tyrant": {
+      "geometry": "Geometry.default",
+      "materials": [{ "*": "Material.default" }],
+      "textures": ["Texture.default"]
+    },
     "controller.render.war_horse": {
       "arrays": {
         "textures": {

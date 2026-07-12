@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "md:rune_block",
+      "menu_category": { "category": "construction" },
+      "states": { "md:lit": [false, true] }
+    },
+    "components": {
+      "minecraft:geometry": "geometry.rune_block",
+      "minecraft:collision_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
+      "minecraft:selection_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
+      "minecraft:destructible_by_mining": { "seconds_to_destroy": 3.0 },
+      "minecraft:destructible_by_explosion": { "explosion_resistance": 30 },
+      "minecraft:map_color": "#5a6066",
+      "minecraft:material_instances": {
+        "*": { "texture": "rune_block", "render_method": "opaque" }
+      }
+    },
+    "permutations": [
+      {
+        "condition": "query.block_state('md:lit')",
+        "components": {
+          "minecraft:material_instances": {
+            "*": { "texture": "rune_block_lit", "render_method": "opaque" }
+          },
+          "minecraft:light_emission": 13
+        }
+      }
+    ]
+  }
+}

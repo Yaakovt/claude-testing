@@ -1,7 +1,8 @@
 import { world, system } from "@minecraft/server";
 import { buildVillage } from "./village.js";
-import { initWorldgen, locateStructure, setWorldgen } from "./structures.js";
+import { initWorldgen, locateStructure, setWorldgen, locateFromChat } from "./structures.js";
 import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp, buildBattlefield } from "./arenas.js";
+import { buildShrine } from "./puzzle.js";
 import "./bosses.js";
 import "./relics.js";
 
@@ -11,7 +12,24 @@ const ARENA_BUILDERS = {
   arena: buildArena,
   banditcamp: buildBanditCamp,
   battlefield: buildBattlefield,
+  ziggurat: buildShrine,
 };
+
+// !locate chat command (Branch B Script-API locate — see README)
+try {
+  world.beforeEvents.chatSend.subscribe((ev) => {
+    const msg = (ev.message || "").trim();
+    if (!/^!locate\b/i.test(msg)) return;
+    ev.cancel = true;
+    const arg = msg.replace(/^!locate\b/i, "").trim();
+    const p = ev.sender;
+    system.run(() => {
+      try {
+        locateFromChat(p, arg);
+      } catch {}
+    });
+  });
+} catch {}
 
 // ---------------------------------------------------------------
 // scriptevent router (fired by /function build_*, locate_*, worldgen_*)
@@ -41,6 +59,7 @@ initWorldgen();
 const HAMMER = "md:knight_hammer";
 const FANG = "md:searing_fang";
 const HEART = "md:dragon_heart";
+const RUNEHEART = "md:runeheart";
 
 function heldItem(player) {
   try {
@@ -162,6 +181,25 @@ try {
     } catch {}
     particleRing(p.dimension, "minecraft:mobflame_single", p.location, 1.5, 12);
     safeSound(p.dimension, "mob.enderdragon.growl", p.location);
+  });
+} catch {}
+
+// ---------------------------------------------------------------
+// Runeheart: consume it for the Tyrant's stone resilience
+// ---------------------------------------------------------------
+try {
+  world.afterEvents.itemCompleteUse.subscribe((ev) => {
+    if (!ev.itemStack || ev.itemStack.typeId !== RUNEHEART) return;
+    const p = ev.source;
+    if (!p) return;
+    try {
+      p.addEffect("resistance", 1800, { amplifier: 1 });
+      p.addEffect("absorption", 2400, { amplifier: 2 });
+      p.addEffect("health_boost", 2400, { amplifier: 1 });
+      p.addEffect("regeneration", 200, { amplifier: 1 });
+    } catch {}
+    particleRing(p.dimension, "minecraft:rising_border_dust_particle", p.location, 1.6, 14);
+    safeSound(p.dimension, "mob.ravager.roar", p.location);
   });
 } catch {}
 

@@ -12,6 +12,7 @@ import { world, system } from "@minecraft/server";
 import { q, ri, groundY } from "./gen_util.js";
 import { buildVillage } from "./village.js";
 import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp, buildBattlefield } from "./arenas.js";
+import { buildShrine } from "./puzzle.js";
 
 const CELL = 320;
 const TRIGGER = 40; // build when a player is this close to the structure point
@@ -193,7 +194,7 @@ function cellStructure(cellX, cellZ, salt) {
   const h = hash(cellX, cellZ, salt);
   if (h % 100 < 55) return null; // 45% of cells hold a structure
   const h2 = hash(cellX + 31, cellZ - 17, salt ^ 0x9e3779b9);
-  const roll = h % 26;
+  const roll = h % 28;
   const type =
     roll < 6 ? "tower" :
     roll < 10 ? "shrine" :
@@ -202,7 +203,8 @@ function cellStructure(cellX, cellZ, salt) {
     roll < 19 ? "banditcamp" :
     roll < 21 ? "graveyard" :
     roll < 23 ? "siegecamp" :
-    roll < 25 ? "arena" : "battlefield";
+    roll < 25 ? "arena" :
+    roll < 27 ? "battlefield" : "ziggurat";
   return {
     type,
     x: cellX * CELL + 40 + (h2 % (CELL - 80)),
@@ -220,11 +222,12 @@ const BUILDERS = {
   arena: buildArena,
   banditcamp: buildBanditCamp,
   battlefield: buildBattlefield,
+  ziggurat: buildShrine,
 };
 const NICE = {
   tower: "watchtower", shrine: "armor shrine", village: "village", castle: "castle",
   graveyard: "haunted graveyard", siegecamp: "siege camp", arena: "jousting arena",
-  banditcamp: "bandit camp", battlefield: "burnt battlefield",
+  banditcamp: "bandit camp", battlefield: "burnt battlefield", ziggurat: "primeval shrine",
 };
 
 function record(type, x, z) {
@@ -301,6 +304,45 @@ export function locateStructure(player, type) {
   const ang = Math.atan2(best[1] - pz, best[0] - px); // 0 = east
   const dir = DIRS[((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8];
   q(dim, `tellraw "${player.name}" {"rawtext":[{"text":"§6Nearest ${NICE[type]}: §e${Math.round(bd)} blocks ${dir}§6 at §e${best[0]}, ${best[1]}§6."}]}`);
+}
+
+// !locate chat command — nearest of a named type, or nearest of ANY type.
+// Aliases keep it forgiving ("!locate siege", "!locate shrine", "!locate").
+const LOCATE_ALIAS = {
+  tower: "tower", watchtower: "tower", shrine: "shrine", armor: "shrine",
+  village: "village", castle: "castle", graveyard: "graveyard",
+  siege: "siegecamp", siegecamp: "siegecamp", arena: "arena",
+  bandit: "banditcamp", banditcamp: "banditcamp", battlefield: "battlefield",
+  ziggurat: "ziggurat", primeval: "ziggurat",
+};
+
+export function locateFromChat(player, arg) {
+  const a = (arg || "").trim().toLowerCase();
+  if (a && LOCATE_ALIAS[a]) {
+    locateStructure(player, LOCATE_ALIAS[a]);
+    return;
+  }
+  // no (or unknown) type — nearest across every registered structure
+  const px = player.location.x, pz = player.location.z;
+  let best = null, bd = Infinity, bt = null;
+  for (const type of Object.keys(NICE)) {
+    let list = [];
+    try {
+      list = JSON.parse(world.getDynamicProperty(`md:reg:${type}`) || "[]");
+    } catch {}
+    for (const [x, z] of list) {
+      const d = Math.hypot(x - px, z - pz);
+      if (d < bd) { bd = d; best = [x, z]; bt = type; }
+    }
+  }
+  const dim = player.dimension;
+  if (!best) {
+    q(dim, `tellraw "${player.name}" {"rawtext":[{"text":"§7None found yet — structures register as chunks generate around you, so keep exploring. (Try §e!locate <village|castle|shrine|ziggurat|graveyard|arena|siege|bandit|battlefield|tower>§7.)"}]}`);
+    return;
+  }
+  const ang = Math.atan2(best[1] - pz, best[0] - px);
+  const dir = DIRS[((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8];
+  q(dim, `tellraw "${player.name}" {"rawtext":[{"text":"§6Nearest ${NICE[bt]}: §e${Math.round(bd)} blocks ${dir}§6 at §e${best[0]}, ${best[1]}§6."}]}`);
 }
 
 export function setWorldgen(player, on) {
