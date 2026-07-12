@@ -130,6 +130,18 @@ const Snd = (() => {
       if (onNow) { noise(0.10, 0.45, 500, 4200); osc('sine', 300, 900, 0.05, 0.05, 0.5); }
       else       { noise(0.08, 0.3, 3800, 700);  osc('sine', 800, 260, 0.05, 0.04, 0.35); }
     },
+    bell(i) {
+      const f = [329.63, 392.0, 440.0, 493.88][i] || 440;
+      osc('sine', f, f, 0.005, 0.16, 1.4); osc('sine', f * 2.76, f * 2.76, 0.005, 0.04, 0.7);
+    },
+    buzz()  { osc('square', 96, 82, 0.01, 0.10, 0.4); },
+    creak() { noise(0.09, 0.5, 90, 260, 0, 'lowpass'); osc('sine', 70, 55, 0.02, 0.05, 0.4); },
+    chalk() { noise(0.05, 0.07, 2600, 5200, 0, 'highpass'); },
+    portal() {
+      osc('sine', 60, 240, 3.0, 0.15, 3.4); osc('sine', 90, 360, 3.0, 0.10, 3.6, 0.2);
+      [1244, 1568, 1864].forEach((f, i) => osc('sine', f, f, 0.02, 0.05, 2.8, 0.8 + i * 0.3));
+      noise(0.07, 4.0, 400, 3000, 0.5);
+    },
     riser() {
       osc('sine', 80, 320, 2.2, 0.14, 2.4); osc('sine', 120, 480, 2.2, 0.08, 2.6, 0.1);
       noise(0.06, 3.2, 300, 2400, 0.4);
@@ -313,6 +325,11 @@ function glyphTex(draw) {
 }
 
 /* ================================ world =================================== */
+/* everything belonging to the horologist's study lives in act1World so the
+   whole room can step aside when — if — you go through */
+const act1World = new THREE.Group(); scene.add(act1World);
+const act2World = new THREE.Group(); act2World.visible = false; scene.add(act2World);
+
 /* backdrop */
 {
   const t = makeTex(64, 256, (c, w, h) => {
@@ -328,7 +345,7 @@ function glyphTex(draw) {
 {
   const table = new THREE.Mesh(new THREE.BoxGeometry(16, 0.35, 16),
     new THREE.MeshStandardMaterial({ map: tableTex, roughness: 0.85, envMapIntensity: 0.25 }));
-  table.position.y = -0.175; table.receiveShadow = true; scene.add(table);
+  table.position.y = -0.175; table.receiveShadow = true; act1World.add(table);
 }
 /* candle */
 {
@@ -340,8 +357,9 @@ function glyphTex(draw) {
   const flame = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.09, 8),
     new THREE.MeshBasicMaterial({ color: 0xffd27a, fog: false }));
   flame.position.y = 0.78; flame.name = 'flame';
-  g.add(stick, wax, flame); g.position.set(2.15, 0, -1.55); scene.add(g);
+  g.add(stick, wax, flame); g.position.set(2.15, 0, -1.55); act1World.add(g);
 }
+act1World.add(candleLight);
 /* dust motes */
 let dust;
 {
@@ -365,7 +383,7 @@ let dust;
 }
 
 /* ============================== THE BOX =================================== */
-const box = new THREE.Group(); scene.add(box);
+const box = new THREE.Group(); act1World.add(box);
 const BW = 2.2, BH = 1.4, BD = 1.5, BY = 0.12;          /* body dims, bottom y */
 
 function brassStrip(w, h, d, x, y, z, mat = MAT.brass) {
@@ -430,7 +448,7 @@ const LID_TOP = BY + BH + 0.18;                                    /* y = 1.70 *
 
 /* ====================== interaction plumbing ============================= */
 const state = {
-  ch: 0, hasLens: false, keyFixed: false, playing: false,
+  ch: 0, act: 1, hasLens: false, keyFixed: false, playing: false,
   letters: [], selected: null, focus: 'overview', busy: false,
 };
 const MARKS = {};                 /* named world objects, for the debug API */
@@ -467,6 +485,10 @@ const CHAPTERS = [
   ['CHAPTER IV', 'A QUARTER PAST NINE'],
   ['CHAPTER V', 'THE UNSPOKEN NAME'],
   ['CHAPTER VI', 'THE DOOR HELD SHUT'],
+  ['CHAPTER VII', 'THE SECOND ROOM'],
+  ['CHAPTER VIII', 'THE WEIGHT OF STARS'],
+  ['CHAPTER IX', 'THE SHADOW KEY'],
+  ['CHAPTER X', 'THE CHALK DOOR'],
 ];
 function chapterCard(n) {
   const el = $('#chapter-card');
@@ -553,6 +575,36 @@ I have gone through to see which of us is right.
 
 The glass will show you. Whether you raise it is not my decision to make.`,
   },
+  {
+    title: 'A NOTE IN CHALK', sig: '— e.', dark: true,
+    html: `hello. you came the long way, through edwin's box. he is so proud of that box. don't tell him the door was always easier — he needs his gears the way some people need prayers.
+
+i drew this room when i was nine. i have had a very long time to make it better. do you like the stars? they don't burn out here. they just get sleepy.
+
+the bells remember our lullaby. i taught it to them myself. wind the little crank and <em>listen</em>. then you say it back.
+
+that is how a lullaby works. someone sings it, and someone says it back.`,
+  },
+  {
+    title: 'A SECOND NOTE, SMUDGED', sig: '— e.', dark: true,
+    html: `you said it back! the bells are very pleased. they don't get much company.
+
+the scales are edwin's — of course they are. he came through with his pockets full of star-metal and the first thing he built was something to <em>weigh</em> it with. he says even here, things must balance.
+
+he also says: <em>the heaviest star alone is worth the three bright ones together.</em>
+
+he talks like that. put them right, and the dark will hold very still for you.`,
+  },
+  {
+    title: 'THE LAST NOTE', sig: '— E.V.', dark: true,
+    html: `So you are here. Forty years I studied the wall between the worlds, and my sister — aged nine, mind — drew a door in it with chalk. I no longer resent this. Mostly.
+
+The shadow you turned was the key. The chalk is the lock, and a lock of chalk must be drawn true, or it is only a picture.
+
+Raise the glass. Follow her lines. She has been keeping them warm for you.
+
+Beyond is the field you have glimpsed through the eyepiece. We will be standing in the light of it — watching for you, or waving you home. Either is right. Neither is goodbye.`,
+  },
 ];
 function giveLetter(i, silent = false) {
   if (!state.letters.includes(i)) state.letters.push(i);
@@ -561,7 +613,7 @@ function giveLetter(i, silent = false) {
 }
 function showLetter(i) {
   const L = LETTERS[i];
-  openModal({ title: L.title, html: L.html, sig: L.sig });
+  openModal({ title: L.title, html: L.html, sig: L.sig, dark: !!L.dark });
 }
 $('#btn-journal').onclick = () => {
   const actions = state.letters.slice().sort((a, b) => a - b)
@@ -584,9 +636,17 @@ const HINTS = {
       'Read “The Sixth Line” top to bottom, first letters only: E · L · O · W · E · N. Spell it on the column, top ring to bottom.'],
   6: ['There is nothing left to solve. There is only what you choose to see.',
       'There is nothing left to solve. There is only what you choose to see.'],
+  7: ['The bells learned a lullaby, and lullabies work one way: someone sings, and someone says it back.',
+      'Wind the crank and watch which bells light, in what order — five notes. Then tap the bells back in exactly that order. The crank will always sing it again for you.'],
+  8: ['Her note says what the heavy star is worth. Even here, things must balance.',
+      'All four star-weights belong on the pans. Put the six-dot star alone on one side, and the one-, two- and three-dot stars together on the other.'],
+  9: ['The lantern is honest; the iron is a liar. Turn the iron until the light on the wall tells the truth.',
+      'Drag the twisted iron slowly around and watch its cast shape on the wall. When it becomes a keyhole, it will lock itself true.'],
+  10: ['Chalk what she chalked. The glass shows where the lines want to be — and every door deserves a handle.',
+      'With the eyepiece raised, trace the pale guides on the wall without straying: the left side, the right side, then the arch across the top. Finally, tap where the handle belongs.'],
 };
 $('#btn-hint').onclick = () => {
-  const h = HINTS[clamp(state.ch, 1, 6)] || HINTS[1];
+  const h = HINTS[clamp(state.ch, 1, 10)] || HINTS[1];
   openModal({
     title: 'A WHISPER', dark: true, html: h[0],
     actions: [{ label: 'WHISPER MORE', fn: () => { modal.querySelector('.body').textContent = h[1]; } }],
@@ -618,8 +678,15 @@ function renderInv() {
 
 /* ---------------------------- inspection --------------------------------- */
 const inspectScene = new THREE.Scene();
-inspectScene.add(new THREE.HemisphereLight(0x807a6e, 0x0a0806, 1.2));
-{ const d = new THREE.DirectionalLight(0xffe0b0, 2.2); d.position.set(1.5, 2, 2); inspectScene.add(d); }
+inspectScene.environment = scene.environment;      /* metals need reflections */
+inspectScene.background = new THREE.Color(0x0d0b08);
+inspectScene.add(new THREE.HemisphereLight(0x9a8f7c, 0x141008, 2.2));
+{
+  const d = new THREE.DirectionalLight(0xffe0b0, 4.5); d.position.set(1.5, 2, 2);
+  const f = new THREE.DirectionalLight(0xbfd0e6, 1.6); f.position.set(-2, 0.5, 1);
+  const b = new THREE.DirectionalLight(0xffd9a0, 2.0); b.position.set(0, 1, -2.5);
+  inspectScene.add(d, f, b);
+}
 const inspectCam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.01, 10);
 inspectCam.position.set(0, 0, 0.55);
 let inspectItem = null, inspectOpen = false;
@@ -722,12 +789,18 @@ const NODES = {
   right:    { pos: [3.15, 1.25, 0.35], tgt: [0.95, 0.9, 0] },
   cryptex:  { pos: [0.55, 2.45, 2.2], tgt: [0.55, 1.95, 0] },
   finale:   { pos: [0.3, 2.1, 3.5],  tgt: [0, 1.35, 0] },
+  /* — the second room — */
+  overview2:{ pos: [2.9, 2.3, 4.8],  tgt: [0, 1.1, -0.4] },
+  bells:    { pos: [-0.95, 2.0, 2.5], tgt: [-0.95, 0.75, 0] },
+  scales:   { pos: [0.95, 2.0, 2.6],  tgt: [0.95, 0.95, 0] },
+  wall:     { pos: [0, 1.5, 1.6],     tgt: [0, 1.25, -2] },
 };
+function goBack() { focusNode(state.act === 2 ? 'overview2' : 'overview'); }
 let camTween = null;
 function focusNode(name, dur = 1.4) {
   if (state.focus === name && !camTween) return;
   state.focus = name;
-  $('#btn-back').classList.toggle('hidden', name === 'overview');
+  $('#btn-back').classList.toggle('hidden', name === 'overview' || name === 'overview2');
   const n = NODES[name];
   const p0 = camera.position.clone(), t0 = controls.target.clone();
   const p1 = new THREE.Vector3(...n.pos), t1 = new THREE.Vector3(...n.tgt);
@@ -738,8 +811,13 @@ function focusNode(name, dur = 1.4) {
     controls.target.lerpVectors(t0, t1, k);
   }, done: () => { camTween = null; controls.enabled = true; } });
 }
-$('#btn-back').onclick = () => focusNode('overview');
+$('#btn-back').onclick = () => goBack();
 function regionOfPoint(p) {
+  if (state.act === 2) {
+    if (p.x < -0.5 && p.z > -1.2) return 'bells';
+    if (p.x > 0.5 && p.z > -1.2) return 'scales';
+    return 'wall';
+  }
   if (state.ch === 5 && p.y > 1.72) return 'cryptex';
   const dx = p.x / (BW / 2), dy = (p.y - (BY + BH / 2)) / (BH / 2 + 0.3), dz = p.z / (BD / 2);
   const ax = Math.abs(dx), ay = Math.abs(dy), az = Math.abs(dz);
@@ -1641,7 +1719,7 @@ let beginFinale;
       title: 'THE LAST CHOICE', dark: true, closable: false,
       html: 'The eyepiece hums against your chest like a held breath.\n\nEdwin Vane has left you the only thing he ever refused himself: the decision.',
       actions: [
-        { label: 'RAISE THE EYEPIECE', fn: () => { closeModal(); ending(0); } },
+        { label: 'RAISE THE EYEPIECE', fn: () => { closeModal(); enterAct2(false); } },
         { label: 'CLOSE THE BOX',      fn: () => { closeModal(); ending(1); } },
       ],
     });
@@ -1649,20 +1727,648 @@ let beginFinale;
   fin.offerChoice = offerChoice;
 }
 
+/* ============================================================================
+   ACT II — THE SECOND ROOM
+   Raising the eyepiece at the finale no longer merely shows the other side;
+   it takes you there. Chalk, starlight, and three of her puzzles, then his.
+   ==========================================================================*/
+const ch7 = { solved: false, input: [], lock: false };
+const ch8 = { solved: false, weights: [] };
+const ch9 = { locked: false, angle: 0.6, target: 2.35 };
+const ch10 = { done: [false, false, false], handleDone: false, doorOpen: false, segs: [] };
+let enterAct2;
+{
+  const W = act2World;
+  const WALLZ = -2.0;
+
+  /* ------------ materials & textures of the drawn world ------------------ */
+  const chalkboardTex = makeTex(1024, 1024, (c, w, h) => {
+    c.fillStyle = '#10141c'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2200; i++) { c.fillStyle = `rgba(200,215,235,${rnd() * 0.05})`; c.fillRect(rnd() * w, rnd() * h, 1.4, 1); }
+    c.strokeStyle = 'rgba(220,232,250,0.10)'; c.lineWidth = 2;
+    for (let i = 0; i < 26; i++) {                      /* sleepy chalk stars */
+      const x = rnd() * w, y = rnd() * h, r = 4 + rnd() * 10;
+      for (let k = 0; k < 5; k++) {
+        const a = (k / 5) * TAU - Math.PI / 2;
+        c.beginPath(); c.moveTo(x, y);
+        c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); c.stroke();
+      }
+    }
+  });
+  const MAT2 = {
+    stone: new THREE.MeshStandardMaterial({ color: 0x2a2f3a, roughness: 0.9, envMapIntensity: 0.3 }),
+    slate: new THREE.MeshStandardMaterial({ map: chalkboardTex, roughness: 0.92, envMapIntensity: 0.2 }),
+    chalk: new THREE.MeshBasicMaterial({ color: 0xe6edf6, transparent: true, opacity: 0.92, fog: false }),
+    starmetal: new THREE.MeshStandardMaterial({ color: 0x8a93b8, metalness: 0.9, roughness: 0.32, envMapIntensity: 1.2 }),
+  };
+
+  /* ------------------------------- room ---------------------------------- */
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 0.3, 48), MAT2.slate);
+  floor.position.y = -0.15; floor.receiveShadow = true; W.add(floor);
+  const wallSlab = new THREE.Mesh(new THREE.BoxGeometry(4.2, 3.3, 0.14), MAT2.slate.clone());
+  wallSlab.position.set(0, 1.55, WALLZ - 0.07); wallSlab.userData.knock = true; W.add(wallSlab);
+  for (const sx of [-1, 1]) {                                    /* wall posts */
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 3.3, 10), MAT2.stone);
+    post.position.set(sx * 2.1, 1.55, WALLZ - 0.07); W.add(post);
+  }
+  const lanternLight = new THREE.PointLight(0xbfd8ff, 3.2, 9, 1.6);
+  lanternLight.position.set(0, 1.25, 0.7); W.add(lanternLight);
+  {  /* the hovering lantern itself */
+    const g = new THREE.Group();
+    const cage = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.2, 8, 1, true), MAT.brassDark);
+    cage.material = cage.material.clone(); cage.material.wireframe = true;
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0xcfe4ff, fog: false }));
+    g.add(cage, core); g.position.copy(lanternLight.position); g.name = 'lantern'; W.add(g);
+  }
+
+  /* ------------------- pedestal A — the four bells ----------------------- */
+  const MELODY = [0, 2, 1, 3, 2];
+  const pedA = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.52, 0.95, 24), MAT2.stone);
+  pedA.position.set(-0.95, 0.475, 0); pedA.castShadow = true; pedA.userData.knock = true; W.add(pedA);
+  const bells = [];
+  for (let i = 0; i < 4; i++) {
+    const bmat = MAT.brass.clone(); bmat.emissive = new THREE.Color(0x2b1a06); bmat.emissiveIntensity = 0.15;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 12, 0, TAU, 0, Math.PI * 0.55), bmat);
+    dome.scale.y = 1.15;
+    const grp = new THREE.Group();
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.07, 8), MAT.brassDark);
+    post.position.y = 0.03; dome.position.y = 0.07;
+    grp.add(post, dome);
+    grp.position.set(-0.95 - 0.27 + i * 0.18, 0.95, -0.06);
+    W.add(grp);
+    bells.push({ grp, dome, mat: bmat });
+    MARKS['bell' + i] = dome;
+    reg(dome, {
+      enabled: () => state.ch === 7 && !ch7.solved && !ch7.lock, cursor: 'pointer',
+      tap() { pressBell(i, true); },
+    });
+  }
+  function pressBell(i, byPlayer) {
+    const b = bells[i];
+    Snd.bell(i);
+    const m = b.mat;
+    tween({ dur: 0.5, step: (k) => { m.emissiveIntensity = 0.15 + Math.sin(k * Math.PI) * 2.4; } });
+    tween({ dur: 0.3, step: (k) => { b.grp.position.y = 0.95 - Math.sin(k * Math.PI) * 0.02; } });
+    if (!byPlayer) return;
+    ch7.input.push(i);
+    const n = ch7.input.length;
+    if (ch7.input[n - 1] !== MELODY[n - 1]) {
+      ch7.input = [];
+      Snd.buzz();
+      say('The bells shiver — that was not the lullaby. Wind the crank and listen again.');
+      return;
+    }
+    if (n === MELODY.length) {
+      ch7.solved = true;
+      Snd.chime();
+      say('The lullaby, said back at last. Somewhere very near, a little girl’s drawer decides to trust you.');
+      delay(1.2, openDrawerA);
+      delay(2.0, () => { if (state.ch === 7) advanceChapter(8); });
+    }
+  }
+  /* crank */
+  const crank = new THREE.Group();
+  {
+    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.09, 8), MAT.brassDark);
+    axle.rotation.x = Math.PI / 2;
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.11, 0.02), MAT.brass);
+    arm.position.set(0, -0.045, 0.05);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), MAT.brass);
+    knob.position.set(0, -0.1, 0.06);
+    crank.add(axle, arm, knob);
+    crank.position.set(-0.55, 1.02, 0.16); W.add(crank);
+  }
+  MARKS.crank = crank.children[1];
+  function playMelody() {
+    if (ch7.lock) return;
+    ch7.lock = true; ch7.input = [];
+    tween({ dur: 1.4, step: (k) => { crank.rotation.z = k * TAU * 2; } });
+    MELODY.forEach((b, i) => delay(0.7 + i * 0.62, () => pressBell(b, false)));
+    delay(0.7 + MELODY.length * 0.62 + 0.3, () => { ch7.lock = false; });
+  }
+  for (const part of crank.children) reg(part, {
+    enabled: () => state.act === 2 && !ch7.solved, cursor: 'pointer',
+    tap() { Snd.ratchet(); playMelody(); },
+  });
+
+  /* drawer in pedestal A */
+  const drawerA = new THREE.Group();
+  const daFace = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.03), MAT2.stone);
+  const daTray = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.3), MAT.woodDark);
+  daTray.position.set(0, -0.07, -0.16);
+  drawerA.add(daFace, daTray);
+  drawerA.position.set(-0.95, 0.62, 0.44); W.add(drawerA);
+  let drawerAOpen = false;
+  function openDrawerA() {
+    if (drawerAOpen) return; drawerAOpen = true;
+    Snd.slide();
+    tween({ dur: 0.8, ease: easeOut, step: (k) => { drawerA.position.z = 0.44 + k * 0.3; } });
+  }
+  /* note in the drawer */
+  const note5 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.012, 0.14),
+    new THREE.MeshStandardMaterial({ color: 0x1c222e, roughness: 0.9 }));
+  {
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.17, 0.1),
+      new THREE.MeshBasicMaterial({ color: 0xdfe8f4, transparent: true, opacity: 0.7,
+        map: glyphTex((c, w, h) => { c.font = 'italic 26px Georgia';
+          for (let i = 0; i < 4; i++) c.fillText('~ ~ ~ ~ ~ ~', 30, 60 + i * 34); }) }));
+    scr.rotation.x = -Math.PI / 2; scr.position.y = 0.008; note5.add(scr);
+  }
+  note5.position.set(0, -0.05, -0.23); drawerA.add(note5);
+  MARKS.drawerNote = note5;
+  let note5got = false;
+  reg(note5, {
+    enabled: () => drawerAOpen && !note5got, cursor: 'pointer',
+    tap() { note5got = true; note5.visible = false; giveLetter(5); },
+  });
+
+  /* -------------------- pedestal B — the star scales --------------------- */
+  const pedB = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.52, 0.95, 24), MAT2.stone);
+  pedB.position.set(0.95, 0.475, 0); pedB.castShadow = true; pedB.userData.knock = true; W.add(pedB);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.045, 0.6, 10), MAT.brassDark);
+  post.position.set(0.95, 1.25, 0); W.add(post);
+  const beam = new THREE.Group(); beam.position.set(0.95, 1.55, 0); W.add(beam);
+  const beamBar = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.028, 0.028), MAT.brass);
+  beam.add(beamBar);
+  const pans = [];
+  for (const side of [-1, 1]) {
+    const pg = new THREE.Group(); pg.position.set(side * 0.45, 0, 0); beam.add(pg);
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.34, 6), MAT.brassDark);
+    wire.position.y = -0.17;
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.14, 0.025, 20), MAT.brassDark);
+    disc.position.y = -0.35;
+    pg.add(wire, disc);
+    pans.push(pg);
+  }
+  /* weights: values 1,2,3,6 — dots engraved, glowing through the glass */
+  const HOMES = [
+    new THREE.Vector3(0.68, 1.02, 0.30), new THREE.Vector3(0.86, 1.02, 0.35),
+    new THREE.Vector3(1.05, 1.02, 0.33), new THREE.Vector3(1.24, 1.02, 0.27),
+  ];
+  [1, 2, 3, 6].forEach((v, i) => {
+    const r = 0.045 + v * 0.0065;
+    const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), MAT2.starmetal.clone());
+    mesh.castShadow = true;
+    const dots = new THREE.Mesh(new THREE.PlaneGeometry(r * 2.2, r * 1.1),
+      aetherMat(0.95, 0x9fe0ff, glyphTex((c, w, h) => {
+        for (let d = 0; d < v; d++) {
+          const col = d % 3, row = Math.floor(d / 3);
+          c.beginPath(); c.arc(w / 2 + (col - 1) * 34, h / 2 + (row - 0.5) * 36, 11, 0, TAU); c.fill();
+        }
+      })));
+    dots.rotation.x = -0.9; dots.position.y = r + 0.05;
+    mesh.add(dots);
+    const wobj = { v, mesh, place: i < 2 ? 0 : -1, idx: i };   /* 1 & 2-dot start out; 3 & 6 in the drawer */
+    /* actually: let the light two live by the scales, the heavier pair in her drawer */
+    ch8.weights.push(wobj);
+    MARKS['weight' + i] = mesh;
+    if (wobj.place === 0) { mesh.position.copy(HOMES[i]); W.add(mesh); }
+    else { mesh.scale.setScalar(0.85); mesh.position.set(i === 2 ? -0.09 : 0.08, -0.03, -0.07); drawerA.add(mesh); }
+    reg(mesh, {
+      enabled: () => (wobj.place === -1 ? drawerAOpen : state.ch === 8) && !ch8.solved && state.act === 2,
+      cursor: 'pointer',
+      tap() { cycleWeight(wobj); },
+    });
+  });
+  function panSlot(pan, n) { return new THREE.Vector3(n === 0 ? -0.05 : 0.06, -0.32, n === 0 ? 0.01 : -0.02); }
+  function cycleWeight(w) {
+    const order = { '-1': 0, 0: 1, 1: 2, 2: 0 };
+    w.place = order[w.place];
+    Snd.pickup();
+    /* reparent & fly */
+    const targetParent = w.place === 0 ? W : (w.place === 1 ? pans[0] : pans[1]);
+    targetParent.attach(w.mesh);
+    w.mesh.scale.setScalar(1);
+    let dest;
+    if (w.place === 0) dest = HOMES[w.idx].clone();
+    else {
+      const mates = ch8.weights.filter((o) => o !== w && o.place === w.place).length;
+      dest = panSlot(null, Math.min(mates, 1));
+    }
+    const from = w.mesh.position.clone();
+    tween({ dur: 0.45, ease: easeOut, step: (k) => { w.mesh.position.lerpVectors(from, dest, k); },
+      done: () => { settleScales(); } });
+  }
+  function sums() {
+    let L = 0, R = 0;
+    for (const w of ch8.weights) { if (w.place === 1) L += w.v; if (w.place === 2) R += w.v; }
+    return { L, R };
+  }
+  let beamTiltTween = null;
+  function settleScales() {
+    const { L, R } = sums();
+    const tilt = clamp((R - L) * 0.05, -0.3, 0.3);
+    const from = beam.rotation.z, to = -tilt;
+    Snd.creak();
+    if (beamTiltTween) beamTiltTween.dead = true;
+    beamTiltTween = tween({ dur: 0.8, step: (k) => {
+      beam.rotation.z = lerp(from, to, k);
+      pans[0].rotation.z = -beam.rotation.z; pans[1].rotation.z = -beam.rotation.z;
+    }, done: () => { beamTiltTween = null; checkScales(); } });
+  }
+  function checkScales() {
+    if (ch8.solved) return;
+    const { L, R } = sums();
+    const placed = ch8.weights.every((w) => w.place === 1 || w.place === 2);
+    if (!placed) {
+      if (L === R && L > 0) say('It balances — but the sky is short a star.');
+      return;
+    }
+    if (L !== R) return;
+    ch8.solved = true;
+    Snd.chime(); Snd.thunk();
+    say('The beam holds level, and the dark holds very still. In the floor, something turns over in its sleep.');
+    delay(1.4, () => {
+      Snd.creak(); Snd.riser();
+      tween({ dur: 2.4, ease: easeOut, step: (k) => { sculpture.position.y = lerp(0.28, 0.98, k); },
+        done: () => { if (state.ch === 8) advanceChapter(9); updateShadow(); } });
+    });
+  }
+
+  /* ------------- pedestal C — the shadow key (twisted iron) --------------- */
+  const pedC = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.55, 18), MAT2.stone);
+  pedC.position.set(0, 0.275, -0.95); pedC.userData.knock = true; W.add(pedC);
+  const sculpture = new THREE.Group();
+  {
+    const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.13, 0.042, 72, 10, 2, 3), MAT.iron);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.05), MAT.iron);
+    bar.rotation.z = 0.7; bar.position.set(0.08, 0.05, 0.04);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.24, 8), MAT.iron);
+    stem.position.y = -0.22;
+    sculpture.add(knot, bar, stem);
+    sculpture.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  }
+  sculpture.position.set(0, 0.28, -0.95);        /* asleep inside the pedestal */
+  sculpture.rotation.y = ch9.angle;
+  W.add(sculpture);
+  MARKS.sculpture = sculpture.children[0];
+
+  /* the cast light on the wall: a lie, and then the truth */
+  const lightDisc = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.9),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, fog: false, depthWrite: false,
+      map: makeTex(256, 256, (c, w, h) => {
+        const g = c.createRadialGradient(w/2, h/2, 10, w/2, h/2, w/2);
+        g.addColorStop(0, 'rgba(190,215,250,0.55)'); g.addColorStop(1, 'rgba(190,215,250,0)');
+        c.fillStyle = g; c.fillRect(0, 0, w, h);
+      }) }));
+  lightDisc.position.set(0, 1.35, WALLZ + 0.012); W.add(lightDisc);
+  function silMat(draw) {
+    return new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, fog: false, depthWrite: false,
+      map: makeTex(256, 256, (c, w, h) => {
+        c.fillStyle = 'rgba(8,10,16,0.9)'; c.strokeStyle = 'rgba(8,10,16,0.9)'; draw(c, w, h);
+      }) });
+  }
+  const silMess = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.5), silMat((c, w, h) => {
+    c.lineWidth = 26; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(50, 200); c.bezierCurveTo(120, 40, 180, 220, 210, 90); c.stroke();
+    c.beginPath(); c.moveTo(70, 60); c.bezierCurveTo(140, 180, 90, 210, 200, 190); c.stroke();
+    c.beginPath(); c.arc(130, 130, 34, 0, TAU); c.fill();
+  }));
+  const silKey = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.35), silMat((c, w, h) => {
+    c.beginPath(); c.arc(w/2, 92, 46, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(w/2 - 26, 116); c.lineTo(w/2 - 44, 218); c.lineTo(w/2 + 44, 218);
+    c.lineTo(w/2 + 26, 116); c.closePath(); c.fill();
+  }));
+  silMess.position.set(0, 1.35, WALLZ + 0.014); silKey.position.copy(silMess.position);
+  W.add(silMess, silKey);
+  function wrapPi(a) { a = mod(a + Math.PI, TAU) - Math.PI; return a; }
+  function updateShadow() {
+    const risen = sculpture.position.y > 0.9;
+    const diff = wrapPi(sculpture.rotation.y - ch9.target);
+    const k = 1 - Math.abs(diff) / Math.PI;
+    lightDisc.material.opacity = risen ? 0.75 : 0;
+    const sm = Math.pow(Math.max(0, (k - 0.55) / 0.45), 3);
+    silKey.material.opacity = risen ? sm * 0.95 : 0;
+    silMess.material.opacity = risen ? (1 - sm) * 0.85 : 0;
+    silMess.rotation.z = diff * 0.55; silKey.rotation.z = diff * 0.25;
+    silMess.scale.x = 1 + Math.abs(diff) * 0.12;
+  }
+  reg(sculpture.children[0], {
+    enabled: () => state.ch === 9 && !ch9.locked, cursor: 'grab',
+    dragStart(hit, ev) { this._px = ev.clientX; this._a0 = sculpture.rotation.y; },
+    drag(ev) {
+      sculpture.rotation.y = this._a0 + (ev.clientX - this._px) * 0.011;
+      updateShadow();
+      const t = Math.round(sculpture.rotation.y / 0.2);
+      if (t !== this._tk) { this._tk = t; Snd.tick(); }
+    },
+    dragEnd() {
+      const diff = wrapPi(sculpture.rotation.y - ch9.target);
+      if (Math.abs(diff) < 0.11) {
+        ch9.locked = true;
+        const from = sculpture.rotation.y;
+        tween({ dur: 0.4, step: (k) => { sculpture.rotation.y = lerp(from, from - diff, k); updateShadow(); } });
+        Snd.unlock(); Snd.chime();
+        say('The light stops lying. A keyhole stands on the wall — and chalk lines wake around it.');
+        delay(1.6, () => {
+          if (state.ch === 9) advanceChapter(10);
+          showGuides();
+          lastNote.visible = true;
+        });
+      }
+    },
+  });
+  ch9.applyRotation = () => { sculpture.rotation.y = ch9.angle; updateShadow(); };
+
+  /* --------------------- the chalk door (trace it true) ------------------- */
+  const DOOR = { x0: -0.5, x1: 0.5, y0: 0.25, y1: 1.85, apex: 2.16, handle: { x: 0.36, y: 1.05 } };
+  function segPts(i) {
+    if (i === 0) return [[DOOR.x0, DOOR.y0], [DOOR.x0, DOOR.y1]];
+    if (i === 1) return [[DOOR.x1, DOOR.y0], [DOOR.x1, DOOR.y1]];
+    const pts = [];
+    for (let k = 0; k <= 14; k++) {
+      const t = k / 14;
+      pts.push([DOOR.x0 + t * (DOOR.x1 - DOOR.x0), DOOR.y1 + Math.sin(t * Math.PI) * (DOOR.apex - DOOR.y1)]);
+    }
+    return pts;
+  }
+  const chalkStrokes = [];         /* per segment: array of quad meshes */
+  const guides = [];
+  const chalkQuadGeo = new THREE.PlaneGeometry(0.065, 0.03);
+  for (let s = 0; s < 3; s++) {
+    const pts = segPts(s);
+    ch10.segs.push({ pts });
+    /* aether guide dashes */
+    const gmat = aetherMat(0.55);
+    const gGroup = new THREE.Group(); gGroup.visible = false; W.add(gGroup);
+    guides.push(gGroup);
+    /* chalk quads */
+    const quads = [];
+    let total = 0;
+    for (let i = 0; i < pts.length - 1; i++)
+      total += Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+    const N = Math.ceil(total / 0.05);
+    for (let q = 0; q < N; q++) {
+      const t = (q + 0.5) / N;
+      const p = pointOnPath(pts, t), pn = pointOnPath(pts, Math.min(1, t + 0.02));
+      const ang = Math.atan2(pn[1] - p[1], pn[0] - p[0]);
+      const quad = new THREE.Mesh(chalkQuadGeo, MAT2.chalk);
+      quad.position.set(p[0] + (rnd()-0.5)*0.012, p[1] + (rnd()-0.5)*0.012, WALLZ + 0.016);
+      quad.rotation.z = ang + (rnd()-0.5)*0.35;
+      quad.visible = false; W.add(quad); quads.push(quad);
+      if (q % 2 === 0) {
+        const dash = new THREE.Mesh(chalkQuadGeo, gmat);
+        dash.position.set(p[0], p[1], WALLZ + 0.015); dash.rotation.z = ang;
+        dash.scale.set(0.7, 0.5, 1); gGroup.add(dash);
+      }
+    }
+    chalkStrokes.push(quads);
+  }
+  /* the handle: a chalk ring */
+  const handleGroup = new THREE.Group(); W.add(handleGroup);
+  const handleGuide = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.085, 20), aetherMat(0.55));
+  handleGuide.position.set(DOOR.handle.x, DOOR.handle.y, WALLZ + 0.015);
+  handleGuide.visible = false; W.add(handleGuide);
+  {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.055, 0.09, 20), MAT2.chalk);
+    ring.position.set(DOOR.handle.x, DOOR.handle.y, WALLZ + 0.016);
+    handleGroup.add(ring); handleGroup.visible = false;
+  }
+  function pointOnPath(pts, t) {
+    const lens = []; let total = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const l = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+      lens.push(l); total += l;
+    }
+    let d = t * total;
+    for (let i = 0; i < lens.length; i++) {
+      if (d <= lens[i] || i === lens.length - 1) {
+        const f = lens[i] ? d / lens[i] : 0;
+        return [lerp(pts[i][0], pts[i+1][0], f), lerp(pts[i][1], pts[i+1][1], f)];
+      }
+      d -= lens[i];
+    }
+    return pts[pts.length - 1];
+  }
+  function nearestOnPath(pts, x, y) {
+    let best = { d: 1e9, t: 0 };
+    const lens = []; let total = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const l = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+      lens.push(l); total += l;
+    }
+    let acc = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const ax = pts[i][0], ay = pts[i][1], bx = pts[i+1][0], by = pts[i+1][1];
+      const vx = bx - ax, vy = by - ay, L2 = vx*vx + vy*vy || 1e-9;
+      let f = ((x - ax) * vx + (y - ay) * vy) / L2; f = clamp(f, 0, 1);
+      const px = ax + vx * f, py = ay + vy * f;
+      const d = Math.hypot(x - px, y - py);
+      if (d < best.d) best = { d, t: (acc + lens[i] * f) / total };
+      acc += lens[i];
+    }
+    return best;
+  }
+  function showGuides() { guides.forEach((g, i) => { g.visible = !ch10.done[i]; }); handleGuide.visible = true; }
+  function showStroke(s, prog) {
+    const quads = chalkStrokes[s];
+    const n = Math.floor(prog * quads.length);
+    quads.forEach((q, i) => { q.visible = i <= n; });
+  }
+  function wallPoint() {
+    const p = planePoint(new THREE.Vector3(0, 0, 1), -(WALLZ + 0.02));
+    return p ? [p.x, p.y] : null;
+  }
+  let trace = null, chalkSndAt = 0, warned = false;
+  reg(wallSlab, {
+    enabled: () => state.ch === 10 && !ch10.doorOpen, cursor: 'crosshair',
+    dragStart() {
+      trace = null;
+      if (!aether.on) { if (!warned) { warned = true; say('Bare eyes see bare wall. Raise the glass, and follow her lines.'); } return; }
+      const p = wallPoint(); if (!p) return;
+      for (let s = 0; s < 3; s++) {
+        if (ch10.done[s]) continue;
+        const pts = ch10.segs[s].pts;
+        const d0 = Math.hypot(p[0]-pts[0][0], p[1]-pts[0][1]);
+        const d1 = Math.hypot(p[0]-pts[pts.length-1][0], p[1]-pts[pts.length-1][1]);
+        if (d0 < 0.13) { trace = { s, pts, prog: 0 }; break; }
+        if (d1 < 0.13) { trace = { s, pts: pts.slice().reverse(), prog: 0 }; break; }
+      }
+    },
+    drag() {
+      if (!trace) return;
+      const p = wallPoint(); if (!p) return;
+      const near = nearestOnPath(trace.pts, p[0], p[1]);
+      if (near.d > 0.16) {
+        showStroke(trace.s, -1); trace = null;
+        Snd.buzz(); say('The chalk skips off her line. Steadier — start the stroke again.');
+        return;
+      }
+      if (near.t > trace.prog) {
+        trace.prog = near.t;
+        /* strokes drawn from either end fill the same quads — fill by fraction */
+        showStroke(trace.s, near.t);
+        if (performance.now() - chalkSndAt > 130) { chalkSndAt = performance.now(); Snd.chalk(); }
+      }
+    },
+    dragEnd() {
+      if (!trace) return;
+      if (trace.prog > 0.92) {
+        ch10.done[trace.s] = true;
+        showStroke(trace.s, 1);
+        guides[trace.s].visible = false;
+        Snd.click(); Snd.thunk();
+        if (ch10.done.every(Boolean)) say('Three lines true. Every door her age deserves a handle.');
+      } else {
+        showStroke(trace.s, -1);
+      }
+      trace = null;
+    },
+    tap() {
+      if (!ch10.done.every(Boolean) || ch10.handleDone || ch10.doorOpen) return;
+      const p = wallPoint(); if (!p) return;
+      if (Math.hypot(p[0]-DOOR.handle.x, p[1]-DOOR.handle.y) < 0.16) {
+        if (!aether.on) { say('Bare eyes see bare wall. Raise the glass.'); return; }
+        ch10.handleDone = true;
+        handleGroup.visible = true; handleGuide.visible = false;
+        Snd.chalk(); Snd.click();
+        delay(0.8, openChalkDoor);
+      }
+    },
+  });
+
+  /* the door itself, and what waits behind it */
+  const doorHinge = new THREE.Group(); doorHinge.position.set(DOOR.x0, 0, WALLZ + 0.01); W.add(doorHinge);
+  const doorPanel = new THREE.Group(); doorHinge.add(doorPanel);
+  {
+    const rect = new THREE.Mesh(new THREE.PlaneGeometry(1.0, DOOR.y1 - DOOR.y0), MAT2.slate.clone());
+    rect.position.set(0.5, (DOOR.y0 + DOOR.y1) / 2, 0);
+    const arch = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24, 0, Math.PI), rect.material);
+    arch.position.set(0.5, DOOR.y1, 0); arch.scale.y = (DOOR.apex - DOOR.y1) / 0.5;
+    doorPanel.add(rect, arch);
+    doorPanel.visible = false;
+  }
+  const portalGlow = new THREE.Group(); W.add(portalGlow);
+  {
+    const gmat = new THREE.MeshBasicMaterial({ color: 0xfff3d8, transparent: true, opacity: 0, fog: false });
+    const rect = new THREE.Mesh(new THREE.PlaneGeometry(1.0, DOOR.y1 - DOOR.y0), gmat);
+    rect.position.set(0, (DOOR.y0 + DOOR.y1) / 2, WALLZ + 0.004);
+    const arch = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24, 0, Math.PI), gmat);
+    arch.position.set(0, DOOR.y1, WALLZ + 0.004); arch.scale.y = (DOOR.apex - DOOR.y1) / 0.5;
+    portalGlow.add(rect, arch);
+    portalGlow.userData.mat = gmat;
+  }
+  const portalLight = new THREE.PointLight(0xffe9c0, 0, 8, 1.6);
+  portalLight.position.set(0, 1.2, WALLZ + 0.6); W.add(portalLight);
+
+  function openChalkDoor() {
+    if (ch10.doorOpen) return;
+    ch10.doorOpen = true;
+    Snd.portal();
+    doorPanel.visible = true;
+    say('The chalk stops being a picture.');
+    tween({ dur: 2.8, delay: 1.0, ease: easeInOut, step: (k) => {
+      doorHinge.rotation.y = -k * 1.75;
+      portalGlow.userData.mat.opacity = k * 0.95;
+      portalLight.intensity = k * 6;
+    }, done: () => {
+      say('Warm light over a chalk threshold. Two figures stand in it — one straight-backed, one with dust on her fingers.');
+      delay(2.6, offerFinalChoice);
+    } });
+  }
+  function offerFinalChoice() {
+    openModal({
+      title: 'THE DOOR STANDS OPEN', dark: true, closable: false,
+      html: 'Neither of them beckons. Neither bars the way.\n\nIt was always going to be yours to decide.',
+      actions: [
+        { label: 'STEP THROUGH',   fn: () => { closeModal(); ending(2); } },
+        { label: 'SEND THEM HOME', fn: () => { closeModal(); ending(3); } },
+      ],
+    });
+  }
+
+  /* Edwin's last note, pinned by the door after the shadow turns true */
+  const lastNote = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.3, 0.015), MAT.paper);
+  lastNote.position.set(-0.95, 1.25, WALLZ + 0.02); lastNote.rotation.z = 0.06;
+  lastNote.visible = false; W.add(lastNote);
+  MARKS.lastNote = lastNote;
+  let note6got = false;
+  reg(lastNote, {
+    enabled: () => lastNote.visible, cursor: 'pointer',
+    tap() { if (!note6got) { note6got = true; giveLetter(6); } else showLetter(6); },
+  });
+
+  /* the arrival note, riding the air */
+  const arrivalNote = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.02, 0.18),
+    new THREE.MeshStandardMaterial({ color: 0x222a38, roughness: 0.85 }));
+  arrivalNote.position.set(0.1, 1.3, 0.9); arrivalNote.rotation.x = 0.4; W.add(arrivalNote);
+  arrivalNote.name = 'arrivalNote';
+  MARKS.arrivalNote = arrivalNote;
+  let note4got = false;
+  reg(arrivalNote, {
+    enabled: () => state.act === 2, cursor: 'pointer',
+    tap() { if (!note4got) { note4got = true; giveLetter(4); } else showLetter(4); },
+  });
+
+  /* ------------------------- crossing over -------------------------------- */
+  enterAct2 = (instant) => {
+    if (state.act === 2) return;
+    state.act = 2;
+    const doSwap = () => {
+      act1World.visible = false; act2World.visible = true;
+      scene.fog.color.setHex(0x030710); scene.fog.density = 0.035;
+      key.color.setHex(0xcfe0ff); key.intensity = 55;
+      rim.color.setHex(0x6f8fc0); rim.intensity = 1.1;
+      act2World.attach(fin.heart);
+      fin.heart.position.set(1.9, 1.6, 1.2);
+      camera.position.set(...NODES.overview2.pos);
+      controls.target.set(...NODES.overview2.tgt);
+      state.focus = 'overview2';
+      $('#btn-back').classList.add('hidden');
+      updateShadow();
+      Snd.hum(0.25);
+    };
+    if (instant) { doSwap(); if (aether.on) setLens(false); state.ch = Math.max(state.ch, 7); return; }
+    state.busy = true;
+    Snd.portal();
+    const f = $('#fader');
+    f.classList.add('white'); f.classList.add('show');
+    setTimeout(() => {
+      doSwap(); setLens(false);
+      setTimeout(() => {
+        f.classList.remove('show');
+        state.busy = false;
+        state.ch = 7; saveGame();
+        delay(0.8, () => chapterCard(7));
+        delay(3.2, () => say('A room drawn in chalk and starlight. It has had forty years of practice at waiting.'));
+        setTimeout(() => f.classList.remove('white'), 1600);
+      }, 1100);
+    }, 1400);
+  };
+
+  /* --------------------- resume fast-forwards ----------------------------- */
+  ch7.applySolved = () => {
+    ch7.solved = true; openDrawerA();
+    if (!state.letters.includes(4)) giveLetter(4, true); note4got = true;
+    if (!state.letters.includes(5)) giveLetter(5, true); note5got = true;
+    note5.visible = false;
+  };
+  ch8.applySolved = () => {
+    ch7.applySolved();
+    for (const w of ch8.weights) {
+      const place = w.v === 6 ? 1 : 2;
+      w.place = place;
+      (place === 1 ? pans[0] : pans[1]).attach(w.mesh);
+      w.mesh.scale.setScalar(1);
+      const mates = ch8.weights.filter((o) => o !== w && o.place === place && o.idx < w.idx).length;
+      w.mesh.position.copy(panSlot(null, Math.min(mates, 1)));
+    }
+    beam.rotation.z = 0; pans[0].rotation.z = 0; pans[1].rotation.z = 0;
+    ch8.solved = true;
+    sculpture.position.y = 0.98; updateShadow();
+  };
+  ch9.applySolved = () => {
+    ch8.applySolved();
+    ch9.locked = true; sculpture.rotation.y = ch9.target; updateShadow();
+    showGuides(); lastNote.visible = true;
+    if (!state.letters.includes(6)) giveLetter(6, true); note6got = true;
+  };
+}
+
 /* ------------------------------- endings --------------------------------- */
 const ENDINGS = [
-  {
-    title: 'SHE SEES YOU TOO',
-    text: `You raise the glass, and the room becomes a sketch of itself — walls gone thin as paper held to a lamp.
-
-Where the box stood there is a doorway, chalk-drawn and nine years tall, and beyond it a field of patient stars. Between star and star stand two figures: an old man, straight-backed at last, and a girl with chalk dust on her fingers.
-
-They are looking at you. They have been looking for some time.
-
-The girl lifts her hand — hello, or goodbye, or come along. You lower the eyepiece before you can learn which.
-
-Some doors are kind enough to let you choose. This one, you understand now, was built by a kind man.`,
-  },
+  null,                                     /* index 0 retired — the eyepiece now leads somewhere */
   {
     title: 'THE DOOR HELD SHUT',
     text: `You fold the panels closed, and the mechanisms accept their duty the way old servants do — gravely, and with relief.
@@ -1673,12 +2379,36 @@ In the drawer, wrapped in a letter that no longer needs answering, the eyepiece 
 
 Let it wait. Wherever the Vanes are, they are two, and the Hollow is empty no longer.`,
   },
+  {
+    title: 'THE THIRD FIGURE',
+    text: `You step over the chalk line, and the threshold is warmer than any doorstep you have ever crossed.
+
+The field is exactly as he promised and nothing like it: stars underfoot as well as overhead, none of them burning out, all of them merely sleepy. Elowen takes your left hand as though resuming something. Edwin shakes your right, once, firmly, like a man closing a fair bargain.
+
+Somewhere behind you — or below you, or forty years away — morning finds an empty room. On the worktable a box stands open, humming to itself, patient as its maker.
+
+Someone will inherit it. Someone always does.
+
+In the field, they were two for a very long time. Now they are three, and the stars lean in close to listen.`,
+  },
+  {
+    title: 'THREE CUPS, ONE MORNING',
+    text: `You shake your head — and hold the door.
+
+They understand at once. Perhaps they always suspected the puzzle had one more answer than Edwin cared to admit. Elowen crosses first, small and certain; Edwin follows, and at the threshold he pauses to look back at the field the way a man looks at a house he built and is done with.
+
+You close the chalk door behind them, gently, like a book.
+
+Then: morning. A kettle. Three cups, because some arithmetic finally comes out even. Elowen — nine years old and forty years wise — draws a much smaller door on the nursery wall, in crayon this time. "For visiting," she says.
+
+In its drawer, the eyepiece is quiet. Not sleeping. Just — finally — home.`,
+  },
 ];
 function ending(which) {
-  if (aether.on && which === 1) setLens(false);
-  if (which === 0 && state.hasLens) setLens(true);
-  Snd.chime(); Snd.hum(which === 0 ? 0.9 : 0);
+  if (aether.on && which !== 2) setLens(false);
+  Snd.chime(); Snd.hum(which === 2 ? 0.9 : 0);
   localStorage.removeItem(SAVE_KEY);
+  $('#fader').classList.remove('white');
   $('#fader').classList.add('show');
   setTimeout(() => {
     const e = $('#ending');
@@ -1715,11 +2445,20 @@ function fastForwardTo(ch) {
   if (ch >= 4) { ch3.applySolved(); ch4.giveKeyIfMissing(); }
   if (ch >= 5) ch4.applySolved();
   if (ch >= 6) { ch5.applySolved(); beginFinale(true); }
-  state.ch = clamp(ch, 1, 6);
+  if (ch >= 7) enterAct2(true);
+  if (ch >= 8) ch7.applySolved();
+  if (ch >= 9) ch8.applySolved();
+  if (ch >= 10) ch9.applySolved();
+  state.ch = clamp(ch, 1, 10);
 }
 
 /* =============================== input =================================== */
 let dragging = null, downAt = 0, downXY = [0, 0], lastTap = 0, lastTapXY = [0, 0];
+function visOK(o) { while (o) { if (o.visible === false) return false; o = o.parent; } return true; }
+function hittable(h) {
+  const en = h.object.userData.enabled;
+  return en && (typeof en === 'function' ? en() : true) && visOK(h.object);
+}
 const knockLines = [
   'Solid. Patient. Not for prying fingers — for clever ones.',
   'Somewhere inside, a counterweight shifts its opinion of you.',
@@ -1729,13 +2468,12 @@ const knockLines = [
 let knockIdx = 0, lastKnock = 0;
 
 renderer.domElement.addEventListener('pointerdown', (ev) => {
+  window.__dbgDown = { busy: state.busy, playing: state.playing, x: ev.clientX, y: ev.clientY };
   if (!state.playing || state.busy) return;
   downAt = performance.now(); downXY = [ev.clientX, ev.clientY];
   const hits = castAt(ev, interactables);
-  const hit = hits.find((h) => {
-    const en = h.object.userData.enabled;
-    return en && (typeof en === 'function' ? en() : true);
-  });
+  const hit = hits.find(hittable);
+  window.__dbgDown.hit = hit ? (hit.object.geometry || {}).type : null;
   if (hit && (hit.object.userData.dragStart || hit.object.userData.drag)) {
     dragging = hit.object.userData;
     controls.enabled = false;
@@ -1751,10 +2489,7 @@ renderer.domElement.addEventListener('pointermove', (ev) => {
   }
   if (ev.pointerType === 'mouse') {
     const hits = castAt(ev, interactables);
-    const hit = hits.find((h) => {
-      const en = h.object.userData.enabled;
-      return en && (typeof en === 'function' ? en() : true);
-    });
+    const hit = hits.find(hittable);
     renderer.domElement.style.cursor = hit ? (hit.object.userData.cursor || 'pointer') : '';
   }
 });
@@ -1763,31 +2498,32 @@ function endDrag() {
   if (!camTween) controls.enabled = true;
 }
 renderer.domElement.addEventListener('pointerup', (ev) => {
+  window.__dbgUp = 'enter';
   if (!state.playing) return;
   const wasDrag = dragging; endDrag();
   const dt = performance.now() - downAt;
   const dist = Math.hypot(ev.clientX - downXY[0], ev.clientY - downXY[1]);
+  window.__dbgUp = 'gate dist=' + dist.toFixed(1) + ' dt=' + dt.toFixed(0);
   if (dist > 14 || dt > 600) return;                       /* not a tap */
   /* double tap → focus */
   const sinceLast = performance.now() - lastTap;
   const nearLast = Math.hypot(ev.clientX - lastTapXY[0], ev.clientY - lastTapXY[1]) < 40;
   lastTap = performance.now(); lastTapXY = [ev.clientX, ev.clientY];
   if (sinceLast < 350 && nearLast) {
-    const hits = castAt(ev, [box]);
+    const hits = castAt(ev, state.act === 2 ? [act2World] : [box]);
     if (hits.length) focusNode(regionOfPoint(hits[0].point));
-    else focusNode('overview');
+    else goBack();
     return;
   }
-  if (wasDrag) return;
+  /* a press that never moved is a tap, even on a draggable object */
+  if (wasDrag && dist > 6) { window.__dbgUp = 'wasDrag'; return; }
   /* single tap */
   const hits = castAt(ev, interactables);
-  const hit = hits.find((h) => {
-    const en = h.object.userData.enabled;
-    return en && (typeof en === 'function' ? en() : true);
-  });
+  const hit = hits.find(hittable);
+  window.__dbgUp = 'tap:' + (hit ? (hit.object.geometry || {}).type + ' handler=' + !!hit.object.userData.tap : 'none');
   if (hit && hit.object.userData.tap) { hit.object.userData.tap(hit, ev); return; }
-  /* knock on the box for flavour */
-  const boxHits = castAt(ev, [box]);
+  /* knock on the wood for flavour */
+  const boxHits = castAt(ev, state.act === 2 ? [act2World] : [box]);
   if (boxHits.length && boxHits[0].object.userData.knock && performance.now() - lastKnock > 2500) {
     lastKnock = performance.now();
     Snd.knock();
@@ -1795,14 +2531,14 @@ renderer.domElement.addEventListener('pointerup', (ev) => {
   }
 });
 renderer.domElement.addEventListener('pointercancel', endDrag);
-renderer.domElement.addEventListener('contextmenu', (e) => { e.preventDefault(); if (state.playing) focusNode('overview'); });
+renderer.domElement.addEventListener('contextmenu', (e) => { e.preventDefault(); if (state.playing) goBack(); });
 addEventListener('keydown', (e) => {
   if (!state.playing) return;
   if (e.key === 'e' || e.key === 'E') setLens(!aether.on);
   if (e.key === 'Escape') {
-    if (modalWrap.classList.contains('open')) closeModal();
+    if (modalWrap.classList.contains('open')) { if (modalClosable) closeModal(); }
     else if (inspectOpen) closeInspect();
-    else focusNode('overview');
+    else goBack();
   }
 });
 $('#btn-lens').onclick = () => setLens(!aether.on);
@@ -1824,29 +2560,37 @@ function startGame(ch, resume, keyFixed = false) {
   state.keyFixed = keyFixed || false;
   if (resume && ch > 1) fastForwardTo(ch);
   else state.ch = 1;
-  /* intro sweep */
-  const p0 = camera.position.clone(), p1 = new THREE.Vector3(...NODES.overview.pos);
-  tween({ dur: 3.4, ease: easeInOut, step: (k) => {
-    camera.position.lerpVectors(p0, p1, k);
-  }, done: () => { controls.enabled = true; } });
-  if (!resume || ch <= 1) {
-    delay(3.0, () => chapterCard(1));
-    delay(5.2, () => say('The worktable of Edwin Vane, horologist. Missing these forty days. The box is warm.'));
+  if (state.act === 2) {
+    /* we wake up already on the other side */
+    controls.enabled = true;
+    delay(1.2, () => chapterCard(clamp(state.ch, 7, 10)));
+    delay(3.0, () => say('The chalk room again. It kept your place.'));
   } else {
-    delay(2.5, () => chapterCard(clamp(ch, 1, 6)));
-    if (ch >= 6 && fin.open) delay(3.4, () => say('The Reliquary stands open, as you left it. The letter is still riding the light.'));
+    /* intro sweep */
+    const p0 = camera.position.clone(), p1 = new THREE.Vector3(...NODES.overview.pos);
+    tween({ dur: 3.4, ease: easeInOut, step: (k) => {
+      camera.position.lerpVectors(p0, p1, k);
+    }, done: () => { controls.enabled = true; } });
+    if (!resume || ch <= 1) {
+      delay(3.0, () => chapterCard(1));
+      delay(5.2, () => say('The worktable of Edwin Vane, horologist. Missing these forty days. The box is warm.'));
+    } else {
+      delay(2.5, () => chapterCard(clamp(ch, 1, 6)));
+      if (ch >= 6 && fin.open) delay(3.4, () => say('The Reliquary stands open, as you left it. The letter is still riding the light.'));
+    }
   }
   saveGame();
 }
 
 /* ============================== main loop ================================ */
 const clock = new THREE.Clock();
-let elapsed = 0;
+let elapsed = 0, ticks = 0;
 function animate() {
   requestAnimationFrame(animate);
-  /* cap only against monster hitches — animations must stay wall-clock true
-     even on slow renderers, or the whole game turns to slow motion */
-  const dt = Math.min(clock.getDelta(), 0.5);
+  ticks++;
+  /* cap only against monster hitches (background-tab wakeups) — animations
+     must stay wall-clock true even on very slow renderers */
+  const dt = Math.min(clock.getDelta(), 1.0);
   elapsed += dt;
   updateTweens(dt);
   controls.update();
@@ -1871,6 +2615,13 @@ function animate() {
   }
   /* crystal breathing */
   if (ch3.solved) ch3.crystal.material.emissiveIntensity = 2.2 + Math.sin(elapsed * 3) * 0.5;
+  /* the second room breathes too */
+  if (state.act === 2) {
+    const an = act2World.getObjectByName('arrivalNote');
+    if (an && an.visible) { an.position.y = 1.3 + Math.sin(elapsed * 1.1) * 0.04; an.rotation.z = Math.sin(elapsed * 0.7) * 0.08; }
+    const lan = act2World.getObjectByName('lantern');
+    if (lan) lan.position.y = 1.25 + Math.sin(elapsed * 0.9) * 0.03;
+  }
 
   if (inspectOpen) { renderer.render(inspectScene, inspectCam); return; }
   composer.render();
@@ -1880,9 +2631,11 @@ animate();
 /* ================================ debug =================================== */
 window.__REL = {
   state, setLens, focusNode, MARKS, ch1, ch2, ch3, ch4, ch5, fin, aether, camera, controls,
+  ch7, ch8, ch9, ch10, enterAct2, goBack,
   solveTo(n) { fastForwardTo(n); saveGame(); },
   say,
   isDragging() { return !!dragging; },
+  ticks() { return ticks; },
   probe(x, y) {
     const hits = castAt({ clientX: x, clientY: y }, interactables);
     return hits.slice(0, 4).map((h) => ({

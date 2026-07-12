@@ -47,6 +47,8 @@ Progress saves automatically at each chapter (localStorage).
 
 ## What's inside
 
+**Act I — the horologist's study**
+
 - **Chapter I — The Horologist's Drawer.** An interlocked rosette-and-bolt
   mechanism guarding the eyepiece and the first letter.
 - **Chapter II — The Celestial Dial.** Three concentric star rings on the
@@ -58,10 +60,22 @@ Progress saves automatically at each chapter (localStorage).
   stopped seeing.
 - **Chapter V — The Unspoken Name.** A six-ring cryptex rising from the
   lid, keyed to an acrostic hidden in the final letter.
-- **Finale.** The box opens. Two endings; the choice is yours, as it was
-  always meant to be.
+- **Chapter VI.** The box opens. Close it and the story ends here — or
+  raise the eyepiece, and go where it has been trying to take you.
 
-Every puzzle is a different mechanism — nothing repeats.
+**Act II — the second room** *(raise the eyepiece at the finale)*
+
+- **Chapter VII — The Second Room.** A chamber drawn in chalk and
+  starlight, and four bells that remember a lullaby. Listen; say it back.
+- **Chapter VIII — The Weight of Stars.** Star-metal on a balance —
+  the heaviest star alone is worth the three bright ones together.
+- **Chapter IX — The Shadow Key.** Twisted iron in front of a lantern:
+  turn it until the light on the wall stops lying.
+- **Chapter X — The Chalk Door.** Trace her door true — sides, arch,
+  and the handle every door her age deserves — then make the last choice.
+
+Three endings in all. Every puzzle is a different mechanism — nothing
+repeats, in either room.
 
 Graphics: procedural wood/brass/paper textures, PBR materials with an
 environment map, soft shadows, bloom, dust motes, candlelight, and a
@@ -71,14 +85,16 @@ recorded.
 
 ## Verifying it works
 
-`test/playthrough.mjs` drives a full game with real mouse input in
-headless Chromium — every drag, tap, inspection and both letters of the
-ending path — and asserts each chapter's state. To run it you need
-`playwright-core` and a Chromium build:
+Two headless-Chromium tests drive full games with real mouse input —
+every drag, arc, tap and inspection — asserting each chapter's state:
+
+- `test/playthrough.mjs` — Act I front to back, ending with the box closed
+- `test/act2-playthrough.mjs` — crosses over and plays Act II to an ending
 
 ```bash
 python3 -m http.server 8901 &          # from the-reliquary/
-node test/playthrough.mjs              # expects Playwright's chromium
+node test/playthrough.mjs              # expects playwright-core + chromium
+node test/act2-playthrough.mjs
 ```
 
 ## Spoilers — full walkthrough
@@ -101,7 +117,20 @@ node test/playthrough.mjs              # expects Playwright's chromium
    hands to **9:15** (the glass shows *IX·XV* scorched beside the dial).
 6. **Cryptex:** the last letter is an acrostic — first letters top to
    bottom spell **ELOWEN**. Dial it in, top ring to bottom.
-7. Read the last letter. Choose.
+7. Read the last letter. **Close the box** ends the story here;
+   **raise the eyepiece** to cross into Act II.
+
+**Act II**
+
+8. **Bells:** wind the crank, watch the order the bells glow (five
+   notes), tap them back in that order.
+9. **Scales:** all four star-weights on the pans — the 6-dot alone on
+   one side, 1+2+3 together on the other.
+10. **Shadow:** drag the twisted iron around until its cast shape becomes
+    a keyhole; it locks itself when true.
+11. **Chalk door:** with the eyepiece raised, trace the two sides and the
+    arch along the pale guides, then tap where the handle belongs
+    (right side, waist height). Choose your ending at the open door.
 
 </details>
 
