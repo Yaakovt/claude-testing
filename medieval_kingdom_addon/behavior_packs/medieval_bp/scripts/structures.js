@@ -12,7 +12,7 @@ import { world, system } from "@minecraft/server";
 import { q, ri, groundY } from "./gen_util.js";
 import { buildVillage } from "./village.js";
 import { buildGraveyard, buildSiegeCamp, buildArena, buildBanditCamp, buildBattlefield } from "./arenas.js";
-import { buildShrine } from "./puzzle.js";
+import { buildShrine as buildZiggurat } from "./puzzle.js";
 
 const CELL = 320;
 const TRIGGER = 40; // build when a player is this close to the structure point
@@ -222,7 +222,7 @@ const BUILDERS = {
   arena: buildArena,
   banditcamp: buildBanditCamp,
   battlefield: buildBattlefield,
-  ziggurat: buildShrine,
+  ziggurat: buildZiggurat,
 };
 const NICE = {
   tower: "watchtower", shrine: "armor shrine", village: "village", castle: "castle",
