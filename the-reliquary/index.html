@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>The Reliquary — a puzzle box</title>
+<style>
+  :root{
+    --brass:#c9a24b; --brass-dim:#8a6f33; --paper:#e8dcc0; --ink:#2a2118;
+    --aether:#8fd8ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000}
+  body{font-family:Georgia,'Times New Roman',serif;color:#d8cfc0;
+       -webkit-user-select:none;user-select:none}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+
+  /* ---------- vignette & lens ---------- */
+  #vignette{position:fixed;inset:0;pointer-events:none;z-index:3;
+    background:radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%)}
+  #lens-overlay{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;
+    transition:opacity .45s ease;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(90,170,215,.10) 0%, rgba(20,60,95,.28) 62%, rgba(2,8,16,.92) 100%);
+    mix-blend-mode:normal}
+  #lens-overlay::before{content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 50%, transparent 46%, rgba(0,0,0,.0) 55%, rgba(0,0,0,.85) 78%);
+  }
+  #lens-overlay::after{content:'';position:absolute;inset:0;opacity:.5;
+    background:radial-gradient(circle at 50% 50%, transparent 60%, rgba(120,200,255,.14) 66%, transparent 72%)}
+  body.lens-on #lens-overlay{opacity:1}
+  #grain{position:fixed;inset:-100px;pointer-events:none;z-index:5;opacity:0;
+    transition:opacity .45s ease}
+  body.lens-on #grain{opacity:.06;animation:grain .4s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-30px,40px)}
+    50%{transform:translate(40px,-25px)}75%{transform:translate(-25px,-40px)}100%{transform:translate(0,0)}}
+
+  /* ---------- title screen ---------- */
+  #title-screen{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    background:radial-gradient(ellipse at 50% 35%, #17120b 0%, #050403 70%, #000 100%);
+    transition:opacity 1.4s ease}
+  #title-screen.gone{opacity:0;pointer-events:none}
+  #title-screen .rule{width:220px;height:1px;margin:18px 0;
+    background:linear-gradient(90deg,transparent,var(--brass),transparent)}
+  #title-screen h1{font-size:clamp(34px,7vw,64px);font-weight:400;letter-spacing:.32em;
+    text-indent:.32em;color:var(--brass);text-shadow:0 0 34px rgba(201,162,75,.35)}
+  #title-screen .over{font-size:12px;letter-spacing:.55em;text-indent:.55em;color:#7d7264;margin-bottom:14px}
+  #title-screen .under{font-size:14px;letter-spacing:.18em;color:#9a8d78;font-style:italic;margin-top:4px}
+  .menu{margin-top:44px;display:flex;flex-direction:column;gap:14px;align-items:center}
+  .btn{font-family:inherit;font-size:15px;letter-spacing:.28em;text-indent:.28em;
+    padding:12px 38px;color:#e6d9b8;background:rgba(201,162,75,.07);
+    border:1px solid rgba(201,162,75,.45);cursor:pointer;transition:all .25s}
+  .btn:hover{background:rgba(201,162,75,.18);box-shadow:0 0 24px rgba(201,162,75,.25);color:#fff}
+  .btn[disabled]{opacity:.35;pointer-events:none}
+  .btn.small{font-size:12px;padding:8px 22px}
+  #title-hint{margin-top:40px;font-size:12px;color:#665c4d;letter-spacing:.12em;line-height:2}
+  #mute-note{position:absolute;bottom:18px;font-size:11px;color:#4d463b;letter-spacing:.15em}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity .8s}
+  body.playing #hud{opacity:1}
+  .hudbtn{pointer-events:auto;width:52px;height:52px;border-radius:50%;
+    border:1px solid rgba(201,162,75,.5);background:rgba(10,8,5,.72);
+    color:var(--brass);font-size:22px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+    font-family:Georgia,serif}
+  .hudbtn:hover{background:rgba(201,162,75,.18);box-shadow:0 0 18px rgba(201,162,75,.3)}
+  .hudbtn.hidden{display:none}
+  #hud-right{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;gap:12px}
+  #btn-lens{position:absolute;left:50%;transform:translateX(-50%);bottom:88px;
+    width:64px;height:64px;font-size:26px}
+  #btn-lens.active{background:rgba(90,170,215,.22);border-color:var(--aether);
+    color:var(--aether);box-shadow:0 0 30px rgba(120,200,255,.5)}
+  #btn-back{position:absolute;left:16px;top:16px;font-size:26px}
+  #subtitle{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;
+    max-width:min(680px,88vw);text-align:center;font-style:italic;font-size:16px;
+    letter-spacing:.06em;color:#cfc3ab;text-shadow:0 2px 8px #000,0 0 2px #000;
+    opacity:0;transition:opacity .5s}
+  #subtitle.show{opacity:1}
+  #chapter-card{position:absolute;left:50%;top:20%;transform:translateX(-50%);
+    text-align:center;opacity:0;transition:opacity 1.2s;pointer-events:none}
+  #chapter-card.show{opacity:1}
+  #chapter-card .num{font-size:13px;letter-spacing:.6em;text-indent:.6em;color:#8a7a5c;margin-bottom:10px}
+  #chapter-card .name{font-size:clamp(22px,4vw,34px);letter-spacing:.24em;text-indent:.24em;color:var(--brass);
+    text-shadow:0 0 26px rgba(201,162,75,.4)}
+
+  /* ---------- inventory ---------- */
+  #inventory{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;
+    display:flex;gap:10px;pointer-events:auto}
+  .slot{width:58px;height:58px;border:1px solid rgba(201,162,75,.4);
+    background:rgba(8,6,4,.78);cursor:pointer;position:relative;
+    display:flex;align-items:center;justify-content:center;transition:all .2s}
+  .slot:hover{border-color:var(--brass)}
+  .slot.selected{border-color:#fff;background:rgba(201,162,75,.22);
+    box-shadow:0 0 20px rgba(201,162,75,.45)}
+  .slot .icon{font-size:26px;filter:sepia(1) saturate(2)}
+  .slot .tag{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
+    font-size:10px;letter-spacing:.1em;color:#9a8d78;white-space:nowrap;opacity:0;transition:opacity .2s}
+  .slot:hover .tag{opacity:1}
+
+  /* ---------- modal (letters / inspect / hints / endings) ---------- */
+  #modal-wrap{position:fixed;inset:0;z-index:30;display:none;align-items:center;
+    justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(2px)}
+  #modal-wrap.open{display:flex}
+  #modal{max-width:min(620px,92vw);max-height:86vh;overflow-y:auto;position:relative;
+    background:linear-gradient(160deg,#efe4c8 0%, #e2d3ae 55%, #d8c69c 100%);
+    color:var(--ink);padding:44px 48px 38px;box-shadow:0 24px 80px rgba(0,0,0,.9);
+    border:1px solid #b7a172}
+  #modal.dark{background:linear-gradient(160deg,#100d09,#070605);color:#cfc3ab;border-color:#3c332a}
+  #modal h2{font-size:15px;letter-spacing:.35em;text-indent:.35em;text-align:center;
+    margin-bottom:20px;font-weight:400;color:#6d5323}
+  #modal.dark h2{color:var(--brass)}
+  #modal .body{font-size:16px;line-height:1.85;white-space:pre-wrap}
+  #modal .body em{color:#6d5323}
+  #modal .sig{margin-top:22px;text-align:right;font-style:italic}
+  #modal .close-x{position:absolute;top:10px;right:14px;font-size:22px;cursor:pointer;
+    color:inherit;opacity:.55;background:none;border:none;font-family:inherit}
+  #modal .close-x:hover{opacity:1}
+  #modal .actions{margin-top:28px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  #modal .actions .btn{color:#3c2f16;border-color:#8a6f33;background:rgba(138,111,51,.12)}
+  #modal.dark .actions .btn{color:#e6d9b8;border-color:rgba(201,162,75,.45);background:rgba(201,162,75,.07)}
+
+  /* inspect canvas modal */
+  #inspect-wrap{position:fixed;inset:0;z-index:28;display:none;background:rgba(0,0,0,.85)}
+  #inspect-wrap.open{display:block}
+  #inspect-ui{position:absolute;inset:0;pointer-events:none;display:flex;
+    flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:40px}
+  #inspect-name{font-size:15px;letter-spacing:.3em;text-indent:.3em;color:var(--brass);margin-bottom:8px}
+  #inspect-desc{font-size:14px;font-style:italic;color:#a99b82;max-width:520px;text-align:center;line-height:1.7}
+  #inspect-close{position:absolute;top:16px;right:16px;pointer-events:auto}
+
+  /* ---------- endings & credits ---------- */
+  #fader{position:fixed;inset:0;z-index:50;background:#000;opacity:0;pointer-events:none;
+    transition:opacity 2.5s ease}
+  #fader.show{opacity:1;pointer-events:auto}
+  #ending{position:fixed;inset:0;z-index:51;display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:0 8vw}
+  #ending.open{display:flex}
+  #ending .etitle{font-size:13px;letter-spacing:.55em;text-indent:.55em;color:#8a7a5c;margin-bottom:26px}
+  #ending .etext{max-width:640px;font-size:17px;line-height:2.1;font-style:italic;color:#d8cfc0;
+    opacity:0;transition:opacity 2.5s}
+  #ending .etext.show{opacity:1}
+  #ending .menu{margin-top:50px}
+
+  @media (max-width:640px){
+    #modal{padding:30px 22px}
+    .hudbtn{width:46px;height:46px;font-size:19px}
+    #btn-lens{width:58px;height:58px;bottom:92px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="vignette"></div>
+<div id="lens-overlay"></div>
+<div id="grain"></div>
+
+<div id="hud">
+  <button id="btn-back" class="hudbtn hidden" title="Step back (Esc)">‹</button>
+  <div id="hud-right">
+    <button id="btn-journal" class="hudbtn hidden" title="Journal — letters found">✉</button>
+    <button id="btn-hint" class="hudbtn" title="Whisper a hint">?</button>
+    <button id="btn-sound" class="hudbtn" title="Sound on/off">♪</button>
+  </div>
+  <button id="btn-lens" class="hudbtn hidden" title="Raise the eyepiece (E)">◉</button>
+  <div id="inventory"></div>
+  <div id="subtitle"></div>
+  <div id="chapter-card"><div class="num"></div><div class="name"></div></div>
+</div>
+
+<div id="modal-wrap"><div id="modal">
+  <button class="close-x">×</button>
+  <h2></h2><div class="body"></div><div class="sig"></div><div class="actions"></div>
+</div></div>
+
+<div id="inspect-wrap">
+  <div id="inspect-ui">
+    <div id="inspect-name"></div><div id="inspect-desc"></div>
+  </div>
+  <button id="inspect-close" class="hudbtn">×</button>
+</div>
+
+<div id="fader"></div>
+<div id="ending">
+  <div class="etitle"></div>
+  <div class="etext"></div>
+  <div class="menu"><button id="btn-again" class="btn small">RETURN TO THE TITLE</button></div>
+</div>
+
+<div id="title-screen">
+  <div class="over">A CHAMBER OF LOCKS IN THE TRADITION OF THE ROOM</div>
+  <h1>THE RELIQUARY</h1>
+  <div class="rule"></div>
+  <div class="under">“Nothing in this room is only what it seems.”</div>
+  <div class="menu">
+    <button id="btn-continue" class="btn" style="display:none">CONTINUE</button>
+    <button id="btn-new" class="btn">BEGIN</button>
+  </div>
+  <div id="title-hint">
+    drag to circle the table · scroll or pinch to lean closer · double-tap a face to study it<br/>
+    when you find the eyepiece, press <b>E</b> — and trust nothing you saw before
+  </div>
+  <div id="mute-note">headphones recommended — all sound is conjured, not recorded</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
+} }
+</script>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
