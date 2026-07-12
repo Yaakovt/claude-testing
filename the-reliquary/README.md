@@ -63,6 +63,9 @@ Progress saves automatically at each chapter (localStorage).
 - **Chapter VI.** The box opens. Close it and the story ends here — or
   raise the eyepiece, and go where it has been trying to take you.
 
+**New:** an original synthesized score (a lullaby that follows you between
+worlds), and 18 collectable **keepsakes** (achievements — the ✦ button).
+
 **Act II — the second room** *(raise the eyepiece at the finale)*
 
 - **Chapter VII — The Second Room.** A chamber drawn in chalk and
@@ -74,8 +77,19 @@ Progress saves automatically at each chapter (localStorage).
 - **Chapter X — The Chalk Door.** Trace her door true — sides, arch,
   and the handle every door her age deserves — then make the last choice.
 
-Three endings in all. Every puzzle is a different mechanism — nothing
-repeats, in either room.
+**Act III — the field of sleeping stars** *(step through the chalk door)*
+
+- **Chapter XI — The Field.** Cross the stepping-stones; they are
+  waiting for you at the far platform.
+- **Chapter XII — The Constellation Loom.** Her door-star came apart
+  when the door opened. Drag star to star and weave it whole.
+- **Chapter XIII — The Breath of the Hollow.** Wake the sleeper kindly:
+  three knocks, each at the top of its breath.
+- **Chapter XIV — A Door of Your Own.** She saved the best part for
+  you: take her chalk and draw the way home. Any door you mean is true.
+
+Three endings in all — one per act. Every puzzle is a different
+mechanism; nothing repeats, in any room.
 
 Graphics: procedural wood/brass/paper textures, PBR materials with an
 environment map, soft shadows, bloom, dust motes, candlelight, and a
@@ -85,16 +99,19 @@ recorded.
 
 ## Verifying it works
 
-Two headless-Chromium tests drive full games with real mouse input —
-every drag, arc, tap and inspection — asserting each chapter's state:
+Three headless-Chromium tests drive full games with real mouse input —
+every drag, arc, tap, knock and free-hand chalk stroke — asserting each
+chapter's state:
 
 - `test/playthrough.mjs` — Act I front to back, ending with the box closed
 - `test/act2-playthrough.mjs` — crosses over and plays Act II to an ending
+- `test/act3-playthrough.mjs` — steps through and plays Act III to the end
 
 ```bash
 python3 -m http.server 8901 &          # from the-reliquary/
 node test/playthrough.mjs              # expects playwright-core + chromium
 node test/act2-playthrough.mjs
+node test/act3-playthrough.mjs
 ```
 
 ## Spoilers — full walkthrough
@@ -130,7 +147,20 @@ node test/act2-playthrough.mjs
     a keyhole; it locks itself when true.
 11. **Chalk door:** with the eyepiece raised, trace the two sides and the
     arch along the pale guides, then tap where the handle belongs
-    (right side, waist height). Choose your ending at the open door.
+    (right side, waist height). **Send them home** ends here;
+    **step through** for Act III.
+
+**Act III**
+
+12. **The walk:** tap each glowing stepping-stone in turn, then the
+    platform.
+13. **Loom:** with the eyepiece raised, drag star to star along the six
+    pale threads (the shape is a little house with a peaked roof, plus
+    one inner thread).
+14. **Hollow:** watch its rim breathe. Tap it exactly at the brightest
+    moment, three times running. A mistimed knock just resets the count.
+15. **Your door:** scribble on the slab until the chalk hums (any shape
+    counts), then tap your drawing. That's the whole point.
 
 </details>
 

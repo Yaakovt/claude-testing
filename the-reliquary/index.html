@@ -69,7 +69,7 @@
   .hudbtn:hover{background:rgba(201,162,75,.18);box-shadow:0 0 18px rgba(201,162,75,.3)}
   .hudbtn.hidden{display:none}
   #hud-right{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;gap:12px}
-  #btn-lens{position:absolute;left:50%;transform:translateX(-50%);bottom:88px;
+  #btn-lens{position:absolute;right:16px;bottom:16px;
     width:64px;height:64px;font-size:26px}
   #btn-lens.active{background:rgba(90,170,215,.22);border-color:var(--aether);
     color:var(--aether);box-shadow:0 0 30px rgba(120,200,255,.5)}
@@ -85,6 +85,21 @@
   #chapter-card .num{font-size:13px;letter-spacing:.6em;text-indent:.6em;color:#8a7a5c;margin-bottom:10px}
   #chapter-card .name{font-size:clamp(22px,4vw,34px);letter-spacing:.24em;text-indent:.24em;color:var(--brass);
     text-shadow:0 0 26px rgba(201,162,75,.4)}
+
+  /* ---------- achievements ---------- */
+  #ach-toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-80px);
+    display:flex;align-items:center;gap:12px;padding:10px 22px;
+    background:rgba(10,8,5,.92);border:1px solid rgba(201,162,75,.55);
+    box-shadow:0 8px 30px rgba(0,0,0,.6);transition:transform .5s ease;pointer-events:none}
+  #ach-toast.show{transform:translate(-50%,0)}
+  #ach-toast .star{color:var(--brass);font-size:20px}
+  #ach-toast .a-over{font-size:9px;letter-spacing:.4em;color:#8a7a5c}
+  #ach-toast .a-name{font-size:14px;letter-spacing:.14em;color:#e6d9b8}
+  .ach-row{display:flex;gap:12px;align-items:baseline;margin:9px 0}
+  .ach-row .star{color:var(--brass)}
+  .ach-row.locked{opacity:.35}
+  .ach-row .nm{letter-spacing:.12em;font-size:15px;color:#e6d9b8;white-space:nowrap}
+  .ach-row .ds{font-size:13px;font-style:italic;color:#9a8d78}
 
   /* ---------- inventory ---------- */
   #inventory{position:absolute;left:16px;bottom:16px;
@@ -148,7 +163,7 @@
   @media (max-width:640px){
     #modal{padding:30px 22px}
     .hudbtn{width:46px;height:46px;font-size:19px}
-    #btn-lens{width:58px;height:58px;bottom:92px}
+    #btn-lens{width:58px;height:58px}
   }
 </style>
 </head>
@@ -162,9 +177,12 @@
   <button id="btn-back" class="hudbtn hidden" title="Step back (Esc)">‹</button>
   <div id="hud-right">
     <button id="btn-journal" class="hudbtn hidden" title="Journal — letters found">✉</button>
+    <button id="btn-achv" class="hudbtn" title="Keepsakes — achievements">✦</button>
     <button id="btn-hint" class="hudbtn" title="Whisper a hint">?</button>
     <button id="btn-sound" class="hudbtn" title="Sound on/off">♪</button>
   </div>
+  <div id="ach-toast"><span class="star">✦</span>
+    <div><div class="a-over">KEEPSAKE</div><div class="a-name"></div></div></div>
   <button id="btn-lens" class="hudbtn hidden" title="Raise the eyepiece (E)">◉</button>
   <div id="inventory"></div>
   <div id="subtitle"></div>

@@ -142,12 +142,96 @@ const Snd = (() => {
       [1244, 1568, 1864].forEach((f, i) => osc('sine', f, f, 0.02, 0.05, 2.8, 0.8 + i * 0.3));
       noise(0.07, 4.0, 400, 3000, 0.5);
     },
+    boom()  { osc('sine', 55, 34, 0.02, 0.30, 1.6); noise(0.06, 0.8, 60, 220, 0, 'lowpass'); },
+    hush()  { noise(0.05, 1.2, 200, 900, 0, 'lowpass'); osc('sine', 220, 180, 0.03, 0.03, 0.9); },
+    /* ------ the score: an original lullaby, conjured a phrase at a time ---- */
+    celesta(f, vol = 0.04, when = 0, dur = 1.6) {
+      osc('sine', f, f, 0.004, vol, dur, when);
+      osc('sine', f * 2.63, f * 2.63, 0.004, vol * 0.22, dur * 0.5, when);
+    },
+    setScene(n) { this._scene = n; },
+    _scene: 0,
     riser() {
       osc('sine', 80, 320, 2.2, 0.14, 2.4); osc('sine', 120, 480, 2.2, 0.08, 2.6, 0.1);
       noise(0.06, 3.2, 300, 2400, 0.4);
     },
   };
 })();
+/* the score scheduler — phrases of an original lullaby in E minor pentatonic */
+{
+  const E4 = 329.63, G4 = 392.0, A4 = 440.0, B4 = 493.88, D5 = 587.33, E5 = 659.25, E2 = 82.41;
+  const PHRASES = [
+    { n: [A4, B4, G4, E4, A4],      t: [0, 0.75, 1.5, 2.4, 3.6] },
+    { n: [E4, G4, A4, B4, A4, G4],  t: [0, 0.7, 1.4, 2.1, 3.3, 4.0] },
+    { n: [B4, D5, B4, A4, G4, E4],  t: [0, 0.8, 1.6, 2.3, 3.1, 4.2] },
+    { n: [E5, B4, A4, B4],          t: [0, 0.9, 1.8, 3.0] },
+  ];
+  let beat = 0;
+  setInterval(() => {
+    const scene = Snd._scene;
+    if (!scene || !Snd.on) return;
+    beat++;
+    if (scene === 1) {                       /* the study: rare, distant notes */
+      if (beat % 3 === 0) Snd.celesta([E4, G4, B4][beat % 3 === 0 ? (beat / 3) % 3 | 0 : 0], 0.016, 0.2, 2.4);
+      return;
+    }
+    /* beyond the door: the lullaby proper, one soft phrase at a time */
+    if (beat % 2 === 0) {
+      const ph = PHRASES[(beat / 2) % PHRASES.length | 0];
+      const vol = 0.030 + (beat % 4 === 0 ? 0.008 : 0);
+      ph.n.forEach((f, i) => Snd.celesta(f * (1 + (i % 2) * 0.0004), vol, ph.t[i], 2.0));
+      Snd.celesta(E2, 0.014, 0.1, 5.0);      /* low pad root under the phrase */
+    }
+  }, 9000);
+}
+
+/* ======================= keepsakes (achievements) ======================== */
+const ACH = {
+  patience:       ['Patience, Not Pride',      'Open the horologist’s drawer.'],
+  littlesky:      ['A Little Sky, Agreed',     'Let the lid’s stars settle where they belong.'],
+  nothingtoburn:  ['Nothing To Burn',          'Wake the aether engine.'],
+  goodmetal:      ['Good Metal Forgives',      'Press a bent thing straight.'],
+  quarterpast:    ['The Minute He Kept',       'Give the house back its heartbeat.'],
+  saidaloud:      ['Said Aloud At Last',       'Spell the unspoken name.'],
+  doorheldshut:   ['The Door Held Shut',       'Choose the quiet morning.'],
+  throughtheglass:['Through the Glass',        'Raise the eyepiece — and follow it.'],
+  sayitback:      ['Say It Back',              'Return the lullaby to the bells.'],
+  evenhere:       ['Even Here, Balance',       'Weigh the stars fairly.'],
+  stoplying:      ['The Light Stops Lying',    'Turn the iron until it tells the truth.'],
+  drawntrue:      ['Drawn True',               'Make the chalk more than a picture.'],
+  loommended:     ['Which Star Loved Which',   'Reweave her constellation.'],
+  gentlynow:      ['Gently, Now',              'Wake the Hollow with courteous knocks.'],
+  firstknock:     ['Not One Knock Wasted',     'Wake the Hollow without a single mistimed knock.'],
+  threecups:      ['Three Cups, One Morning',  'Send them home ahead of you.'],
+  yourowndoor:    ['A Door of Your Own',       'Draw the way home yourself.'],
+  nowhispers:     ['No Whispers Needed',       'Reach any ending without asking for a hint.'],
+};
+const ACH_KEY = 'reliquary-keepsakes-v1';
+let achEarned = {};
+try { achEarned = JSON.parse(localStorage.getItem(ACH_KEY)) || {}; } catch (e) { achEarned = {}; }
+const achQueue = [];
+let achShowing = false;
+function award(id, silent = false) {
+  if (!ACH[id] || achEarned[id]) return;
+  achEarned[id] = true;
+  try { localStorage.setItem(ACH_KEY, JSON.stringify(achEarned)); } catch (e) { /* ok */ }
+  if (silent) return;
+  achQueue.push(id);
+  pumpAchToast();
+}
+function pumpAchToast() {
+  if (achShowing || !achQueue.length) return;
+  achShowing = true;
+  const id = achQueue.shift();
+  const el = document.querySelector('#ach-toast');
+  el.querySelector('.a-name').textContent = ACH[id][0].toUpperCase();
+  el.classList.add('show');
+  Snd.celesta && Snd.celesta(659.25, 0.05, 0, 1.2);
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => { achShowing = false; pumpAchToast(); }, 700);
+  }, 3400);
+}
 
 /* =========================== renderer & scene ============================ */
 const app = $('#app');
@@ -329,6 +413,7 @@ function glyphTex(draw) {
    whole room can step aside when — if — you go through */
 const act1World = new THREE.Group(); scene.add(act1World);
 const act2World = new THREE.Group(); act2World.visible = false; scene.add(act2World);
+const act3World = new THREE.Group(); act3World.visible = false; scene.add(act3World);
 
 /* backdrop */
 {
@@ -489,6 +574,10 @@ const CHAPTERS = [
   ['CHAPTER VIII', 'THE WEIGHT OF STARS'],
   ['CHAPTER IX', 'THE SHADOW KEY'],
   ['CHAPTER X', 'THE CHALK DOOR'],
+  ['CHAPTER XI', 'THE FIELD OF SLEEPING STARS'],
+  ['CHAPTER XII', 'THE CONSTELLATION LOOM'],
+  ['CHAPTER XIII', 'THE BREATH OF THE HOLLOW'],
+  ['CHAPTER XIV', 'A DOOR OF YOUR OWN'],
 ];
 function chapterCard(n) {
   const el = $('#chapter-card');
@@ -605,6 +694,20 @@ Raise the glass. Follow her lines. She has been keeping them warm for you.
 
 Beyond is the field you have glimpsed through the eyepiece. We will be standing in the light of it — watching for you, or waving you home. Either is right. Neither is goodbye.`,
   },
+  {
+    title: 'IN TWO HANDS', sig: '— E.V. & e.', dark: true,
+    html: `You crossed. My sister is at this moment attempting to appear as though she did not doubt you would.
+
+<em>i never doubted. he paced.</em>
+
+I did not pace. I calibrated. — You will want to know what this place is. The honest answer is that it is hers: she drew it, one patient year at a time, the way I built boxes. The stars sleep because she liked them better that way.
+
+<em>they snore. it's lovely.</em>
+
+Three things remain, and then — home, or onward, or whatever the three of us decide over tea. First: her constellation came apart when the door opened. The loom will let you mend it. Second: the Hollow must be woken gently, for it has kept her safe for forty years and deserves a courteous goodbye.
+
+<em>third: you get to draw the last door. i saved it for you. the best part.</em>`,
+  },
 ];
 function giveLetter(i, silent = false) {
   if (!state.letters.includes(i)) state.letters.push(i);
@@ -644,13 +747,31 @@ const HINTS = {
       'Drag the twisted iron slowly around and watch its cast shape on the wall. When it becomes a keyhole, it will lock itself true.'],
   10: ['Chalk what she chalked. The glass shows where the lines want to be — and every door deserves a handle.',
       'With the eyepiece raised, trace the pale guides on the wall without straying: the left side, the right side, then the arch across the top. Finally, tap where the handle belongs.'],
+  11: ['The stones only look far apart. That is one of the field’s little jokes.',
+      'Tap the next glowing stepping-stone and the field will carry you to it. Keep going until you reach the platform where they are waiting.'],
+  12: ['The glass remembers which star loved which. Tie them back together with light.',
+      'Raise the eyepiece at the loom: pale threads show six pairs of stars. Drag from one star to its partner to weave each thread. Wrong pairs simply won’t hold.'],
+  13: ['It is not a wall. It is a sleeper. Knock the way you would knock on a sleeping thing — kindly, and in time.',
+      'Watch the Hollow’s rim brighten and dim. Tap it just as the light reaches its brightest, three times in a row. Mistime one and it settles again — just wait and retry.'],
+  14: ['She gave you her chalk, and there is no wrong door. There never was.',
+      'Draw whatever you like on the slab — lines, loops, a door only you would recognise. When the chalk begins to hum, tap your drawing to make it true.'],
 };
 $('#btn-hint').onclick = () => {
-  const h = HINTS[clamp(state.ch, 1, 10)] || HINTS[1];
+  const h = HINTS[clamp(state.ch, 1, 14)] || HINTS[1];
+  state.hintsUsed = true;
   openModal({
     title: 'A WHISPER', dark: true, html: h[0],
     actions: [{ label: 'WHISPER MORE', fn: () => { modal.querySelector('.body').textContent = h[1]; } }],
   });
+};
+$('#btn-achv').onclick = () => {
+  const rows = Object.entries(ACH).map(([id, [nm, ds]]) => {
+    const got = !!achEarned[id];
+    return `<div class="ach-row${got ? '' : ' locked'}"><span class="star">${got ? '✦' : '·'}</span>` +
+           `<span class="nm">${got ? nm : '— · —'}</span><span class="ds">${got ? ds : 'Still waiting.'}</span></div>`;
+  }).join('');
+  const n = Object.keys(achEarned).filter((k) => ACH[k]).length;
+  openModal({ title: `KEEPSAKES — ${n} OF ${Object.keys(ACH).length}`, dark: true, html: rows });
 };
 
 /* ---------------------------- inventory ---------------------------------- */
@@ -735,10 +856,25 @@ const INSPECT_META = {
     name: 'THE EYEPIECE',
     desc: () => 'Edwin Vane’s second-best eyepiece. Cold to the touch, and faintly humming. Press E to wear it.',
   },
+  chalk: {
+    name: 'HER CHALK',
+    desc: () => 'Worn to a stub over forty years of practice. Stubs draw truest — she said so herself.',
+  },
 };
+function buildChalkModel() {
+  const g = new THREE.Group();
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.09, 12),
+    new THREE.MeshStandardMaterial({ color: 0xeef2f6, roughness: 0.95 }));
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.022, 0.02, 12), stick.material);
+  tip.position.y = 0.055;
+  g.add(stick, tip);
+  g.rotation.z = 0.7;
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
 function openInspect(id) {
   if (inspectItem) inspectScene.remove(inspectItem);
-  inspectItem = id === 'key' ? buildKeyModel() : buildEyepieceModel();
+  inspectItem = id === 'key' ? buildKeyModel() : id === 'chalk' ? buildChalkModel() : buildEyepieceModel();
   if (id === 'key' && !state.keyFixed) inspectItem.userData.bowPivot.rotation.z = -1.1;
   if (id === 'eyepiece') inspectItem.rotation.z = Math.PI / 2.4;
   inspectItem.userData.id = id;
@@ -771,6 +907,7 @@ $('#inspect-close').onclick = closeInspect;
       const hits = raycaster.intersectObject(inspectItem, true);
       if (hits.some((h) => h.object.userData.isBow)) {
         state.keyFixed = true; Snd.click(); Snd.thunk();
+        award('goodmetal');
         const piv = inspectItem.userData.bowPivot, from = piv.rotation.z;
         tween({ dur: 0.5, step: (k) => { piv.rotation.z = lerp(from, 0, k); },
           done: () => { $('#inspect-desc').textContent = INSPECT_META.key.desc(); saveGame(); } });
@@ -794,13 +931,23 @@ const NODES = {
   bells:    { pos: [-0.95, 2.0, 2.5], tgt: [-0.95, 0.75, 0] },
   scales:   { pos: [0.95, 2.0, 2.6],  tgt: [0.95, 0.95, 0] },
   wall:     { pos: [0, 1.5, 1.6],     tgt: [0, 1.25, -2] },
+  /* — the field — */
+  stone1:   { pos: [0.45, 1.7, 5.9],  tgt: [-0.4, 0.7, 3.4] },
+  stone2:   { pos: [-0.4, 1.7, 4.6],  tgt: [0.35, 0.7, 2.1] },
+  stone3:   { pos: [0.35, 1.7, 3.3],  tgt: [0, 1.2, -0.8] },
+  overview3:{ pos: [0, 2.3, 3.8],     tgt: [0, 1.2, -0.9] },
+  loom:     { pos: [0.7, 1.75, 1.7],  tgt: [-1.35, 1.55, 0.1] },
+  hollow:   { pos: [0, 1.7, 1.0],     tgt: [0, 2.8, -9] },
+  slab:     { pos: [0.45, 1.6, 1.5],  tgt: [1.8, 1.5, -0.5] },
 };
-function goBack() { focusNode(state.act === 2 ? 'overview2' : 'overview'); }
+function goBack() {
+  focusNode(state.act === 3 ? 'overview3' : state.act === 2 ? 'overview2' : 'overview');
+}
 let camTween = null;
 function focusNode(name, dur = 1.4) {
   if (state.focus === name && !camTween) return;
   state.focus = name;
-  $('#btn-back').classList.toggle('hidden', name === 'overview' || name === 'overview2');
+  $('#btn-back').classList.toggle('hidden', name.startsWith('overview') || name.startsWith('stone'));
   const n = NODES[name];
   const p0 = camera.position.clone(), t0 = controls.target.clone();
   const p1 = new THREE.Vector3(...n.pos), t1 = new THREE.Vector3(...n.tgt);
@@ -813,6 +960,12 @@ function focusNode(name, dur = 1.4) {
 }
 $('#btn-back').onclick = () => goBack();
 function regionOfPoint(p) {
+  if (state.act === 3) {
+    if (p.z < -2.5) return 'hollow';
+    if (p.x < -0.7) return 'loom';
+    if (p.x > 0.9) return 'slab';
+    return 'overview3';
+  }
   if (state.act === 2) {
     if (p.x < -0.5 && p.z > -1.2) return 'bells';
     if (p.x > 0.5 && p.z > -1.2) return 'scales';
@@ -1690,6 +1843,7 @@ let beginFinale;
   beginFinale = (instant) => {
     if (fin.open) return;
     fin.open = true;
+    if (!instant) award('saidaloud');
     state.ch = 6; saveGame();
     const dur = instant ? 0.001 : 2.6;
     if (!instant) { Snd.riser(); Snd.hum(0.6); focusNode('finale', 2.2); }
@@ -2272,7 +2426,7 @@ let enterAct2;
       title: 'THE DOOR STANDS OPEN', dark: true, closable: false,
       html: 'Neither of them beckons. Neither bars the way.\n\nIt was always going to be yours to decide.',
       actions: [
-        { label: 'STEP THROUGH',   fn: () => { closeModal(); ending(2); } },
+        { label: 'STEP THROUGH',   fn: () => { closeModal(); enterAct3(false); } },
         { label: 'SEND THEM HOME', fn: () => { closeModal(); ending(3); } },
       ],
     });
@@ -2306,6 +2460,8 @@ let enterAct2;
     if (state.act === 2) return;
     state.act = 2;
     const doSwap = () => {
+      if (camTween) { camTween.dead = true; camTween = null; }
+      controls.enabled = true;
       act1World.visible = false; act2World.visible = true;
       scene.fog.color.setHex(0x030710); scene.fog.density = 0.035;
       key.color.setHex(0xcfe0ff); key.intensity = 55;
@@ -2317,8 +2473,9 @@ let enterAct2;
       state.focus = 'overview2';
       $('#btn-back').classList.add('hidden');
       updateShadow();
-      Snd.hum(0.25);
+      Snd.hum(0.25); Snd.setScene(2);
     };
+    award('throughtheglass');
     if (instant) { doSwap(); if (aether.on) setLens(false); state.ch = Math.max(state.ch, 7); return; }
     state.busy = true;
     Snd.portal();
@@ -2366,6 +2523,453 @@ let enterAct2;
   };
 }
 
+/* ============================================================================
+   ACT III — THE FIELD OF SLEEPING STARS
+   Step through, and the story keeps its promise: the walk across the
+   stones, her constellation on a loom of light, the sleeping Hollow,
+   and one last door that nobody draws for you.
+   ==========================================================================*/
+const ch11 = { progress: 0, arrived: false };
+const ch12 = { solved: false, made: [], nodes: [], edges: [] };
+const ch13 = { solved: false, streak: 0, misses: 0, period: 5.0 };
+const ch14 = { drawn: 0, humming: false, done: false };
+let enterAct3;
+{
+  const W = act3World;
+
+  /* ------------------------------ the field ------------------------------ */
+  const mist = new THREE.Mesh(new THREE.CylinderGeometry(30, 30, 0.2, 48),
+    new THREE.MeshBasicMaterial({ color: 0x0a1224, transparent: true, opacity: 0.5, fog: false }));
+  mist.position.y = -6; W.add(mist);
+  /* drifting field-stars */
+  {
+    const N = 90, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      pos[i*3] = (rnd() - 0.5) * 30; pos[i*3+1] = rnd() * 10 - 2; pos[i*3+2] = (rnd() - 0.5) * 34 - 4;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const spr = makeTex(32, 32, (c) => {
+      const g = c.createRadialGradient(16, 16, 0, 16, 16, 15);
+      g.addColorStop(0, 'rgba(220,235,255,1)'); g.addColorStop(1, 'rgba(220,235,255,0)');
+      c.fillStyle = g; c.fillRect(0, 0, 32, 32);
+    });
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: 0.14, map: spr, transparent: true, opacity: 0.7,
+      blending: THREE.AdditiveBlending, depthWrite: false }));
+    pts.name = 'fieldstars'; W.add(pts);
+  }
+  const stoneMat = new THREE.MeshStandardMaterial({ color: 0x232a3c, roughness: 0.85, envMapIntensity: 0.3 });
+  const STONES = [[0.45, 4.7], [-0.4, 3.4], [0.35, 2.1]];
+  const stoneRings = [];
+  STONES.forEach(([x, z], i) => {
+    const s = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.62, 0.22, 20), stoneMat);
+    s.position.set(x, -0.11, z); s.receiveShadow = true; W.add(s);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.015, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0x9fd0ff, transparent: true, opacity: 0.0,
+        blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    ring.rotation.x = Math.PI / 2; ring.position.set(x, 0.02, z);
+    W.add(ring); stoneRings.push(ring);
+    MARKS['stone' + (i + 1)] = s;
+    reg(s, {
+      enabled: () => state.ch === 11 && !ch11.arrived && ch11.progress === i,
+      cursor: 'pointer',
+      tap() { stepTo(i + 1); },
+    });
+  });
+  /* the platform */
+  const platform = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.5, 0.3, 40), stoneMat);
+  platform.position.set(0, -0.15, -0.7); platform.receiveShadow = true;
+  platform.userData.knock = true; W.add(platform);
+  MARKS.platform = platform;
+  reg(platform, {
+    enabled: () => state.ch === 11 && !ch11.arrived && ch11.progress === 3,
+    cursor: 'pointer',
+    tap() { stepTo(4); },
+  });
+  const WALK_LINES = [
+    'elowen: “mind that one. it wobbles. i drew it on a tuesday.”',
+    'Edwin: “You kept my clocks wound. I am— thank you. That is the phrase I was calibrating.”',
+    'elowen: “last one. big step. the dark doesn’t mind being stepped on, it told me so.”',
+  ];
+  function stepTo(n) {
+    ch11.progress = n;
+    Snd.thunk(); Snd.celesta(392, 0.03, 0.1, 1.4);
+    if (n <= 3) {
+      focusNode('stone' + n, 1.8);
+      say(WALK_LINES[n - 1], 5);
+    } else {
+      ch11.arrived = true;
+      focusNode('overview3', 2.0);
+      delay(1.6, () => {
+        say('They are exactly as the letters promised: one straight-backed, one dusted with chalk.');
+        giveLetter(7);
+        delay(0.5, () => { if (state.ch === 11) advanceChapter(12); showGhostThreads(); });
+      });
+    }
+  }
+  /* the door you came through, glowing far behind */
+  {
+    const frame = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 8, 40, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0xffe9c0, transparent: true, opacity: 0.5, fog: false }));
+    frame.position.set(0, 1.0, 7.6); W.add(frame);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 2.2),
+      new THREE.MeshBasicMaterial({ color: 0xffe9c0, transparent: true, opacity: 0.14,
+        blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    glow.position.set(0, 0.9, 7.58); glow.rotation.y = Math.PI; W.add(glow);
+  }
+  /* the two of them — silhouettes, faceless and gentle */
+  const figures = new THREE.Group(); W.add(figures);
+  const silhMat = new THREE.MeshStandardMaterial({ color: 0x0c101c, roughness: 1, envMapIntensity: 0.15 });
+  function figure(h, x, z, lean) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.11, h * 0.16, h * 0.78, 10), silhMat);
+    body.position.y = h * 0.39;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(h * 0.11, 12, 10), silhMat);
+    head.position.y = h * 0.87;
+    g.add(body, head);
+    g.position.set(x, 0, z); g.rotation.y = lean;
+    figures.add(g);
+    return g;
+  }
+  figure(1.72, -0.55, -1.75, 0.35);                          /* Edwin */
+  const elowenFig = figure(1.08, 0.35, -1.85, -0.25);        /* elowen */
+
+  /* --------------------- the constellation loom -------------------------- */
+  const LOOM = {
+    c: new THREE.Vector3(-1.35, 1.55, 0.1),
+    n: new THREE.Vector3(0.82, 0, 0.57).normalize(),
+  };
+  LOOM.u = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), LOOM.n).normalize();
+  LOOM.v = new THREE.Vector3(0, 1, 0);
+  const loomToWorld = (x, y) => LOOM.c.clone().addScaledVector(LOOM.u, x).addScaledVector(LOOM.v, y);
+  {
+    const frame = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.035, 10, 48), MAT.brassDark);
+    frame.position.copy(LOOM.c);
+    frame.lookAt(LOOM.c.clone().add(LOOM.n));
+    W.add(frame);
+    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.09, 0.65, 10), MAT.iron);
+    stand.position.set(LOOM.c.x, 0.3, LOOM.c.z); W.add(stand);
+  }
+  const NODE_XY = [
+    [-0.42, -0.5], [0.42, -0.5], [-0.42, 0.28], [0.42, 0.28], [0, 0.72], [-0.02, -0.06], [0.3, 0.5],
+  ];
+  const TARGET_EDGES = [[0, 1], [0, 2], [1, 3], [2, 4], [3, 4], [5, 6]];
+  ch12.edges = TARGET_EDGES;
+  const starGeo2 = new THREE.SphereGeometry(0.045, 12, 10);
+  const starMat2 = new THREE.MeshStandardMaterial({ color: 0xd8e6ff, emissive: 0x8fb4ff, emissiveIntensity: 0.9, roughness: 0.3 });
+  const loomNodes = [];
+  NODE_XY.forEach(([x, y], i) => {
+    const m = new THREE.Mesh(starGeo2, starMat2.clone());
+    m.position.copy(loomToWorld(x, y));
+    W.add(m); loomNodes.push(m);
+    ch12.nodes.push(m.position.clone());
+    MARKS['loomstar' + i] = m;
+  });
+  /* ghost threads, visible through the glass */
+  const ghostThreads = [];
+  for (const [a, b] of TARGET_EDGES) {
+    const g = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([loomNodes[a].position, loomNodes[b].position]),
+      new THREE.LineBasicMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending }));
+    g.visible = false; W.add(g); ghostThreads.push(g);
+    aether.mats.push(g.material); g.material.userData.maxOp = 0.4;
+  }
+  function showGhostThreads() { ghostThreads.forEach((g) => { g.visible = true; }); }
+  /* the woven threads */
+  const threadMat = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+  function weave(a, b) {
+    const A = loomNodes[a].position, B = loomNodes[b].position;
+    const len = A.distanceTo(B);
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, len, 6), threadMat);
+    cyl.position.lerpVectors(A, B, 0.5);
+    cyl.lookAt(B); cyl.rotateX(Math.PI / 2);
+    W.add(cyl);
+  }
+  /* temp thread while dragging */
+  let tempThread = null, dragFrom = -1;
+  function setTempThread(from, to) {
+    if (tempThread) { W.remove(tempThread); tempThread = null; }
+    if (from == null) return;
+    const len = from.distanceTo(to);
+    if (len < 0.02) return;
+    tempThread = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, len, 6),
+      new THREE.MeshBasicMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.45,
+        blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    tempThread.position.lerpVectors(from, to, 0.5);
+    tempThread.lookAt(to); tempThread.rotateX(Math.PI / 2);
+    W.add(tempThread);
+  }
+  const loomPlanePoint = () => {
+    const d = -LOOM.n.dot(LOOM.c);
+    return planePoint(LOOM.n, d);
+  };
+  loomNodes.forEach((node, i) => {
+    reg(node, {
+      enabled: () => state.ch === 12 && !ch12.solved, cursor: 'grab',
+      dragStart() { dragFrom = i; },
+      drag() {
+        const p = loomPlanePoint();
+        if (p && dragFrom >= 0) setTempThread(loomNodes[dragFrom].position, p);
+      },
+      dragEnd() {
+        setTempThread(null);
+        if (dragFrom < 0) return;
+        const p = loomPlanePoint(); const from = dragFrom; dragFrom = -1;
+        if (!p) return;
+        let best = -1, bd = 1e9;
+        loomNodes.forEach((n2, j) => {
+          const d = n2.position.distanceTo(p);
+          if (j !== from && d < bd) { bd = d; best = j; }
+        });
+        if (best < 0 || bd > 0.16) return;
+        const key = [Math.min(from, best), Math.max(from, best)].join('-');
+        if (ch12.made.includes(key)) return;
+        const isTarget = TARGET_EDGES.some(([a, b]) => a === Math.min(from, best) && b === Math.max(from, best));
+        if (!isTarget) {
+          Snd.buzz(); Snd.hush();
+          say('The thread slips loose. Those two were never introduced.');
+          return;
+        }
+        ch12.made.push(key);
+        weave(from, best);
+        Snd.celesta([440, 493.88, 587.33, 659.25][ch12.made.length % 4], 0.05, 0, 1.6);
+        Snd.click();
+        if (ch12.made.length === TARGET_EDGES.length) {
+          ch12.solved = true;
+          loomNodes.forEach((n2) => { n2.material.emissiveIntensity = 2.4; });
+          Snd.chime();
+          say('elowen: “that’s it. that’s my door-star. now — come and say good morning. gently.”');
+          delay(2.2, () => { if (state.ch === 12) advanceChapter(13); hollowGlow.visible = true; });
+        }
+      },
+    });
+  });
+
+  /* ----------------------- the breath of the hollow ----------------------- */
+  const hollowSphere = new THREE.Mesh(new THREE.SphereGeometry(6.5, 40, 28),
+    new THREE.MeshStandardMaterial({ color: 0x04060d, roughness: 0.95, envMapIntensity: 0.05 }));
+  hollowSphere.position.set(0, 2.5, -16.5); W.add(hollowSphere);
+  MARKS.hollow = hollowSphere;
+  const hollowGlow = new THREE.Mesh(new THREE.PlaneGeometry(17, 17),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.2, fog: false,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+      map: makeTex(256, 256, (c, w, h) => {
+        const g = c.createRadialGradient(w/2, h/2, w * 0.28, w/2, h/2, w * 0.5);
+        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.55, 'rgba(140,190,255,0.5)');
+        g.addColorStop(1, 'rgba(140,190,255,0)');
+        c.fillStyle = g; c.fillRect(0, 0, w, h);
+      }) }));
+  hollowGlow.position.set(0, 2.5, -16.4); hollowGlow.visible = false;
+  W.add(hollowGlow);
+  ch13.phaseInfo = () => {
+    const t = mod(elapsed, ch13.period);
+    const peak = ch13.period * 0.25;
+    let d = Math.abs(t - peak); d = Math.min(d, ch13.period - d);
+    return { t, toPeak: peak - t, offPeak: d };
+  };
+  reg(hollowSphere, {
+    enabled: () => state.ch === 13 && !ch13.solved, cursor: 'pointer',
+    tap() {
+      const { offPeak } = ch13.phaseInfo();
+      if (offPeak < 0.65) {
+        ch13.streak++;
+        Snd.boom();
+        ch13._flash = true;
+        tween({ dur: 0.7, step: (k) => { hollowGlow.material.opacity = 0.2 + Math.sin(k * Math.PI) * 0.55; },
+          done: () => { ch13._flash = false; } });
+        say(ch13.streak < 3 ? `A knock, kindly meant. ${'· '.repeat(ch13.streak).trim()}` : '');
+        if (ch13.streak >= 3) solveHollow();
+      } else {
+        if (ch13.streak > 0) say('It stirs, and settles. Wait for the bright of the breath, and begin again.');
+        else say('Too soon — or too late. Knock at the top of the breath.');
+        ch13.streak = 0; ch13.misses++;
+        Snd.hush();
+      }
+    },
+  });
+  function solveHollow() {
+    ch13.solved = true;
+    Snd.riser(); Snd.hum(0.5);
+    say('The Hollow wakes the way libraries wake: nothing moves, and everything listens.');
+    if (ch13.misses === 0) award('firstknock');
+    delay(2.4, () => {
+      /* it gives you the chalk — a mote of light drifts down into your hand */
+      const mote = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf2f7ff, fog: false }));
+      mote.position.set(0, 3, -9); W.add(mote);
+      const p0 = mote.position.clone(), p1 = new THREE.Vector3(0.4, 1.2, 1.2);
+      tween({ dur: 2.6, ease: easeInOut, step: (k) => {
+        mote.position.lerpVectors(p0, p1, k);
+        mote.scale.setScalar(1 - k * 0.5);
+      }, done: () => {
+        W.remove(mote);
+        invAdd({ id: 'chalk', icon: '✎', name: 'her chalk' });
+        say('elowen: “here. it’s down to a stub, but stubs draw truest. your turn.”');
+        if (state.ch === 13) advanceChapter(14);
+        slabGuide.visible = true;
+      } });
+    });
+  }
+
+  /* -------------------------- a door of your own -------------------------- */
+  const SLAB = {
+    c: new THREE.Vector3(1.8, 1.5, -0.5),
+    n: new THREE.Vector3(-0.62, 0, 0.78).normalize(),
+  };
+  SLAB.u = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SLAB.n).normalize();
+  SLAB.v = new THREE.Vector3(0, 1, 0);
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.1, 0.12),
+    new THREE.MeshStandardMaterial({ color: 0x141a28, roughness: 0.9, envMapIntensity: 0.2 }));
+  slab.position.copy(SLAB.c);
+  slab.lookAt(SLAB.c.clone().add(SLAB.n));
+  slab.userData.knock = true;
+  W.add(slab);
+  MARKS.slab = slab;
+  const slabGuide = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.9),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.1, fog: false,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+      map: glyphTex((c, w, h) => {
+        c.setLineDash([10, 14]); c.lineWidth = 2; c.globalAlpha = 0.7;
+        c.strokeRect(w * 0.2, h * 0.14, w * 0.6, h * 0.72);
+      }) }));
+  slabGuide.position.copy(SLAB.c).addScaledVector(SLAB.n, 0.075);
+  slabGuide.lookAt(slabGuide.position.clone().add(SLAB.n));
+  slabGuide.visible = false;
+  W.add(slabGuide);
+  const drawnQuads = new THREE.Group(); W.add(drawnQuads);
+  const chalkMat3 = new THREE.MeshBasicMaterial({ color: 0xeef4fb, transparent: true, opacity: 0.95, fog: false });
+  const quadGeo3 = new THREE.PlaneGeometry(0.07, 0.032);
+  const slabPlanePoint = () => planePoint(SLAB.n, -SLAB.n.dot(SLAB.c.clone().addScaledVector(SLAB.n, 0.08)));
+  function slabLocal(p) {
+    const rel = p.clone().sub(SLAB.c);
+    return [rel.dot(SLAB.u), rel.dot(SLAB.v)];
+  }
+  let lastQuadAt = null, chalkSnd3 = 0;
+  reg(slab, {
+    enabled: () => state.ch === 14 && !ch14.done, cursor: 'crosshair',
+    dragStart() { lastQuadAt = null; },
+    drag() {
+      const p = slabPlanePoint(); if (!p) return;
+      const [x, y] = slabLocal(p);
+      if (Math.abs(x) > 0.8 || Math.abs(y) > 0.98) return;
+      if (lastQuadAt && lastQuadAt.distanceTo(p) < 0.055) return;
+      const q = new THREE.Mesh(quadGeo3, chalkMat3);
+      q.position.copy(p);
+      q.lookAt(p.clone().add(SLAB.n));
+      q.rotateZ(rnd() * Math.PI);
+      drawnQuads.add(q);
+      if (lastQuadAt) ch14.drawn += lastQuadAt.distanceTo(p);
+      lastQuadAt = p.clone();
+      if (performance.now() - chalkSnd3 > 140) { chalkSnd3 = performance.now(); Snd.chalk(); }
+      if (!ch14.humming && ch14.drawn > 2.2) {
+        ch14.humming = true;
+        Snd.hum(0.6);
+        say('The chalk begins to hum against the stone. When your door is yours, tap it.');
+      }
+    },
+    dragEnd() { lastQuadAt = null; },
+    tap() {
+      if (!ch14.humming || ch14.done) {
+        if (!ch14.done && state.ch === 14) say('elowen: “no wrong answers. just draw until it feels like home.”');
+        return;
+      }
+      ch14.done = true;
+      Snd.portal(); Snd.chime();
+      const glowDoor = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.0),
+        new THREE.MeshBasicMaterial({ color: 0xfff3d8, transparent: true, opacity: 0, fog: false,
+          blending: THREE.AdditiveBlending, depthWrite: false }));
+      glowDoor.position.copy(SLAB.c).addScaledVector(SLAB.n, 0.09);
+      glowDoor.lookAt(glowDoor.position.clone().add(SLAB.n));
+      W.add(glowDoor);
+      const dl = new THREE.PointLight(0xffe9c0, 0, 7, 1.6);
+      dl.position.copy(SLAB.c).addScaledVector(SLAB.n, 0.8); W.add(dl);
+      say('Whatever you drew — it is a door now, because you meant it.');
+      tween({ dur: 3.2, ease: easeInOut, step: (k) => {
+        glowDoor.material.opacity = k * 0.9;
+        dl.intensity = k * 7;
+        chalkMat3.opacity = 0.95 + k * 0.05;
+      }, done: () => { delay(1.8, () => ending(4)); } });
+    },
+  });
+
+  /* --------------------------- crossing over ------------------------------ */
+  enterAct3 = (instant) => {
+    if (state.act === 3) return;
+    state.act = 3;
+    const doSwap = () => {
+      if (camTween) { camTween.dead = true; camTween = null; }
+      controls.enabled = true;
+      act2World.visible = false; act3World.visible = true;
+      scene.fog.color.setHex(0x010409); scene.fog.density = 0.022;
+      key.color.setHex(0xaac4f0); key.intensity = 30;
+      rim.color.setHex(0x51719f); rim.intensity = 1.3;
+      act3World.attach(fin.heart);
+      fin.heart.position.set(-2.2, 2.0, 2.4);
+      camera.position.set(0, 1.6, 7.8);
+      controls.target.set(0, 1.0, 4.7);
+      state.focus = 'stone0';
+      $('#btn-back').classList.add('hidden');
+      if (aether.on) setLens(false);
+      Snd.hum(0.2); Snd.setScene(2);
+    };
+    award('drawntrue');
+    if (instant) { doSwap(); state.ch = Math.max(state.ch, 11); return; }
+    state.busy = true;
+    Snd.portal();
+    const f = $('#fader');
+    f.classList.add('white'); f.classList.add('show');
+    setTimeout(() => {
+      doSwap();
+      setTimeout(() => {
+        f.classList.remove('show');
+        state.busy = false;
+        state.ch = 11; saveGame();
+        delay(0.8, () => chapterCard(11));
+        delay(3.0, () => say('Stars underfoot as well as overhead — none burning out, all of them merely sleepy. Stepping-stones wait.'));
+        setTimeout(() => f.classList.remove('white'), 1600);
+      }, 1100);
+    }, 1400);
+  };
+
+  /* --------------------- resume fast-forwards ----------------------------- */
+  ch11.applySolved = () => {
+    ch11.progress = 4; ch11.arrived = true;
+    if (!state.letters.includes(7)) giveLetter(7, true);
+    showGhostThreads();
+    camera.position.set(...NODES.overview3.pos);
+    controls.target.set(...NODES.overview3.tgt);
+    state.focus = 'overview3';
+  };
+  ch12.applySolved = () => {
+    ch11.applySolved();
+    for (const [a, b] of TARGET_EDGES) {
+      ch12.made.push([a, b].join('-'));
+      weave(a, b);
+    }
+    ch12.solved = true;
+    loomNodes.forEach((n2) => { n2.material.emissiveIntensity = 2.4; });
+    hollowGlow.visible = true;
+  };
+  ch13.applySolved = () => {
+    ch12.applySolved();
+    ch13.solved = true;
+    if (!inventory.some((i) => i.id === 'chalk')) invAdd({ id: 'chalk', icon: '✎', name: 'her chalk' });
+    slabGuide.visible = true;
+  };
+  /* breathing + idle animation hooks, driven from the main loop */
+  ch13.animate = (t) => {
+    if (state.act !== 3) return;
+    const breath = 0.5 + 0.5 * Math.sin((t / ch13.period) * TAU);
+    if (hollowGlow.visible && !ch13._flash) hollowGlow.material.opacity = 0.12 + breath * 0.5;
+    hollowSphere.scale.setScalar(1 + breath * 0.012);
+    for (const r of stoneRings) r.material.opacity = state.ch === 11 && !ch11.arrived ? 0.25 + breath * 0.4 : 0;
+    elowenFig.position.y = Math.sin(t * 1.3) * 0.015;
+  };
+}
+
 /* ------------------------------- endings --------------------------------- */
 const ENDINGS = [
   null,                                     /* index 0 retired — the eyepiece now leads somewhere */
@@ -2379,18 +2983,7 @@ In the drawer, wrapped in a letter that no longer needs answering, the eyepiece 
 
 Let it wait. Wherever the Vanes are, they are two, and the Hollow is empty no longer.`,
   },
-  {
-    title: 'THE THIRD FIGURE',
-    text: `You step over the chalk line, and the threshold is warmer than any doorstep you have ever crossed.
-
-The field is exactly as he promised and nothing like it: stars underfoot as well as overhead, none of them burning out, all of them merely sleepy. Elowen takes your left hand as though resuming something. Edwin shakes your right, once, firmly, like a man closing a fair bargain.
-
-Somewhere behind you — or below you, or forty years away — morning finds an empty room. On the worktable a box stands open, humming to itself, patient as its maker.
-
-Someone will inherit it. Someone always does.
-
-In the field, they were two for a very long time. Now they are three, and the stars lean in close to listen.`,
-  },
+  null,                                     /* index 2 retired — stepping through now goes somewhere */
   {
     title: 'THREE CUPS, ONE MORNING',
     text: `You shake your head — and hold the door.
@@ -2403,8 +2996,28 @@ Then: morning. A kettle. Three cups, because some arithmetic finally comes out e
 
 In its drawer, the eyepiece is quiet. Not sleeping. Just — finally — home.`,
   },
+  {
+    title: 'THE HOUSE THAT COUNTS TO THREE',
+    text: `Your door opens onto the workroom, because of course it does. Doors drawn honestly always know the way.
+
+You hold it while they cross — Elowen first, hopping the threshold like a puddle; Edwin last, pausing to nod once at the field, at the Hollow, at forty years of patient arithmetic finally coming out even. Behind you the sleepy stars crowd the doorway like children at a window, and the Hollow — awake now, and not empty, and never really a monster — watches its two guests go home with something that is almost, but not quite, regret.
+
+You close your door gently. It becomes a drawing again, and keeps the shape of your hand forever.
+
+Then: morning. A kettle. Three cups. A house full of clocks all agreeing with each other for the first time in forty years.
+
+On the worktable, the Reliquary stands open and empty — every lock sprung, every letter read, nothing left inside but the smell of chalk dust and brass.
+
+It was never a lock, and never a door.
+
+It was a promise, and you kept it.`,
+  },
 ];
 function ending(which) {
+  if (which === 1) award('doorheldshut');
+  if (which === 3) award('threecups');
+  if (which === 4) award('yourowndoor');
+  if (!state.hintsUsed) award('nowhispers');
   if (aether.on && which !== 2) setLens(false);
   Snd.chime(); Snd.hum(which === 2 ? 0.9 : 0);
   localStorage.removeItem(SAVE_KEY);
@@ -2423,8 +3036,11 @@ function ending(which) {
 $('#btn-again').onclick = () => location.reload();
 
 /* =========================== chapter sequencing ========================== */
+const ACH_BY_CH = { 2: 'patience', 3: 'littlesky', 4: 'nothingtoburn', 5: 'quarterpast',
+                    8: 'sayitback', 9: 'evenhere', 10: 'stoplying', 13: 'loommended', 14: 'gentlynow' };
 function advanceChapter(n) {
   state.ch = n; saveGame();
+  if (ACH_BY_CH[n]) award(ACH_BY_CH[n]);
   delay(0.9, () => chapterCard(n));
   if (n === 2) delay(2.2, () => say('Something on the lid has been waiting for that glass.'));
 }
@@ -2449,7 +3065,11 @@ function fastForwardTo(ch) {
   if (ch >= 8) ch7.applySolved();
   if (ch >= 9) ch8.applySolved();
   if (ch >= 10) ch9.applySolved();
-  state.ch = clamp(ch, 1, 10);
+  if (ch >= 11) enterAct3(true);
+  if (ch >= 12) ch11.applySolved();
+  if (ch >= 13) ch12.applySolved();
+  if (ch >= 14) ch13.applySolved();
+  state.ch = clamp(ch, 1, 14);
 }
 
 /* =============================== input =================================== */
@@ -2560,17 +3180,22 @@ function startGame(ch, resume, keyFixed = false) {
   state.keyFixed = keyFixed || false;
   if (resume && ch > 1) fastForwardTo(ch);
   else state.ch = 1;
-  if (state.act === 2) {
+  Snd.setScene(state.act >= 2 ? 2 : 1);
+  if (state.act === 3) {
+    controls.enabled = true;
+    delay(1.2, () => chapterCard(clamp(state.ch, 11, 14)));
+    delay(3.0, () => say('The field again. The stars saved your footprints.'));
+  } else if (state.act === 2) {
     /* we wake up already on the other side */
     controls.enabled = true;
     delay(1.2, () => chapterCard(clamp(state.ch, 7, 10)));
     delay(3.0, () => say('The chalk room again. It kept your place.'));
   } else {
-    /* intro sweep */
+    /* intro sweep (held as camTween so an act-crossing can cancel it) */
     const p0 = camera.position.clone(), p1 = new THREE.Vector3(...NODES.overview.pos);
-    tween({ dur: 3.4, ease: easeInOut, step: (k) => {
+    camTween = tween({ dur: 3.4, ease: easeInOut, step: (k) => {
       camera.position.lerpVectors(p0, p1, k);
-    }, done: () => { controls.enabled = true; } });
+    }, done: () => { camTween = null; controls.enabled = true; } });
     if (!resume || ch <= 1) {
       delay(3.0, () => chapterCard(1));
       delay(5.2, () => say('The worktable of Edwin Vane, horologist. Missing these forty days. The box is warm.'));
@@ -2622,6 +3247,12 @@ function animate() {
     const lan = act2World.getObjectByName('lantern');
     if (lan) lan.position.y = 1.25 + Math.sin(elapsed * 0.9) * 0.03;
   }
+  /* and the field, most of all */
+  if (state.act === 3) {
+    ch13.animate(elapsed);
+    const fs = act3World.getObjectByName('fieldstars');
+    if (fs) fs.rotation.y = elapsed * 0.004;
+  }
 
   if (inspectOpen) { renderer.render(inspectScene, inspectCam); return; }
   composer.render();
@@ -2632,6 +3263,7 @@ animate();
 window.__REL = {
   state, setLens, focusNode, MARKS, ch1, ch2, ch3, ch4, ch5, fin, aether, camera, controls,
   ch7, ch8, ch9, ch10, enterAct2, goBack,
+  ch11, ch12, ch13, ch14, enterAct3, achEarned,
   solveTo(n) { fastForwardTo(n); saveGame(); },
   say,
   isDragging() { return !!dragging; },
