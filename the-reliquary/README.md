@@ -14,8 +14,13 @@ new work.
 
 ## Play it
 
-The game uses ES modules, so it needs any static file server (opening
-`index.html` directly with `file://` will not work in most browsers):
+**Easiest way — just open the file.** Download / double-click
+**`TheReliquary.html`**: a single self-contained file (game, engine,
+textures, audio — everything inlined, ~0.6 MB). No server, no install,
+no internet. Chrome/Edge/Firefox/Safari, desktop or mobile.
+
+**Developer way** — the readable source (`index.html` + `game.js`) uses
+ES modules, so it needs any static file server:
 
 ```bash
 cd the-reliquary
@@ -23,9 +28,8 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-No build step, no network access, no dependencies beyond the vendored
-Three.js in `vendor/`. Works offline. Chrome/Edge/Firefox/Safari, desktop
-or mobile (touch supported).
+To regenerate `TheReliquary.html` after editing the source:
+`npm i esbuild && node build.mjs`.
 
 ## Controls
 
