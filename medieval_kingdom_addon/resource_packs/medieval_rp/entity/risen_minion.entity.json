@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "md:risen_minion",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/skeleton_mage" },
+      "geometry": { "default": "geometry.humanoid_medieval" },
+      "animations": {
+        "idle": "animation.humanoid_medieval.idle",
+        "walk": "animation.humanoid_medieval.walk",
+        "attack": "animation.humanoid_medieval.attack",
+        "move": "controller.animation.md_humanoid_move"
+      },
+      "scripts": { "animate": ["move"] },
+      "spawn_egg": { "base_color": "#9a86c0", "overlay_color": "#3c2e5a" },
+      "render_controllers": ["controller.render.humanoid_medieval"]
+    }
+  }
+}

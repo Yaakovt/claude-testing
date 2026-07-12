@@ -18,6 +18,9 @@ entity.md:war_horse.name=War Horse
 entity.md:soul_wisp.name=Soul Wisp
 entity.md:soul_bolt.name=Soul Bolt
 entity.md:boulder.name=Boulder
+entity.md:soul_lance.name=Soul Lance
+entity.md:risen_minion.name=Risen Minion
+
 entity.md:dread_rider.name=Dread Rider
 entity.md:war_charger.name=War Charger
 entity.md:runestone_tyrant.name=Runestone Tyrant

@@ -8,13 +8,14 @@
     "components": {
       "minecraft:max_stack_size": 1,
       "minecraft:icon": "lich_crown",
-      "minecraft:wearable": { "slot": "slot.armor.head", "protection": 2 },
-      "minecraft:durability": { "max_durability": 300 },
+      "minecraft:wearable": { "slot": "slot.armor.head", "protection": 5 },
+      "minecraft:durability": { "max_durability": 560 },
+      "minecraft:enchantable": { "value": 14, "slot": "armor_head" },
       "minecraft:foil": true,
       "minecraft:hover_text_color": "dark_purple",
       "minecraft:repairable": {
         "repair_items": [
-          { "items": ["minecraft:gold_ingot"], "repair_amount": 75 }
+          { "items": ["minecraft:gold_ingot", "minecraft:bone"], "repair_amount": 90 }
         ]
       }
     }

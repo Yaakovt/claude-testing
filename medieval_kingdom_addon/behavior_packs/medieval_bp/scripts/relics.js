@@ -3,11 +3,12 @@
 // refuses to re-fire until it's off cooldown; the visuals here are gravy.
 //
 //  Talon of the Fire Dragon  — use: dash forward in a burst of flame
-//  Soul Staff                — use: homing soul bolt; sneak-use: 2 soul wisps
+//  Soul Staff                — use: straight soul lance; sneak-use: raise undead minions
 //  Golem Gauntlet            — use: ground slam (knockup + damage ring)
 //  Champion's Banner         — use: rally nearby allies (buffs)
 //  Knight's Greatsword       — on hit: sweeping cleave around the target
 //  Full dragonscale armor    — passive: permanent fire resistance
+//  Crown of the Lich King    — worn: night vision, purges wither/poison, +1 minion
 import { world, system } from "@minecraft/server";
 
 const TALON = "md:dragon_talon";
@@ -15,6 +16,17 @@ const STAFF = "md:soul_staff";
 const GAUNTLET = "md:golem_gauntlet";
 const BANNER = "md:champion_banner";
 const GREATSWORD = "md:greatsword";
+const CROWN = "md:lich_crown";
+
+function wearingCrown(p) {
+  try {
+    const eq = p.getComponent("minecraft:equippable");
+    const head = eq && eq.getEquipment("Head");
+    return !!head && head.typeId === CROWN;
+  } catch {
+    return false;
+  }
+}
 
 function safeParticle(dim, name, loc) {
   try {
@@ -94,31 +106,43 @@ world.afterEvents.itemUse.subscribe((ev) => {
       sneaking = p.isSneaking;
     } catch {}
     if (sneaking) {
+      // Sneak-cast: raise a squad of undead minions that hunt monsters for you.
+      // Wearing the Crown of the Lich King raises an extra one.
       const now = system.currentTick;
       if ((wispSummonAt.get(p.id) ?? -700) + 600 > now) {
-        // still on cooldown — a soft click is the only feedback
-        safeSound(dim, "note.bass", loc);
+        safeSound(dim, "note.bass", loc); // still on cooldown
         return;
       }
       wispSummonAt.set(p.id, now);
-      for (const side of [-1, 1]) {
-        try {
-          const w = dim.spawnEntity("md:soul_wisp", {
-            x: loc.x + side * 1.5, y: loc.y + 1.5, z: loc.z,
-          });
-          safeParticle(dim, "minecraft:soul_particle", w.location);
-        } catch {}
-      }
-      safeSound(dim, "mob.evocation_illager.prepare_summon", loc);
-    } else {
       let view = { x: 0, y: 0, z: 1 };
       try {
         view = p.getViewDirection();
       } catch {}
-      const from = { x: loc.x + view.x, y: loc.y + 1.5 + view.y, z: loc.z + view.z };
+      const count = wearingCrown(p) ? 3 : 2;
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2;
+        const sx = loc.x + Math.cos(a) * 2 + view.x;
+        const sz = loc.z + Math.sin(a) * 2 + view.z;
+        try {
+          const m = dim.spawnEntity("md:risen_minion", { x: sx, y: loc.y, z: sz });
+          safeParticle(dim, "minecraft:soul_particle", { x: sx, y: loc.y + 1, z: sz });
+          safeParticle(dim, "minecraft:knockback_roar_particle", { x: sx, y: loc.y, z: sz });
+        } catch {}
+      }
+      safeSound(dim, "mob.evocation_illager.prepare_summon", loc);
+    } else {
+      // Cast: a straight soul lance. Its own non-homing, gravity-free projectile,
+      // so it flies dead ahead instead of curving down like the homing bolt.
+      let view = { x: 0, y: 0, z: 1 };
       try {
-        const bolt = dim.spawnEntity("md:soul_bolt", from);
-        const v = { x: view.x * 1.6, y: view.y * 1.6, z: view.z * 1.6 };
+        view = p.getViewDirection();
+      } catch {}
+      const hv = p.getHeadLocation ? p.getHeadLocation() : { x: loc.x, y: loc.y + 1.5, z: loc.z };
+      const from = { x: hv.x + view.x * 0.8, y: hv.y + view.y * 0.8, z: hv.z + view.z * 0.8 };
+      try {
+        const bolt = dim.spawnEntity("md:soul_lance", from);
+        const speed = 2.4;
+        const v = { x: view.x * speed, y: view.y * speed, z: view.z * speed };
         try {
           const pc = bolt.getComponent("minecraft:projectile");
           if (pc) {
@@ -128,7 +152,7 @@ world.afterEvents.itemUse.subscribe((ev) => {
             bolt.applyImpulse(v);
           }
         } catch {
-          bolt.applyImpulse(v);
+          try { bolt.applyImpulse(v); } catch {}
         }
       } catch {}
       safeParticle(dim, "minecraft:soul_particle", from);
@@ -258,6 +282,26 @@ system.runInterval(() => {
       if (Math.random() < 0.3) {
         safeParticle(p.dimension, "minecraft:basic_flame_particle", {
           x: p.location.x, y: p.location.y + 0.2, z: p.location.z,
+        });
+      }
+    }
+
+    // ---- Crown of the Lich King: worn powers ----
+    // Undead sight (see in the dark), and the grave's own immunity — it purges
+    // the wither and poison that would rot the living. A soul aura marks its bearer.
+    let head;
+    try {
+      head = eq.getEquipment("Head");
+    } catch {}
+    if (head && head.typeId === CROWN) {
+      try {
+        p.addEffect("night_vision", 220, { amplifier: 0, showParticles: false });
+        p.removeEffect("wither");
+        p.removeEffect("poison");
+      } catch {}
+      if (Math.random() < 0.4) {
+        safeParticle(p.dimension, "minecraft:soul_particle", {
+          x: p.location.x + (Math.random() - 0.5), y: p.location.y + 1.9, z: p.location.z + (Math.random() - 0.5),
         });
       }
     }
