@@ -43,8 +43,9 @@ const Dex = {
     const s = new PixelSurface(64, 64);
     if (side === 'front') def.draw(s);
     else def.drawBack(s);
-    s.outline(def.outlineColor || '#26202b');
-    s.innerEdge(0.12);
+    if (def.outlineColor) s.outline(def.outlineColor);
+    else s.outlineSel();                    // hue-keyed selective outline
+    s.innerEdge(0.10);
     const cv = s.toCanvas();
     Dex._spriteCache[ck] = cv;
     return cv;

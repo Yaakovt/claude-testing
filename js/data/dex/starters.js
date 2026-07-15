@@ -26,114 +26,114 @@
       entry: 'It naps beneath the taiga moss. The sprout on its head grows a new ring for every winter it survives.' },
     cry: { base: 420, sweep: 0.62, wave: 'square', dur: 0.42, vib: 12 },
     draw(s) {
-      // ================= FABLE ART v2: Trollsprout front =================
-      const INNER = Px.ramp('#d9c39a');      // inner-ear suede
-      const BUD = Px.ramp('#e8b040');        // amber bud
-      // -- feet: rounded three-toe paws --
-      s.fillEllipse(23, 55, 5, 3, MOSSD.b); s.fillEllipse(41, 55, 5, 3, MOSSD.b);
-      s.set(21, 56, MOSSD.d); s.set(24, 57, MOSSD.d); s.set(39, 57, MOSSD.d); s.set(43, 56, MOSSD.d);
-      s.set(21, 54, CREAM.b); s.set(23, 54, CREAM.b); s.set(41, 54, CREAM.b); s.set(43, 54, CREAM.b);
-      // -- tubby gnome body --
-      s.ball(32, 41, 15, 14, MOSS);
-      // sculpt: haunch shadow (kept low), crown light
-      s.fillEllipse(38, 51, 8, 3, MOSS.d);
-      s.fillEllipse(26, 33, 7, 5, MOSS.l);
-      s.set(24, 31, MOSS.h); s.set(25, 30, MOSS.h); s.set(26, 30, MOSS.h);
-      // -- big soft troll ears with suede insides --
-      s.fillEllipse(15, 30, 5, 7, MOSS.b);
-      s.fillEllipse(14, 30, 2, 4, INNER.b); s.set(14, 32, INNER.d);
-      s.line(11, 26, 10, 32, MOSSD.d); s.line(10, 32, 13, 36, MOSSD.d);
-      s.set(15, 24, MOSS.l); s.set(16, 24, MOSS.l);
-      s.fillEllipse(49, 32, 5, 7, MOSS.b);
-      s.fillEllipse(50, 32, 2, 4, INNER.b); s.set(50, 34, INNER.d);
-      s.line(53, 28, 54, 34, MOSSD.d); s.line(54, 34, 51, 38, MOSSD.d);
-      s.set(48, 26, MOSS.l); s.set(49, 26, MOSS.l);
-      // ear-root shadows
-      s.line(19, 32, 20, 34, MOSS.d); s.line(45, 34, 44, 36, MOSS.d);
-      // -- cream belly bib (no hard top line; soft seat shadow) --
-      s.fillEllipse(32, 48, 8, 6, CREAM.b);
-      s.fillEllipse(31, 47, 6, 4, CREAM.l);
-      s.dither(27, 51, 10, 2, CREAM.d, 0);
-      s.set(25, 45, MOSS.d); s.set(39, 45, MOSS.d);   // bib corner tucks only
-      // -- right arm resting on bib --
-      s.limb(44, 43, 47, 48, 3, 2, MOSS);
-      s.fillEllipse(47, 49, 2, 2, MOSS.b); s.set(46, 50, MOSS.d);
-      // -- left arm raised in a wave, separated with a dark seam --
-      s.limb(19, 41, 13, 34, 3, 2, MOSS);
-      s.fillEllipse(12, 33, 3, 3, MOSS.b); s.set(11, 32, MOSS.l);
-      s.set(11, 30, CREAM.b); s.set(13, 30, CREAM.b);   // two claw tips ON the paw
-      s.line(17, 40, 19, 42, MOSS.o);                   // armpit seam so the arm reads
+      // ============ FABLE ART v3: Trollsprout front (frame-filling) ============
+      const INNER = Px.ramp('#d9c39a');
+      const BUD = Px.ramp('#e8b040');
+      // -- feet: wide three-toe paws --
+      s.fillEllipse(21, 56, 6, 3, MOSSD.b); s.fillEllipse(43, 56, 6, 3, MOSSD.b);
+      s.set(18, 57, MOSSD.d2); s.set(23, 58, MOSSD.d2); s.set(41, 58, MOSSD.d2); s.set(46, 57, MOSSD.d2);
+      s.set(18, 55, CREAM.b); s.set(21, 55, CREAM.b); s.set(43, 55, CREAM.b); s.set(46, 55, CREAM.b);
+      // -- big tubby gnome body --
+      s.ball(32, 38, 19, 17, MOSS);
+      s.fillEllipse(39, 50, 10, 4, MOSS.d);
+      s.fillEllipse(40, 52, 7, 2, MOSS.d2);          // core shadow at the seat
+      s.fillEllipse(25, 28, 8, 6, MOSS.l);
+      s.set(22, 26, MOSS.h); s.set(23, 25, MOSS.h); s.set(24, 25, MOSS.h);
+      // -- huge soft troll ears with suede insides (symmetric, perky) --
+      s.fillEllipse(12, 24, 6, 8, MOSS.b);
+      s.fillEllipse(11, 24, 3, 5, INNER.b); s.set(11, 27, INNER.d);
+      s.line(7, 18, 6, 26, MOSSD.d); s.line(6, 26, 9, 31, MOSSD.d);
+      s.set(12, 17, MOSS.l); s.set(13, 17, MOSS.l); s.set(14, 18, MOSS.h);
+      s.fillEllipse(52, 24, 6, 8, MOSS.b);
+      s.fillEllipse(53, 24, 3, 5, INNER.b); s.set(53, 27, INNER.d);
+      s.line(57, 18, 58, 26, MOSSD.d); s.line(58, 26, 55, 31, MOSSD.d);
+      s.set(51, 17, MOSS.l); s.set(52, 17, MOSS.l);
+      // -- cream belly bib --
+      s.fillEllipse(32, 47, 10, 8, CREAM.b);
+      s.fillEllipse(30, 45, 8, 6, CREAM.l);
+      s.dither(25, 51, 14, 3, CREAM.d, 0);
+      s.set(23, 43, MOSS.d2); s.set(41, 43, MOSS.d2);   // bib tucks
+      // -- right arm resting on the bib --
+      s.limb(47, 41, 51, 48, 4, 3, MOSS);
+      s.fillEllipse(52, 49, 3, 2, MOSS.b); s.set(51, 51, MOSS.d2);
+      // -- left arm raised in a wave (kept clear below the ear) --
+      s.limb(17, 42, 9, 35, 4, 3, MOSS);
+      s.fillEllipse(8, 34, 4, 3, MOSS.b); s.set(6, 33, MOSS.l); s.set(7, 32, MOSS.l);
+      s.set(6, 30, CREAM.b); s.set(9, 30, CREAM.b);     // claw tips on the raised paw
+      s.line(14, 41, 16, 43, MOSS.o);                    // armpit seam
       // -- head sprout with growth rings --
-      s.line(32, 27, 32, 23, BARK.d); s.line(33, 27, 33, 23, BARK.b);
-      s.set(32, 26, BARK.o); s.set(33, 25, BARK.o);
-      K.leaf(s, 34, 21, 8, MOSS);
-      for (let i = 0; i < 6; i++) {
-        const w = Math.max(0, Math.round(Math.sin((i / 6) * Math.PI) * 2.4));
-        for (let j = -w; j <= w; j++) s.set(31 - i, 21 - i + j, j < 0 ? MOSSD.l : MOSSD.b);
+      s.line(32, 22, 32, 16, BARK.d); s.line(33, 22, 33, 16, BARK.b);
+      s.set(32, 20, BARK.o); s.set(33, 18, BARK.o);
+      K.leaf(s, 34, 14, 10, MOSS);
+      for (let i = 0; i < 8; i++) {
+        const w = Math.max(0, Math.round(Math.sin((i / 8) * Math.PI) * 3.2));
+        for (let j = -w; j <= w; j++) s.set(31 - i, 14 - i + j, j < 0 ? MOSSD.l : MOSSD.b);
       }
-      s.fillEllipse(33, 22, 1, 1, BUD.b); s.set(33, 21, BUD.h);
-      s.line(30, 28, 35, 28, MOSS.d);
-      // -- face --
-      K.eye(s, 25, 34, 2, '#d9942a');
-      K.eye(s, 39, 34, 2, '#d9942a');
-      s.set(23, 31, MOSSD.d); s.set(24, 31, MOSSD.d);
-      s.set(39, 31, MOSSD.d); s.set(40, 31, MOSSD.d);
-      // small open smile: dark mouth, tooth, tongue — floating clean on the face
-      s.rect(30, 39, 4, 2, '#3a2528');
-      s.set(30, 39, '#ffffff');
-      s.set(31, 40, '#c86858'); s.set(32, 40, '#c86858');
-      K.cheek(s, 20, 37, '#96c46e'); K.cheek(s, 43, 37, '#96c46e');
+      s.fillEllipse(33, 15, 2, 2, BUD.b); s.set(33, 14, BUD.h); s.set(32, 15, BUD.l);
+      s.line(29, 23, 36, 23, MOSS.d);
+      // -- face: big warm amber eyes --
+      K.eye(s, 23, 31, 3, '#d9942a');
+      K.eye(s, 41, 31, 3, '#d9942a');
+      s.set(21, 27, MOSSD.d); s.set(22, 27, MOSSD.d); s.set(23, 27, MOSSD.d);
+      s.set(41, 27, MOSSD.d); s.set(42, 27, MOSSD.d); s.set(43, 27, MOSSD.d);
+      // open happy mouth with tooth + tongue
+      s.rect(29, 38, 6, 3, '#3a2528');
+      s.set(29, 38, '#ffffff'); s.set(30, 38, '#ffffff');
+      s.rect(31, 40, 3, 1, '#c86858');
+      K.cheek(s, 17, 35, '#96c46e'); K.cheek(s, 45, 35, '#96c46e');
       // -- hand-placed moss tufts --
-      s.dither(28, 25, 4, 2, MOSSD.b, 0); s.dither(38, 27, 3, 2, MOSSD.b, 1);
-      s.dither(42, 46, 3, 2, MOSSD.b, 0);
-      s.set(29, 24, MOSS.h); s.set(40, 26, MOSS.l);
+      s.dither(27, 20, 5, 2, MOSSD.b, 0); s.dither(39, 22, 4, 2, MOSSD.b, 1);
+      s.dither(44, 44, 4, 3, MOSSD.b, 0); s.dither(20, 46, 3, 2, MOSSD.b, 1);
+      s.set(28, 19, MOSS.h); s.set(42, 21, MOSS.l);
     },
     drawBack(s) {
-      // ========= FABLE ART v2: Trollsprout back (gazing up-right) =========
+      // ======== FABLE ART v3: Trollsprout back (big, gazing up-right) ========
       const BUD = Px.ramp('#e8b040');
-      // heels peeking under the rump
-      s.fillEllipse(25, 55, 4, 3, MOSSD.b); s.fillEllipse(39, 55, 4, 3, MOSSD.b);
-      // body from behind — lit from above
-      s.ball(32, 43, 15, 12, MOSS, { lx: 0, ly: -0.62 });
-      s.fillEllipse(32, 52, 12, 3, MOSS.d);
-      // distinct head lump, turned to its left (our right) toward the foe
-      s.ball(33, 29, 9, 7, MOSS, { lx: 0.1, ly: -0.7 });
-      s.fillEllipse(30, 26, 5, 3, MOSS.l); s.set(28, 25, MOSS.h);
-      // neck crease separating head from body
-      s.line(28, 35, 37, 35, MOSS.d); s.set(27, 34, MOSS.d); s.set(38, 34, MOSS.d);
-      // mossy back-cape: staggered tuft arcs (not a flat dither sheet)
-      s.fillEllipse(32, 43, 10, 8, MOSSD.b);
-      s.line(24, 40, 30, 42, MOSSD.l); s.line(33, 41, 39, 40, MOSSD.l);
-      s.line(26, 45, 33, 47, MOSSD.d); s.line(35, 45, 40, 44, MOSSD.d);
-      s.dither(27, 42, 10, 4, MOSSD.d, 1);
-      // tiny sproutlet on the back-cape
-      s.set(37, 39, MOSS.l); s.set(37, 38, MOSS.b); s.set(38, 37, MOSSD.b);
-      // ears from behind, attached to the head sides; right one foreshortened
-      s.fillEllipse(18, 27, 4, 6, MOSS.b);
-      s.fillEllipse(19, 27, 2, 4, MOSSD.b);
-      s.set(16, 22, MOSS.l);
-      s.fillEllipse(45, 28, 3, 5, MOSS.b);
-      s.fillEllipse(44, 28, 2, 3, MOSSD.b);
-      // profile of the turned head: snout bump + eye glint aimed up-right
-      s.fillEllipse(42, 28, 3, 3, MOSS.b);
-      s.fillEllipse(43, 26, 3, 3, MOSS.b); s.set(44, 24, MOSS.l);   // turned-cheek lump
-      s.set(44, 26, '#1a1418'); s.set(45, 26, '#1a1418');
-      s.set(45, 25, '#ffffff');
-      s.set(43, 24, MOSSD.d); s.set(44, 23, MOSSD.d);       // brow tuft
-      s.set(45, 29, '#96c46e');                              // cheek blush
-      // arms hinted at the body sides
-      s.fillEllipse(17, 45, 3, 4, MOSS.b); s.set(16, 43, MOSS.l);
-      s.fillEllipse(47, 45, 3, 4, MOSS.b); s.set(46, 43, MOSS.l);
+      // heels
+      s.fillEllipse(23, 56, 5, 3, MOSSD.b); s.fillEllipse(41, 56, 5, 3, MOSSD.b);
+      s.set(21, 57, MOSSD.d2); s.set(43, 57, MOSSD.d2);
+      // big body from behind
+      s.ball(32, 41, 18, 15, MOSS, { lx: 0, ly: -0.62 });
+      s.fillEllipse(32, 52, 14, 4, MOSS.d);
+      s.fillEllipse(32, 54, 10, 2, MOSS.d2);
+      // distinct head lump, turned to our right toward the foe
+      s.ball(34, 24, 11, 9, MOSS, { lx: 0.12, ly: -0.7 });
+      s.fillEllipse(30, 20, 6, 4, MOSS.l); s.set(27, 19, MOSS.h); s.set(28, 18, MOSS.h);
+      s.line(26, 32, 41, 32, MOSS.d); s.set(25, 31, MOSS.d); s.set(42, 31, MOSS.d);
+      // mossy back-cape with staggered tuft arcs
+      s.fillEllipse(32, 42, 12, 10, MOSSD.b);
+      s.line(23, 38, 30, 40, MOSSD.l); s.line(33, 39, 41, 38, MOSSD.l);
+      s.line(25, 44, 33, 46, MOSSD.d); s.line(36, 44, 42, 43, MOSSD.d);
+      s.line(28, 49, 36, 50, MOSSD.d2);
+      s.dither(26, 41, 12, 5, MOSSD.d, 1);
+      // two sproutlets on the cape
+      s.set(25, 36, MOSS.l); s.set(25, 35, MOSS.b); s.set(24, 34, MOSSD.b);
+      s.set(39, 42, MOSS.l); s.set(39, 41, MOSS.b); s.set(40, 40, MOSSD.b);
+      // ears from behind (left full, right foreshortened by the head turn)
+      s.fillEllipse(14, 22, 5, 8, MOSS.b);
+      s.fillEllipse(15, 22, 3, 5, MOSSD.b);
+      s.set(12, 16, MOSS.l); s.set(13, 16, MOSS.l);
+      // (right ear hidden by the head turn)
+      // turned profile: broad cheek lump + eye glancing up-right
+      s.fillEllipse(44, 23, 5, 5, MOSS.b);
+      s.fillEllipse(46, 21, 3, 3, MOSS.l); s.set(47, 19, MOSS.l);
+      s.set(46, 22, '#1a1418'); s.set(47, 22, '#1a1418'); s.set(48, 22, '#1a1418');
+      s.set(48, 21, '#ffffff');
+      s.set(45, 19, MOSSD.d); s.set(46, 19, MOSSD.d); s.set(47, 19, MOSSD.d);
+      s.set(47, 25, '#96c46e'); s.set(48, 25, '#96c46e');
+      // arms hinted at the sides
+      s.fillEllipse(15, 43, 4, 5, MOSS.b); s.set(13, 40, MOSS.l);
+      s.fillEllipse(49, 43, 4, 5, MOSS.b); s.set(48, 40, MOSS.l);
       // sprout on the crown, leaning right with the gaze
-      s.line(31, 23, 33, 18, BARK.d); s.line(32, 23, 34, 18, BARK.b);
-      s.set(32, 21, BARK.o);
-      K.leaf(s, 35, 16, 7, MOSS);
-      for (let i = 0; i < 5; i++) {
-        const w = Math.max(0, Math.round(Math.sin((i / 5) * Math.PI) * 2.0));
-        for (let j = -w; j <= w; j++) s.set(32 - i, 16 - i + j, j < 0 ? MOSSD.l : MOSSD.b);
+      s.line(32, 17, 35, 11, BARK.d); s.line(33, 17, 36, 11, BARK.b);
+      s.set(33, 15, BARK.o);
+      K.leaf(s, 37, 9, 9, MOSS);
+      for (let i = 0; i < 6; i++) {
+        const w = Math.max(0, Math.round(Math.sin((i / 6) * Math.PI) * 2.6));
+        for (let j = -w; j <= w; j++) s.set(33 - i, 9 - i + j, j < 0 ? MOSSD.l : MOSSD.b);
       }
-      s.fillEllipse(34, 17, 1, 1, BUD.b); s.set(34, 16, BUD.h);
-      s.line(29, 24, 34, 24, MOSS.d);   // sprout shadow on crown
+      s.fillEllipse(36, 10, 2, 2, BUD.b); s.set(36, 9, BUD.h);
+      s.line(30, 18, 36, 18, MOSS.d);
     },
   });
 
@@ -303,98 +303,98 @@
       entry: 'It sleeps curled in cooling hearths. Villagers consider one moving in to be a blessing on the house.' },
     cry: { base: 640, sweep: 0.7, wave: 'square', dur: 0.35, vib: 18, chirps: 1 },
     draw(s) {
-      // ================= FABLE ART: Cindrel front =================
-      // A hearth-newt sitting up like a curious gecko; candle-flame tail.
-      // -- tail: thick curl sweeping out right, candle flame at the tip --
-      s.stroke(43, 49, 50, 44, 3, FLAME);
-      s.stroke(50, 44, 53, 40, 2, FLAME);
-      s.set(49, 47, FLAME.d); s.set(51, 44, FLAME.d);       // underside shading
-      // layered candle flame
-      s.fillEllipse(54, 34, 4, 6, FLAME.b);
-      s.set(54, 27, FLAME.b); s.set(53, 28, FLAME.b);        // licking tip
-      s.fillEllipse(54, 35, 2, 4, FLAMEY.b);
-      s.set(54, 37, '#fff8e0'); s.set(53, 36, FLAMEY.h);     // hot core
-      s.set(58, 31, FLAMEY.h); s.set(50, 29, FLAME.l);       // drifting embers
+      // ============ FABLE ART v2: Cindrel front (frame-filling) ============
+      // -- tail sweeping right with a tall candle flame --
+      s.stroke(44, 48, 52, 42, 4, FLAME);
+      s.stroke(52, 42, 55, 37, 3, FLAME);
+      s.set(50, 46, FLAME.d2); s.set(53, 42, FLAME.d);
+      s.fillEllipse(56, 29, 5, 8, FLAME.b);
+      s.set(56, 19, FLAME.b); s.set(55, 20, FLAME.b); s.set(57, 21, FLAME.d);   // licking tip
+      s.fillEllipse(56, 31, 3, 5, FLAMEY.b);
+      s.fillEllipse(56, 33, 1, 2, '#fff8e0');
+      s.set(61, 26, FLAMEY.h); s.set(51, 24, FLAME.l); s.set(60, 34, FLAMEY.b); // embers
       // -- haunches + soot-socked feet --
-      s.fillEllipse(23, 50, 5, 5, FLAME.b); s.set(20, 48, FLAME.l);
-      s.fillEllipse(41, 50, 5, 5, FLAME.b); s.set(44, 48, FLAME.d);
-      s.fillEllipse(22, 56, 4, 2, CHAR.b); s.fillEllipse(42, 56, 4, 2, CHAR.b);
-      s.set(20, 55, CHAR.l); s.set(44, 55, CHAR.l);          // sooty toe glints
-      // -- sitting pear body --
-      s.ball(32, 44, 11, 11, FLAME);
-      s.fillEllipse(36, 50, 6, 4, FLAME.d);                  // seat shadow
-      s.fillEllipse(27, 38, 6, 5, FLAME.l); s.set(25, 36, FLAME.h);
+      s.fillEllipse(19, 50, 6, 6, FLAME.b); s.set(15, 47, FLAME.l); s.set(16, 46, FLAME.l);
+      s.fillEllipse(43, 50, 6, 6, FLAME.b); s.set(46, 48, FLAME.d);
+      s.fillEllipse(18, 57, 5, 2, CHAR.b); s.fillEllipse(44, 57, 5, 2, CHAR.b);
+      s.set(15, 56, CHAR.l); s.set(47, 56, CHAR.l);
+      // -- plump sitting body --
+      s.ball(31, 42, 14, 13, FLAME);
+      s.fillEllipse(37, 50, 8, 4, FLAME.d);
+      s.fillEllipse(38, 52, 5, 2, FLAME.d2);
+      s.fillEllipse(25, 34, 7, 5, FLAME.l); s.set(23, 32, FLAME.h);
       // cream belly
-      s.fillEllipse(31, 48, 7, 5, BELLY.b);
-      s.fillEllipse(30, 47, 5, 3, BELLY.l);
-      s.dither(27, 50, 8, 2, BELLY.d, 0);
-      // -- tiny newt arms resting in front --
-      s.limb(25, 45, 24, 50, 2, 1, FLAME);
-      s.limb(39, 45, 40, 50, 2, 1, FLAME);
-      s.set(23, 51, CHAR.b); s.set(24, 51, CHAR.b);          // soot mitts
-      s.set(40, 51, CHAR.b); s.set(41, 51, CHAR.b);
-      // -- big round head, slightly cocked --
-      s.ball(30, 28, 10, 9, FLAME);
-      s.fillEllipse(26, 23, 6, 4, FLAME.l); s.set(24, 22, FLAME.h);
-      s.line(24, 35, 27, 36, FLAME.d);                       // jaw shading
+      s.fillEllipse(30, 47, 9, 6, BELLY.b);
+      s.fillEllipse(28, 45, 7, 4, BELLY.l);
+      s.dither(25, 50, 11, 3, BELLY.d, 0);
+      // -- little arms resting forward --
+      s.limb(23, 44, 21, 51, 3, 2, FLAME);
+      s.limb(39, 44, 41, 51, 3, 2, FLAME);
+      s.rect(19, 52, 4, 2, CHAR.b); s.rect(40, 52, 4, 2, CHAR.b);   // soot mitts
+      // -- big round head, cocked to its right --
+      s.ball(29, 24, 12, 11, FLAME);
+      s.fillEllipse(23, 18, 7, 5, FLAME.l); s.set(21, 16, FLAME.h); s.set(22, 15, FLAME.h);
+      s.line(21, 32, 25, 34, FLAME.d);
       // ear nubs
-      s.fillEllipse(21, 24, 2, 2, FLAME.b); s.set(20, 23, FLAME.d);
-      s.fillEllipse(39, 24, 2, 2, FLAME.b); s.set(40, 23, FLAME.d);
-      // -- ember crest: a little flame swept back off the crown --
-      s.fillEllipse(34, 17, 3, 4, FLAME.b);
-      s.set(36, 13, FLAME.b); s.set(37, 12, FLAME.d);
-      s.fillEllipse(34, 18, 1, 2, FLAMEY.b); s.set(34, 19, '#fff8e0');
-      s.set(33, 21, FLAME.d); s.set(34, 21, FLAME.d);        // crest root shadow
-      // -- soot markings: chevron on the flank, dash under each eye --
-      s.line(40, 42, 43, 44, CHAR.b); s.line(40, 44, 43, 46, CHAR.b);
-      s.set(24, 33, CHAR.b); s.set(37, 33, CHAR.b);
-      // -- face: big friendly blue eyes, bright smile --
-      K.eye(s, 26, 29, 2, '#3d7fd4');
-      K.eye(s, 36, 29, 2, '#3d7fd4');
-      s.set(25, 26, CHAR.d); s.set(26, 26, CHAR.d);          // soft brows
-      s.set(36, 26, CHAR.d); s.set(37, 26, CHAR.d);
-      s.set(30, 31, '#8a4530'); s.set(32, 31, '#8a4530');    // nostril dots
-      K.smile(s, 31, 34, 2);
-      K.cheek(s, 21, 31, FLAMEY.b); K.cheek(s, 40, 31, FLAMEY.b);
+      s.fillEllipse(17, 18, 2, 3, FLAME.b); s.set(16, 16, FLAME.d);
+      s.fillEllipse(41, 16, 2, 3, FLAME.b); s.set(42, 14, FLAME.d);
+      // -- crest flame swept back off the crown --
+      s.fillEllipse(36, 10, 4, 5, FLAME.b);
+      s.set(39, 5, FLAME.b); s.set(40, 4, FLAME.d); s.set(38, 6, FLAME.b);
+      s.fillEllipse(36, 11, 2, 3, FLAMEY.b); s.set(36, 12, '#fff8e0');
+      s.set(34, 14, FLAME.d); s.set(35, 14, FLAME.d);
+      // -- soot chevron on the flank + warm cheeks --
+      s.line(41, 40, 45, 43, CHAR.b); s.line(41, 43, 45, 46, CHAR.b);
+      // -- face: big friendly blue eyes --
+      K.eye(s, 24, 25, 2, '#3d7fd4');
+      s.set(23, 23, '#7db8f0');                                // upper iris light
+      K.eye(s, 36, 25, 2, '#3d7fd4');
+      s.set(35, 23, '#7db8f0');
+      s.set(22, 20, CHAR.d); s.set(23, 20, CHAR.d);
+      s.set(36, 20, CHAR.d); s.set(37, 20, CHAR.d);
+      s.set(29, 29, '#8a4530'); s.set(31, 29, '#8a4530');
+      K.smile(s, 30, 32, 2);
+      K.cheek(s, 17, 27, FLAMEY.b); K.cheek(s, 42, 27, FLAMEY.b);
     },
     drawBack(s) {
-      // ============ FABLE ART: Cindrel back (gazing up-right) ============
-      // -- tail curls around the LEFT so the up-right gaze stays clear --
-      s.stroke(22, 49, 14, 44, 3, FLAME);
-      s.stroke(14, 44, 11, 40, 2, FLAME);
-      s.fillEllipse(10, 34, 4, 6, FLAME.b);
-      s.set(10, 27, FLAME.b); s.set(11, 28, FLAME.b);
-      s.fillEllipse(10, 35, 2, 4, FLAMEY.b);
-      s.set(10, 37, '#fff8e0');
-      s.set(6, 31, FLAMEY.h); s.set(15, 29, FLAME.l);        // embers
+      // ========= FABLE ART v2: Cindrel back (big, gazing up-right) =========
+      // -- tail curls around the LEFT, flame tall --
+      s.stroke(20, 48, 12, 43, 4, FLAME);
+      s.stroke(12, 43, 9, 38, 3, FLAME);
+      s.fillEllipse(8, 30, 5, 8, FLAME.b);
+      s.set(8, 20, FLAME.b); s.set(9, 21, FLAME.b);
+      s.fillEllipse(8, 32, 3, 5, FLAMEY.b);
+      s.fillEllipse(8, 34, 1, 2, '#fff8e0');
+      s.set(4, 26, FLAMEY.h); s.set(14, 25, FLAME.l);
       // -- body from behind --
-      s.ball(32, 44, 12, 11, FLAME, { lx: 0, ly: -0.62 });
-      s.fillEllipse(32, 52, 9, 3, FLAME.d);
+      s.ball(32, 42, 14, 13, FLAME, { lx: 0, ly: -0.62 });
+      s.fillEllipse(32, 52, 11, 3, FLAME.d);
+      s.fillEllipse(32, 54, 7, 2, FLAME.d2);
       // haunches
-      s.fillEllipse(22, 49, 4, 5, FLAME.b); s.set(20, 47, FLAME.l);
-      s.fillEllipse(42, 49, 4, 5, FLAME.b); s.set(44, 47, FLAME.l);
-      // -- soot chevrons down the spine (hand-drawn Vs) --
-      s.line(29, 38, 32, 41, CHAR.b); s.line(35, 38, 32, 41, CHAR.b);
-      s.line(29, 45, 32, 48, CHAR.b); s.line(35, 45, 32, 48, CHAR.b);
-      // -- head turned up-right toward the foe --
-      s.ball(33, 28, 9, 8, FLAME, { lx: 0.1, ly: -0.7 });
-      s.fillEllipse(29, 24, 5, 3, FLAME.l); s.set(27, 23, FLAME.h);
-      s.line(27, 34, 38, 34, FLAME.d);                       // neck crease
-      // right-profile: snout bump + eye glancing up-right
-      s.fillEllipse(41, 26, 3, 3, FLAME.b);
-      s.fillEllipse(42, 24, 3, 2, FLAME.b); s.set(43, 22, FLAME.l);
-      s.set(43, 24, '#1a1418'); s.set(44, 24, '#1a1418');
-      s.set(44, 23, '#ffffff');
-      s.set(42, 22, CHAR.d);                                  // brow
-      s.set(45, 26, FLAMEY.b);                                // cheek warm spot
-      // ear nubs from behind
-      s.fillEllipse(25, 23, 2, 2, FLAME.b); s.set(24, 22, FLAME.d);
-      s.fillEllipse(39, 21, 2, 2, FLAME.b);
-      // -- crest flame from behind, streaming right with the gaze --
-      s.fillEllipse(35, 15, 3, 4, FLAME.b);
-      s.set(38, 12, FLAME.b); s.set(39, 11, FLAME.d);
-      s.fillEllipse(35, 16, 1, 2, FLAMEY.b); s.set(35, 17, '#fff8e0');
-      s.line(32, 20, 37, 20, FLAME.d);
+      s.fillEllipse(20, 48, 5, 6, FLAME.b); s.set(17, 45, FLAME.l);
+      s.fillEllipse(44, 48, 5, 6, FLAME.b); s.set(47, 45, FLAME.l);
+      // -- soot chevrons down the spine --
+      s.line(28, 36, 32, 40, CHAR.b); s.line(36, 36, 32, 40, CHAR.b);
+      s.line(28, 44, 32, 48, CHAR.b); s.line(36, 44, 32, 48, CHAR.b);
+      // -- head turned up-right --
+      s.ball(33, 24, 11, 10, FLAME, { lx: 0.12, ly: -0.7 });
+      s.fillEllipse(28, 19, 6, 4, FLAME.l); s.set(26, 17, FLAME.h);
+      s.line(26, 32, 40, 32, FLAME.d);
+      // right-profile: snout + eye glancing up-right
+      s.fillEllipse(43, 22, 4, 4, FLAME.b);
+      s.fillEllipse(44, 20, 3, 3, FLAME.b); s.set(45, 18, FLAME.l);
+      s.set(45, 20, '#1a1418'); s.set(46, 20, '#1a1418');
+      s.set(46, 19, '#ffffff');
+      s.set(44, 17, CHAR.d); s.set(45, 17, CHAR.d);
+      s.set(47, 23, FLAMEY.b);
+      // ear nubs
+      s.fillEllipse(24, 17, 2, 3, FLAME.b); s.set(23, 15, FLAME.d);
+      s.fillEllipse(41, 14, 2, 2, FLAME.b);
+      // -- crest flame streaming right with the gaze --
+      s.fillEllipse(36, 9, 4, 5, FLAME.b);
+      s.set(40, 5, FLAME.b); s.set(41, 4, FLAME.d);
+      s.fillEllipse(36, 10, 2, 3, FLAMEY.b); s.set(36, 11, '#fff8e0');
+      s.set(33, 13, FLAME.d); s.set(34, 13, FLAME.d);
     },
   });
 
@@ -554,88 +554,89 @@
       entry: 'Fisherfolk swear it borrows lost mittens to sleep on. It sheds a single tear when winter\'s first snow falls.' },
     cry: { base: 700, sweep: 0.8, wave: 'sine', dur: 0.4, vib: 22, chirps: 1 },
     draw(s) {
-      // ================= FABLE ART: Selkip front =================
-      // A plump selkie pup sitting up on its mitten-flippers.
-      // -- tail flukes curled around the right --
-      s.fillPoly([[41, 48], [51, 42], [49, 49]], SEAL.b);
-      s.fillPoly([[41, 48], [52, 50], [47, 55]], SEAL.b);
-      s.line(50, 43, 45, 48, SEAL.d); s.line(50, 51, 45, 51, SEAL.d);
-      s.set(50, 42, SEAL.l); s.set(51, 50, SEAL.l);            // fluke edges
-      // -- plump bean body, leaning back a touch --
-      s.ball(30, 45, 13, 10, SEAL);
-      s.fillEllipse(35, 50, 7, 4, SEAL.d);                      // seat shadow
-      s.fillEllipse(25, 40, 6, 4, SEAL.l);
+      // ============ FABLE ART v2: Selkip front (frame-filling) ============
+      // -- tail flukes fanned out right --
+      s.fillPoly([[44, 47], [58, 38], [55, 48]], SEAL.b);
+      s.fillPoly([[44, 47], [59, 52], [52, 58]], SEAL.b);
+      s.line(56, 40, 48, 46, SEAL.d); s.line(56, 53, 49, 52, SEAL.d);
+      s.set(57, 39, SEAL.l); s.set(58, 51, SEAL.l); s.set(53, 56, SEAL.d2);
+      // -- plump bean body --
+      s.ball(31, 44, 16, 12, SEAL);
+      s.fillEllipse(38, 51, 9, 4, SEAL.d);
+      s.fillEllipse(39, 53, 6, 2, SEAL.d2);
+      s.fillEllipse(24, 38, 7, 5, SEAL.l);
       // pale belly
-      s.fillEllipse(29, 48, 8, 6, PALE.b);
-      s.fillEllipse(28, 47, 6, 4, PALE.l);
-      s.dither(25, 51, 9, 2, PALE.d, 0);
-      // -- mitten front flippers (it "borrows lost mittens"!) --
-      s.limb(21, 50, 16, 55, 3, 2, SEAL);
-      s.fillEllipse(15, 56, 3, 2, SEAL.b); s.set(13, 56, SEAL.d);
-      s.limb(38, 50, 41, 55, 3, 2, SEAL);
-      s.fillEllipse(42, 56, 3, 2, SEAL.b); s.set(44, 56, SEAL.d);
-      s.line(15, 54, 17, 54, SEALD.d); s.line(41, 54, 43, 54, SEALD.d); // mitten cuffs
+      s.fillEllipse(29, 48, 10, 7, PALE.b);
+      s.fillEllipse(27, 46, 7, 5, PALE.l);
+      s.dither(23, 52, 12, 3, PALE.d, 0);
+      // -- mitten front flippers --
+      s.limb(19, 50, 13, 56, 4, 3, SEAL);
+      s.fillEllipse(12, 57, 4, 2, SEAL.b); s.set(9, 57, SEAL.d);
+      s.limb(41, 52, 44, 57, 4, 3, SEAL);
+      s.fillEllipse(45, 58, 4, 2, SEAL.b);
+      s.line(12, 55, 15, 55, SEALD.d); s.line(43, 56, 46, 56, SEALD.d);   // cuffs
       // -- big baby-seal head --
-      s.ball(28, 28, 11, 10, SEAL);
-      s.fillEllipse(23, 23, 6, 4, SEAL.l); s.set(21, 22, SEAL.h);
-      s.line(22, 36, 25, 37, SEAL.d);                           // jaw shading
-      // selkie hood-cap with widow's peak
-      s.fillEllipse(28, 22, 10, 5, SEALD.b);
-      s.set(28, 27, SEALD.b); s.set(28, 26, SEALD.b);           // widow's peak point
-      s.line(19, 24, 22, 26, SEALD.d); s.line(37, 24, 34, 26, SEALD.d);   // cap folds
-      s.line(22, 19, 27, 18, SEALD.l);                          // cap sheen
+      s.ball(27, 24, 13, 12, SEAL);
+      s.fillEllipse(21, 18, 7, 5, SEAL.l); s.set(19, 16, SEAL.h); s.set(20, 15, SEAL.h);
+      s.line(20, 33, 24, 35, SEAL.d);
+      // hood-cap with widow's peak
+      s.fillEllipse(27, 17, 12, 6, SEALD.b);
+      s.set(27, 24, SEALD.b); s.set(27, 23, SEALD.b); s.set(27, 22, SEALD.b);   // peak
+      s.line(16, 20, 20, 23, SEALD.d); s.line(38, 20, 34, 23, SEALD.d);          // folds
+      s.line(20, 13, 26, 12, SEALD.l); s.set(28, 12, SEALD.l);                    // sheen
       // -- pale muzzle, button nose, whiskers --
-      s.fillEllipse(27, 34, 5, 4, PALE.b);
-      s.fillEllipse(26, 33, 3, 2, PALE.l);
-      s.set(27, 31, '#22283a'); s.set(28, 31, '#22283a');       // button nose
-      s.set(27, 32, '#4a5570');                                  // nose sheen
-      K.smile(s, 27, 36, 1);
-      s.set(20, 34, SEALD.d); s.set(19, 33, SEALD.d);           // whisker specks
-      s.set(34, 34, SEALD.d); s.set(35, 33, SEALD.d);
-      // -- glossy puppy eyes: navy iris, double catchlight, soft lower lid --
-      K.eye(s, 21, 28, 2, '#2e3a58');
-      K.eye(s, 34, 28, 2, '#2e3a58');
-      s.set(22, 29, '#8fa8c8'); s.set(35, 29, '#8fa8c8');       // small low glint
-      s.set(20, 31, PALE.d); s.set(33, 31, PALE.d);             // lower lids
-      K.cheek(s, 16, 31, '#bcd8ea'); K.cheek(s, 39, 31, '#bcd8ea');
-      // -- chest droplet gem (first-snow tear) --
-      s.set(30, 41, GLOW.l); s.set(30, 42, GLOW.b); s.set(31, 42, GLOW.b);
-      s.set(30, 43, GLOW.d); s.set(31, 41, '#ffffff');
-      // -- fur ticks along the back edge --
-      s.set(41, 42, SEALD.d); s.set(42, 45, SEALD.d); s.set(40, 39, SEALD.d);
+      s.fillEllipse(26, 31, 6, 5, PALE.b);
+      s.fillEllipse(24, 30, 4, 3, PALE.l);
+      s.rect(25, 27, 3, 2, '#22283a'); s.set(26, 29, '#4a5570');
+      K.smile(s, 26, 34, 2);
+      s.set(17, 31, SEALD.d); s.set(16, 30, SEALD.d);
+      s.set(35, 31, SEALD.d); s.set(36, 30, SEALD.d);
+      // -- glossy puppy eyes --
+      K.eye(s, 19, 26, 2, '#33405e');
+      s.set(20, 27, '#8fa8c8');
+      K.eye(s, 35, 26, 2, '#33405e');
+      s.set(36, 27, '#8fa8c8');
+      s.set(18, 29, PALE.d); s.set(34, 29, PALE.d);
+      K.cheek(s, 13, 29, '#bcd8ea'); K.cheek(s, 41, 29, '#bcd8ea');
+      // -- chest droplet gem --
+      s.set(31, 39, GLOW.l); s.rect(30, 40, 3, 2, GLOW.b);
+      s.set(31, 42, GLOW.d); s.set(32, 39, '#ffffff');
+      // fur ticks
+      s.set(44, 41, SEALD.d); s.set(45, 44, SEALD.d); s.set(43, 38, SEALD.d);
     },
     drawBack(s) {
-      // ============ FABLE ART: Selkip back (gazing up-right) ============
-      // -- plump rear, tail flukes swept toward camera bottom-right --
-      s.ball(31, 44, 13, 11, SEAL, { lx: 0, ly: -0.62 });
-      s.fillEllipse(31, 52, 10, 3, SEAL.d);
-      s.fillPoly([[40, 51], [52, 47], [49, 53]], SEAL.b);
-      s.fillPoly([[40, 51], [51, 56], [44, 59]], SEAL.d);
-      s.line(49, 49, 44, 52, SEAL.d); s.set(51, 47, SEAL.l);
-      // -- dark saddle down the spine with seal dapples --
-      s.fillEllipse(31, 41, 9, 8, SEALD.b);
-      s.fillEllipse(29, 38, 6, 5, SEALD.l);
-      s.set(26, 43, SEALD.d); s.set(34, 40, SEALD.d); s.set(31, 46, SEALD.d);
-      s.set(36, 44, SEALD.d); s.set(27, 39, SEALD.d);           // dapple spots
-      // -- left mitten flipper peeking at the side --
-      s.limb(19, 47, 15, 53, 3, 2, SEAL);
-      s.fillEllipse(14, 54, 3, 2, SEAL.b);
-      s.line(14, 52, 16, 52, SEALD.d);
-      // -- head turned up-right toward the foe, hood cap from behind --
-      s.ball(32, 28, 10, 9, SEAL, { lx: 0.1, ly: -0.7 });
-      s.fillEllipse(32, 24, 9, 6, SEALD.b);                     // cap covers the crown
-      s.fillEllipse(29, 22, 5, 3, SEALD.l);                     // cap sheen
-      s.set(32, 31, SEALD.b); s.set(32, 30, SEALD.b);           // nape point of the cap
-      s.line(25, 34, 38, 34, SEAL.d);                           // neck crease
-      // right-profile: pale muzzle bump + glossy eye glancing up-right
-      s.fillEllipse(41, 28, 3, 3, SEAL.b);
-      s.fillEllipse(42, 29, 2, 2, PALE.b);                      // muzzle tip
-      s.set(44, 28, '#22283a');                                  // nose peeking
-      s.set(42, 25, '#1a1f30'); s.set(43, 25, '#1a1f30');       // eye corner...
-      s.set(43, 24, '#ffffff');                                  // ...with catchlight
-      s.set(41, 23, SEALD.d);                                    // brow
-      s.set(44, 30, '#bcd8ea');                                  // cheek blush
-      s.set(45, 27, SEALD.d);                                    // whisker speck
+      // ========= FABLE ART v2: Selkip back (big, gazing up-right) =========
+      // -- plump rear; flukes sweep toward camera bottom-right --
+      s.ball(31, 43, 16, 13, SEAL, { lx: 0, ly: -0.62 });
+      s.fillEllipse(31, 53, 12, 3, SEAL.d);
+      s.fillEllipse(31, 55, 8, 2, SEAL.d2);
+      s.fillPoly([[42, 51], [57, 46], [54, 53]], SEAL.b);
+      s.fillPoly([[42, 51], [56, 57], [47, 60]], SEAL.d);
+      s.line(54, 48, 47, 52, SEAL.d); s.set(56, 46, SEAL.l);
+      // -- dark saddle with seal dapples --
+      s.fillEllipse(31, 40, 11, 9, SEALD.b);
+      s.fillEllipse(28, 36, 7, 5, SEALD.l);
+      s.set(24, 42, SEALD.d); s.set(34, 39, SEALD.d); s.set(30, 45, SEALD.d);
+      s.set(37, 43, SEALD.d); s.set(26, 37, SEALD.d); s.set(33, 47, SEALD.d2);
+      // -- left mitten peeking --
+      s.limb(17, 47, 12, 53, 4, 3, SEAL);
+      s.fillEllipse(11, 54, 4, 2, SEAL.b);
+      s.line(11, 52, 14, 52, SEALD.d);
+      // -- head turned up-right, hood cap from behind --
+      s.ball(32, 25, 12, 11, SEAL, { lx: 0.12, ly: -0.7 });
+      s.fillEllipse(32, 20, 11, 7, SEALD.b);
+      s.fillEllipse(28, 17, 6, 4, SEALD.l);
+      s.set(32, 28, SEALD.b); s.set(32, 27, SEALD.b);        // nape point
+      s.line(24, 33, 40, 33, SEAL.d);
+      // right-profile: pale muzzle + glossy eye glancing up-right
+      s.fillEllipse(43, 24, 4, 4, SEAL.b);
+      s.fillEllipse(45, 25, 3, 2, PALE.b);
+      s.set(47, 24, '#22283a');
+      s.set(44, 21, '#1a1f30'); s.set(45, 21, '#1a1f30');
+      s.set(45, 20, '#ffffff');
+      s.set(43, 19, SEALD.d); s.set(44, 19, SEALD.d);
+      s.set(46, 27, '#bcd8ea');
+      s.set(48, 22, SEALD.d);                                 // whisker speck
     },
   });
 

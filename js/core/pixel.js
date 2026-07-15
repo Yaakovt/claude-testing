@@ -58,17 +58,20 @@ const Px = {
     return Px.rgbToHex(r2, g2, b2);
   },
   /**
-   * Build a Gen-3 tone ramp from a base color:
-   *   o = outline (very dark, hue-shifted cool)
-   *   d = dark shade   b = base   l = light   h = highlight
+   * Build a Gen-3 tone ramp from a base color. Shadows shift cool (toward
+   * violet), highlights shift warm — livelier color than flat lightness steps.
+   *   o  = outline (very dark, hue-shifted cool)
+   *   d2 = deep core shadow      d = dark shade
+   *   b  = base   l = light   h = highlight
    */
   ramp(base) {
     return {
-      o: Px.shift(base, 0.02, 0.05, -0.34),
-      d: Px.shift(base, 0.01, 0.03, -0.15),
+      o: Px.shift(base, 0.045, 0.10, -0.36),
+      d2: Px.shift(base, 0.030, 0.08, -0.21),
+      d: Px.shift(base, 0.015, 0.05, -0.11),
       b: base,
-      l: Px.shift(base, -0.015, -0.04, 0.12),
-      h: Px.shift(base, -0.03, -0.10, 0.24),
+      l: Px.shift(base, -0.020, -0.05, 0.10),
+      h: Px.shift(base, -0.045, -0.12, 0.22),
     };
   },
 };
@@ -159,7 +162,8 @@ class PixelSurface {
   ball(cx, cy, rx, ry, ramp, opts = {}) {
     const lx = opts.lx !== undefined ? opts.lx : -0.30;
     const ly = opts.ly !== undefined ? opts.ly : -0.34;
-    const dith = opts.dither !== undefined ? opts.dither : (rx + ry > 14);
+    const dith = opts.dither !== undefined ? opts.dither : (rx + ry > 12);
+    const deep = ramp.d2 || ramp.d;
     const y0 = Math.ceil(cy - ry), y1 = Math.floor(cy + ry);
     for (let y = y0; y <= y1; y++) {
       const ty = (y - cy) / ry;
@@ -169,12 +173,15 @@ class PixelSurface {
         const tx = (x - cx) / rx;
         // distance from the light pole
         const d = Math.hypot(tx - lx, ty - ly) / 1.55;
+        // organic cluster jitter breaks the geometric band edges
+        const jit = dith ? (((x * 7 + y * 13) ^ (x * 3)) % 5) * 0.012 - 0.024 : 0;
+        const v = d + jit;
         let c;
-        if (d < 0.34 && !opts.flat) c = ramp.h;
-        else if (d < 0.62) c = ramp.l;
-        else if (d < 0.88) c = ramp.b;
-        else if (d < 0.97 && dith && ((x + y) & 1)) c = ramp.b;
-        else c = ramp.d;
+        if (v < 0.30 && !opts.flat) c = ramp.h;
+        else if (v < 0.58) c = ramp.l;
+        else if (v < 0.85) c = ramp.b;
+        else if (v < 1.02) c = ramp.d;
+        else c = deep;                              // core shadow at the far rim
         this.set(x, y, c);
       }
     }
@@ -225,6 +232,35 @@ class PixelSurface {
           (x > 0 && src[idx(x - 1, y)]) || (x < this.w - 1 && src[idx(x + 1, y)]) ||
           (y > 0 && src[idx(x, y - 1)]) || (y < this.h - 1 && src[idx(x, y + 1)]);
         if (near) this.data[idx(x, y)] = color;
+      }
+    }
+  }
+
+  /**
+   * Selective outline ("sel-out"): each outline pixel takes a deep-shadow
+   * version of the color it borders, so green forms get deep-green edges,
+   * flame gets maroon, etc. Under-edges (ground contact) go darker still.
+   */
+  outlineSel() {
+    const src = this.data.slice();
+    const idx = (x, y) => y * this.w + x;
+    const memo = {};
+    const darken = (c, extra) => {
+      const k = c + (extra ? '+' : '');
+      if (!memo[k]) memo[k] = Px.shift(c, 0.04, 0.12, extra ? -0.40 : -0.30);
+      return memo[k];
+    };
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        if (src[idx(x, y)] !== null) continue;
+        const up = y > 0 ? src[idx(x, y - 1)] : null;
+        const dn = y < this.h - 1 ? src[idx(x, y + 1)] : null;
+        const lf = x > 0 ? src[idx(x - 1, y)] : null;
+        const rt = x < this.w - 1 ? src[idx(x + 1, y)] : null;
+        const nb = up || lf || rt || dn;
+        if (!nb) continue;
+        // pixels UNDER the silhouette (filled neighbor above) ground the sprite
+        this.data[idx(x, y)] = darken(nb, !!up && !dn);
       }
     }
   }
