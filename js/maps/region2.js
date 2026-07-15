@@ -294,6 +294,7 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
       { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'sc_villager1' },
       { x: 12, y: 12, sprite: 'npc_hiker', move: 'wander', script: 'sc_villager2' },
       { x: 5, y: 3, sprite: 'ionar_grunt', dir: 'down', move: 'static', script: 'sc_grunt' },
+      { x: 13, y: 5, sprite: 'prof', dir: 'down', move: 'static', script: 'rift_gift' },
     ],
     onEnter() { Overworld.showBanner(); },
   });

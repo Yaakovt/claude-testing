@@ -29,8 +29,9 @@ const Dex = {
 
   count() { return Dex.order.length; },
 
-  /** Render (and cache) a species sprite. side: 'front' | 'back' */
-  sprite(key, side) {
+  /** Render (and cache) a species sprite. side: 'front' | 'back'; mega=true for the mega form. */
+  sprite(key, side, mega) {
+    if (mega && typeof Megas !== 'undefined' && Megas[key]) return Dex.megaSprite(key, side);
     // External PNG override (if delivered) wins.
     if (typeof Assets !== 'undefined') {
       const ov = Assets.get('pokemon/' + side + '/' + key);
@@ -44,6 +45,37 @@ const Dex = {
     else def.drawBack(s);
     s.outline(def.outlineColor || '#26202b');
     s.innerEdge(0.12);
+    const cv = s.toCanvas();
+    Dex._spriteCache[ck] = cv;
+    return cv;
+  },
+
+  /** Energized "mega" variant: base silhouette, brighter palette, aura + sparks. */
+  megaSprite(key, side) {
+    const ck = key + ':' + side + ':mega';
+    if (Dex._spriteCache[ck]) return Dex._spriteCache[ck];
+    if (typeof Assets !== 'undefined') {
+      const ov = Assets.get('pokemon/' + side + '/' + key + '_mega');
+      if (ov) { Dex._spriteCache[ck] = ov; return ov; }
+    }
+    const def = Dex.byKey[key];
+    const aura = (Megas[key] && Megas[key].color) || '#a8f0d8';
+    const s = new PixelSurface(64, 64);
+    if (side === 'front') def.draw(s); else def.drawBack(s);
+    // brighten & saturate the whole silhouette
+    for (let i = 0; i < s.data.length; i++) {
+      if (s.data[i]) s.data[i] = Px.shift(s.data[i], 0, 0.10, 0.06);
+    }
+    // energy aura: colored outline ring
+    s.outline(aura);
+    s.outline('#1c1620');
+    s.innerEdge(0.12);
+    // orbiting energy sparks
+    for (let a = 0; a < 10; a++) {
+      const ang = (a / 10) * Math.PI * 2;
+      const x = 32 + Math.cos(ang) * 27, y = 34 + Math.sin(ang) * 27;
+      s.set(x, y, aura); s.set(x + 1, y, '#ffffff');
+    }
     const cv = s.toCanvas();
     Dex._spriteCache[ck] = cv;
     return cv;

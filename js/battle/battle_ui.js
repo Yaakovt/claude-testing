@@ -182,6 +182,14 @@ const BattleUI = {
       case 'weather':
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 10;
         break;
+      case 'mega': {
+        Screen.doFlash((Megas[ev.key] && Megas[ev.key].color) || '#a8f0d8', 1);
+        AudioSys.sfx('levelup');
+        AudioSys.cry(Dex.byKey[ev.key].cry);
+        BattleUI.flash[ev.side] = 20;
+        BattleUI.event = { t: 'wait' }; BattleUI.wait = 30;
+        break;
+      }
       case 'levelup':
         AudioSys.sfx('levelup');
         BattleUI.text = ev.name + ' grew to LV ' + ev.lv + '!';
@@ -277,12 +285,15 @@ const BattleUI = {
     if (Input.pressed.right && !(idx & 1) && idx + 1 < moves.length) idx++;
     if (idx !== BattleUI.moveIdx) AudioSys.sfx('select');
     BattleUI.moveIdx = idx;
-    if (Input.pressed.b) { AudioSys.sfx('cancel'); BattleUI.mode = 'menu'; return; }
+    // Toggle Mega Evolution with SELECT (Shift) when eligible.
+    if (Battle.pl.mon.canMega() && Input.pressed.select) { BattleUI.megaPending = !BattleUI.megaPending; AudioSys.sfx('select'); }
+    if (Input.pressed.b) { AudioSys.sfx('cancel'); BattleUI.mode = 'menu'; BattleUI.megaPending = false; return; }
     if (Input.pressed.a) {
       if (moves[idx].pp <= 0) { AudioSys.sfx('cancel'); return; }
       AudioSys.sfx('confirm');
       BattleUI.mode = 'playing';
-      Battle.playerAction({ type: 'move', idx });
+      const mega = BattleUI.megaPending; BattleUI.megaPending = false;
+      Battle.playerAction({ type: 'move', idx, mega });
     }
   },
 
@@ -372,7 +383,7 @@ const BattleUI = {
       if (enSt.fainting) { ey += 20; ctx.globalAlpha = 0.4; enSt.visible = enSt.doneFaint ? false : true; enSt.doneFaint = true; }
       if (anim && anim.geom.ux === g.tx) { ex += off.x; ey += off.y; }
       if (!(BattleUI.flash.en % 4 >= 2)) {
-        ctx.drawImage(Dex.sprite(Battle.en.mon.key, 'front'), ex, ey);
+        ctx.drawImage(Dex.sprite(Battle.en.mon.key, 'front', Battle.en.mon.mega), ex, ey);
       }
       ctx.globalAlpha = 1;
     }
@@ -382,7 +393,7 @@ const BattleUI = {
       if (plSt.fainting) { py += 20; ctx.globalAlpha = 0.4; plSt.doneFaint = true; }
       if (anim && anim.geom.ux === g.ux) { px += off.x; py += off.y; }
       if (!(BattleUI.flash.pl % 4 >= 2)) {
-        ctx.drawImage(Dex.sprite(Battle.pl.mon.key, 'back'), px, py);
+        ctx.drawImage(Dex.sprite(Battle.pl.mon.key, 'back', Battle.pl.mon.mega), px, py);
       }
       ctx.globalAlpha = 1;
     }
@@ -567,6 +578,13 @@ const BattleUI = {
       ctx.fillStyle = TypeColors[mv.type];
       ctx.fillRect(186, 136, 46, 11);
       Font.draw(ctx, mv.type.toUpperCase(), 188, 138, { color: '#fff', shadow: null });
+    }
+    // Mega Evolve prompt (SELECT to toggle)
+    if (Battle.pl.mon.canMega()) {
+      const on = BattleUI.megaPending;
+      ctx.fillStyle = on ? '#e858a8' : '#584860';
+      ctx.fillRect(120, 150, 54, 9);
+      Font.draw(ctx, (on ? '★' : ' ') + 'MEGA', 124, 151, { color: on ? '#fff' : '#c0b8c8', shadow: null });
     }
   },
 

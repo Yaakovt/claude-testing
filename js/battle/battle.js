@@ -86,6 +86,12 @@ const Battle = {
   heldOf(side) { return side.mon.heldItem && Items[side.mon.heldItem] ? Items[side.mon.heldItem] : {}; },
   consumeHeld(side) { side.mon.heldItem = null; },
 
+  megaEvolve(side) {
+    side.mon.mega = true;
+    Battle.E('mega', { side: side.isPlayer ? 'pl' : 'en', key: side.mon.key });
+    Battle.E('text', { msg: side.mon.name + ' Mega Evolved into ' + side.mon.megaName() + '!' });
+  },
+
   entryAbilities() {
     for (const side of [Battle.pl, Battle.en]) {
       const ab = Battle.ability(side);
@@ -134,6 +140,9 @@ const Battle = {
       Battle.endOfTurn();
       return BattleUI.play();
     }
+
+    // Mega Evolution happens at the start of the turn, before any move.
+    if (action.mega && pl.mon.canMega()) Battle.megaEvolve(pl);
 
     const pMove = pl.mon.moves[action.idx];
     const pPri = Moves[pMove.id].pri, ePri = Moves[enemyMove.id].pri;
@@ -864,6 +873,9 @@ const Battle = {
 
   finish() {
     Battle.active = false;
+    // Revert any Mega Evolutions (transient — never persists past battle).
+    for (const m of Game.party) m.mega = false;
+    if (Battle.en && Battle.en.mon) Battle.en.mon.mega = false;
     const cb = Battle.onEnd;
     Battle.onEnd = null;
     BattleUI.close();

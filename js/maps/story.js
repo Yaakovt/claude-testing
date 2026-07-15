@@ -214,6 +214,17 @@ Scripts.register('champion', (npc) => {
   });
 });
 
+// ---- Mega Evolution: the Rift Stone gift ----
+Scripts.register('rift_gift', () => {
+  if (Game.flags.gotRift) { Textbox.say('RESEARCHER: Give that Rift Stone to a fakemon to hold. In battle, press SELECT (Shift) to Mega Evolve — if that species can!', Scripts.done); return; }
+  Textbox.say('RESEARCHER: You there — you feel it too? The aurora is shedding shards tonight. Here, this one is yours: a RIFT STONE.', () => {
+    Game.flags.gotRift = true;
+    Scripts.giveItem('rift_stone', 1, () => {
+      Textbox.say('RESEARCHER: Have a fakemon hold it. Some — the starter finals, Auroryx, and certain others — can MEGA EVOLVE once per battle. Press SELECT in the move menu!', Scripts.done);
+    });
+  });
+});
+
 // ---- Sidequest: choose one of two fossils, then revive it ----
 Scripts.register('fossil_choice', () => {
   if (Game.flags.gotFossil) { Textbox.say('MINER: That was the last fossil I had spare. Get it revived at the lab bench!', Scripts.done); return; }

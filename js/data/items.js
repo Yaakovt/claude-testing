@@ -72,6 +72,7 @@ I('focus_charm', 'Focus Charm', 'held', 200, 'If held and at full HP, the fakemo
 I('soothe_berry', 'Soothe Berry', 'held', 100, 'If held, cures any status problem once, then is used up.', { cureBerry: true });
 I('rally_berry', 'Rally Berry', 'held', 100, 'If held, restores 1/4 HP when HP drops low, then is used up.', { pinchBerry: 0.25 });
 I('stillstone', 'Stillstone', 'held', 300, 'A heavy stone that stops the holder from evolving.', { preventEvo: true });
+I('rift_stone', 'Rift Stone', 'held', 0, 'A stone torn from the aurora. A fakemon able to Mega Evolve can do so in battle while holding it.', { riftStone: true });
 I('emberband', 'Emberband', 'held', 300, 'If held, boosts the power of the holder\'s Fire moves.', { typeBoost: { type: 'Fire', mult: 1.2 } });
 I('tideband', 'Tideband', 'held', 300, 'If held, boosts the power of the holder\'s Water moves.', { typeBoost: { type: 'Water', mult: 1.2 } });
 I('leafband', 'Leafband', 'held', 300, 'If held, boosts the power of the holder\'s Grass moves.', { typeBoost: { type: 'Grass', mult: 1.2 } });

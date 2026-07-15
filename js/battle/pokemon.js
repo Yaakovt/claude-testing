@@ -26,6 +26,7 @@ class Mon {
     this.ball = opts.ball || 'fieldorb';
     this.ot = opts.ot || null;
     this.heldItem = opts.heldItem || null;
+    this.mega = false;   // transient in-battle Mega state (not saved)
 
     // Default moves: the last 4 level-up moves at this level.
     if (opts.moves) {
@@ -40,11 +41,16 @@ class Mon {
 
   get def() { return Dex.byKey[this.key]; }
   get name() { return this.nickname || this.def.name; }
-  get types() { return this.def.types; }
+  get megaData() { return this.mega && typeof Megas !== 'undefined' ? Megas[this.key] : null; }
+  get activeBase() { const m = this.megaData; return m ? m.base : this.def.base; }
+  get types() { const m = this.megaData; return m ? m.types : this.def.types; }
   get fainted() { return this.curHp <= 0; }
 
+  canMega() { return !this.mega && typeof Megas !== 'undefined' && !!Megas[this.key] && this.heldItem === 'rift_stone'; }
+  megaName() { const m = typeof Megas !== 'undefined' ? Megas[this.key] : null; return m ? m.name : this.name; }
+
   statCalc(stat) {
-    const base = this.def.base[stat];
+    const base = this.activeBase[stat];
     const iv = this.ivs[stat];
     const ev = Math.floor(this.evs[stat] / 4);
     if (stat === 'hp') {
