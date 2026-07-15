@@ -27,6 +27,43 @@ T('fisher_odd', {
   party: [{ key: 'minnowisp', level: 9 }, { key: 'mudlusk', level: 10 }],
 });
 
+// ---- Route trainers (extra battles for a longer journey) ----
+function RT(id, name, cls, reward, party, intro, loss) {
+  T(id, { name, cls, reward, ai: 'smart', music: 'battle_trainer',
+    intro: intro || 'Hey you! Let\'s battle!', loss: loss || 'You got me!', party });
+}
+// Route 1
+RT('r1_lass', 'Poppy', 'Lass', 200, [{ key: 'puffinch', level: 4 }, { key: 'larvel', level: 4 }], 'My fakemon are so cute AND tough!', 'Aww, good match!');
+RT('r1_bugcatcher', 'Timo', 'Bug Catcher', 160, [{ key: 'larvel', level: 5 }], 'Bugs are the best! Wanna see?', 'Aw, bugs...');
+// Route 2
+RT('r2_camper', 'Nils', 'Camper', 320, [{ key: 'nibbit', level: 9 }, { key: 'pineling', level: 10 }], 'Out here in the wild, only the tough survive!', 'You\'re tougher!');
+RT('r2_picnicker', 'Bea', 'Picnicker', 300, [{ key: 'mossbuck', level: 10 }], 'Care to battle before my picnic?', 'What a lovely loss!');
+// Route 3
+RT('r3_sailor', 'Kregg', 'Sailor', 480, [{ key: 'minnowisp', level: 13 }, { key: 'puffle', level: 14 }], 'Salt in my veins, kid! Let\'s go!', 'Fair winds to ya.');
+RT('r3_twins', 'Ida & Ines', 'Twins', 520, [{ key: 'glimmouse', level: 13 }, { key: 'chimebud', level: 13 }], 'We battle as one!', 'We lost as one...');
+// Route 4
+RT('r4_hiker', 'Sten', 'Hiker', 560, [{ key: 'ramlet', level: 17 }, { key: 'cairnling', level: 18 }], 'These slopes made me strong. You?', 'Solid climbing.');
+RT('r4_fisher', 'Marn', 'Fisher', 500, [{ key: 'herrdart', level: 18 }], 'Reeled in a big one today — you!', 'The one that got away.');
+// Route 5
+RT('r5_psychic', 'Vale', 'Psychic', 640, [{ key: 'wispurr', level: 20 }, { key: 'corvusk', level: 20 }], 'I foresaw this battle. And my victory!', 'My vision... was wrong?');
+RT('r5_aroma', 'Linnea', 'Aroma Lady', 600, [{ key: 'chimebud', level: 21 }], 'The aurora smells of victory tonight!', 'Sweet defeat.');
+// Route 6
+RT('r6_miner', 'Dag', 'Miner', 720, [{ key: 'oreling', level: 23 }, { key: 'shardling', level: 24 }], 'Dug up a fight just for you!', 'Back to the mines.');
+RT('r6_hiker', 'Bram', 'Hiker', 700, [{ key: 'boulderam', level: 24 }], 'Rock solid, that\'s me!', 'Crumbled...');
+// Route 7
+RT('r7_skier', 'Elsa', 'Skier', 820, [{ key: 'frostkit', level: 26 }, { key: 'corvusk', level: 27 }], 'Cold never bothered my team!', 'Brrr, nice one.');
+RT('r7_veteran', 'Old Ulf', 'Veteran', 900, [{ key: 'gulomaul', level: 27 }, { key: 'ramlet', level: 27 }], 'Been battling since before you were born!', 'Youth wins again.');
+// Route 8
+RT('r8_snowboarder', 'Kit', 'Snowboarder', 900, [{ key: 'yetiling', level: 29 }, { key: 'zapkid', level: 29 }], 'Catch me if you can — then battle me!', 'Wiped out!');
+RT('r8_blackbelt', 'Ragna', 'Black Belt', 940, [{ key: 'trolltoad', level: 30 }], 'My fists and my fakemon — both iron!', 'A humbling loss.');
+// Route 9
+RT('r9_dragontamer', 'Sindri', 'Dragon Tamer', 1100, [{ key: 'skimmerling', level: 32 }, { key: 'frystdrake', level: 33 }], 'Dragons answer only to the worthy!', 'You are worthy.');
+RT('r9_ace', 'Halla', 'Ace Trainer', 1200, [{ key: 'grimcorvid', level: 33 }, { key: 'nokkmare', level: 33 }], 'No badges? Doesn\'t matter. I\'ll win anyway!', 'You\'ve earned those badges.');
+// Victory Road
+RT('vr_ace1', 'Torsten', 'Ace Trainer', 1600, [{ key: 'ingotaur', level: 44 }, { key: 'stormgull', level: 44 }], 'Only the best reach Victory Road. Prove it!', 'You belong here.');
+RT('vr_ace2', 'Mira', 'Ace Trainer', 1600, [{ key: 'vulpaura', level: 44 }, { key: 'gulomaul', level: 45 }], 'The League is close. I am closer!', 'Go claim it.');
+RT('vr_veteran', 'Grand Ivar', 'Veteran', 2000, [{ key: 'ursnow', level: 45 }, { key: 'boulderam', level: 45 }, { key: 'wyrmskim', level: 46 }], 'One last wall before the League. That\'s me!', 'The wall has fallen. Go.');
+
 // ---- Gym 1: Astrid (Normal) ----
 T('gym_helper1', { name: 'Bo', cls: 'Gym Trainee', reward: 200, intro: 'Astrid taught me to never give up!', loss: 'Go on ahead!', party: [{ key: 'puffinch', level: 8 }] });
 T('gym_helper2', { name: 'Wren', cls: 'Gym Trainee', reward: 200, intro: 'Normal types are anything but boring!', loss: 'You earned this.', party: [{ key: 'nibbit', level: 8 }, { key: 'brockle', level: 9 }] });
@@ -122,17 +159,25 @@ T('ionar_boss', {
 });
 
 // ---- Rivals ----
+// Kai — the friendly childhood-friend rival (a couple of casual battles).
 T('rival_kai_1', {
   name: 'Kai', cls: 'Rival', reward: 400, music: 'battle_trainer', ai: 'smart',
   intro: 'Hey! Let\'s see how our starters stack up. No hard feelings, okay?',
   loss: 'Haha, you\'re a natural! Let\'s both get stronger!',
-  party: [{ key: 'RIVAL_WEAK', level: 6 }],   // resolved from player's choice
+  party: [{ key: 'RIVAL_WEAK', level: 6 }, { key: 'nibbit', level: 6 }],
 });
-T('rival_vera_1', {
+// Vera — the arrogant prodigy whose team EVOLVES across three meetings.
+T('rival_vera_early', {
   name: 'Vera', cls: 'Rival', reward: 500, music: 'battle_trainer', ai: 'smart',
-  intro: 'I chose the starter that beats yours on purpose. Don\'t take it personally — I just intend to win.',
+  intro: 'I picked the starter that beats yours on purpose. Don\'t take it personally — I just intend to win.',
   loss: 'Hmph. Beginner\'s luck. Don\'t expect it twice.',
-  party: [{ key: 'RIVAL_STRONG', level: 7 }],
+  party: [{ key: 'RIVAL_STARTER', level: 8 }], fullTeam: true,   // stage 0, count 1
+});
+T('rival_vera_mid', {
+  name: 'Vera', cls: 'Rival', reward: 2000, music: 'battle_trainer', ai: 'smart',
+  intro: 'You\'ve grown. So have I — and so has my team. Let\'s find out who grew faster.',
+  loss: 'Tch. You\'re still ahead. For now.',
+  party: [{ key: 'RIVAL_STARTER', level: 27 }], fullTeam: true,  // stage 1, count 3
 });
 
 // ---- Elite Four + Champion (endgame; scaffolding) ----
@@ -163,35 +208,67 @@ T('rival_vera_final', {
   name: 'Vera', cls: 'Rival', reward: 9000, music: 'battle_champion', ai: 'smart', leader: true,
   intro: 'So you made it to the Plateau too. Of course you did. One last time, then — no holding back. My full team against yours!',
   loss: 'Heh... all these years chasing you, and you\'re STILL a step ahead. Go on. Go be Champion. I\'ll be right behind you.',
-  party: [{ key: 'RIVAL_STARTER_FINAL', level: 52 }], fullTeam: true,
+  party: [{ key: 'RIVAL_STARTER', level: 52 }], fullTeam: true,   // stage 2, count 5
 });
 
 const STARTER_WEAK = { trollsprout: 'selkip', cindrel: 'trollsprout', selkip: 'cindrel' };
 const STARTER_STRONG = { trollsprout: 'cindrel', cindrel: 'selkip', selkip: 'trollsprout' };
+const STARTER_MID = { trollsprout: 'bryteknott', cindrel: 'pyrolisk', selkip: 'selkora' };
 const STARTER_FINAL = { trollsprout: 'jotunwald', cindrel: 'fafnirn', selkip: 'krakelott' };
-// Pool of fully-evolved mons the rival's team is randomly filled from.
-const RIVAL_POOL = ['grimcorvid', 'gulomaul', 'ingotaur', 'mystrix', 'sylphund', 'boulderam',
-  'thundram', 'vulpaura', 'ursnow', 'jarnwyrm', 'geysmog', 'hullghast', 'seidkona', 'skjaldhawk',
-  'cindercrag', 'drillvole', 'lemmoth', 'stormgull', 'prismarok', 'wyrmskim'];
+/** Walk `n` pre-evolutions back from a species (stops at the base form). */
+function preEvoStages(key, n) {
+  let k = key;
+  for (let i = 0; i < n; i++) { const pre = (typeof Dex !== 'undefined') ? Dex.preEvo(k) : null; if (pre) k = pre; else break; }
+  return k;
+}
 
 /**
- * Resolve rival placeholder keys from the player's starter choice, and fill a
- * `fullTeam` rival up to 6 with a fresh RANDOM selection each battle.
+ * The rival's 5 support slots. Each slot is a themed short list, and ONE entry
+ * per slot is chosen once at the start of a playthrough (stored in the save),
+ * so the rival's team is consistent across their battles but differs run-to-run.
+ * e.g. slot 1 is always a flyer, slot 2 always a Water type, slot 3 always a
+ * stone-evolution, and so on.
  */
-function resolveRivalParty(trainer) {
+const RIVAL_SLOTS = [
+  ['stormgull', 'grimcorvid', 'skjaldhawk'],   // a flyer
+  ['fjorddrake', 'hullghast', 'walrust'],       // a Water type
+  ['vulpaura', 'pyrelight', 'bellsylph'],       // a stone-evolution
+  ['ingotaur', 'boulderam', 'gulomaul'],        // a heavy bruiser
+  ['mystrix', 'seidkona', 'wyrmskim'],          // an ace
+];
+
+/** Chosen once per playthrough and remembered in the save. */
+function rivalTeamKeys() {
+  if (!Game.flags.rivalTeam) Game.flags.rivalTeam = RIVAL_SLOTS.map((pool) => Util.pick(pool));
+  return Game.flags.rivalTeam;
+}
+
+/**
+ * Resolve the rival's team. opts:
+ *   stage: 0 basic / 1 mid / 2 final — the rival's mons EVOLVE across battles.
+ *   count: how many support mons (fills toward 6) — grows across the story.
+ * The support species come from the fixed per-playthrough slot picks (finals),
+ * de-evolved to match `stage`, so it's the SAME team getting stronger each time.
+ */
+function resolveRivalParty(trainer, opts) {
+  opts = opts || {};
+  const stage = opts.stage !== undefined ? opts.stage : 2;
   const starter = Game.flags.starter || 'cindrel';
+  const strongBasic = STARTER_STRONG[starter];
+  const starterAtStage = [strongBasic, STARTER_MID[strongBasic], STARTER_FINAL[strongBasic]][stage];
   const party = trainer.party.map((p) => {
     if (p.key === 'RIVAL_WEAK') return { ...p, key: STARTER_WEAK[starter] };
-    if (p.key === 'RIVAL_STRONG') return { ...p, key: STARTER_STRONG[starter] };
-    if (p.key === 'RIVAL_STARTER_FINAL') return { ...p, key: STARTER_FINAL[STARTER_STRONG[starter]] };
+    if (p.key === 'RIVAL_STRONG') return { ...p, key: strongBasic };
+    if (p.key === 'RIVAL_STARTER') return { ...p, key: starterAtStage };
+    if (p.key === 'RIVAL_STARTER_FINAL') return { ...p, key: STARTER_FINAL[strongBasic] };
     return p;
   });
-  if (trainer.fullTeam) {
-    const used = new Set(party.map((p) => p.key));
-    const pool = Util.shuffle(RIVAL_POOL.filter((k) => !used.has(k)));
+  if (trainer.fullTeam || opts.count) {
+    const finals = rivalTeamKeys().filter((k) => k !== STARTER_FINAL[strongBasic]);
     const baseLv = party[0] ? party[0].level : 52;
-    while (party.length < 6 && pool.length) {
-      party.push({ key: pool.pop(), level: baseLv - 1 - Util.rand(3) });
+    const n = opts.count || 5;
+    for (let i = 0; i < n && party.length < 6; i++) {
+      party.push({ key: preEvoStages(finals[i % finals.length], 2 - stage), level: baseLv - 1 - (i % 3) });
     }
   }
   return { ...trainer, party };

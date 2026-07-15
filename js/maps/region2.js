@@ -28,7 +28,7 @@ function gymInterior(id, name, leaderScript, helper) {
 }
 
 /** A simple vertical route with tall-grass patches and an encounter table. */
-function vRoute(id, name, env, northTo, northTx, southTo, southTx, enc, music) {
+function vRoute(id, name, env, northTo, northTx, southTo, southTx, enc, music, npcs) {
   const g = blankGrid(20, 12, env === 'snow' ? 'x' : env === 'cave' ? ' ' : 'x');
   gborder(g, env === 'cave' ? 'w' : env === 'volcano' ? 'R' : 'T');
   for (let y = 0; y <= 11; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
@@ -43,8 +43,17 @@ function vRoute(id, name, env, northTo, northTx, southTo, southTx, enc, music) {
       { x: 10, y: 11, to: southTo, tx: southTx + 1, ty: 1, dir: 'down', always: true },
     ],
     encounters: enc ? { rate: 16, grass: enc } : null,
+    npcs: npcs || [],
     onEnter() { Overworld.showBanner(); },
   });
+}
+
+/** Two route trainers flanking the path (sprite varies for flavor). */
+function rtn(t1, t2, s1, s2) {
+  return [
+    { x: 6, y: 4, sprite: s1 || 'npc_hiker', dir: 'right', trainer: t1, sight: 3, script: 'trainer_after' },
+    { x: 13, y: 8, sprite: s2 || 'npc_villager', dir: 'left', trainer: t2, sight: 3, script: 'trainer_after' },
+  ];
 }
 
 // ============================================================ Route 4 (E-W, coast→springs)
@@ -65,8 +74,9 @@ function vRoute(id, name, env, northTo, northTx, southTo, southTx, enc, music) {
     signs: [{ x: 5, y: 6, text: 'ROUTE 4 — EMBERFALL CITY east, past the hot springs.' }],
     items: [{ x: 15, y: 4, item: 'good_rod', flag: 'r4_goodrod' }],
     npcs: [
-      { x: 11, y: 10, sprite: 'npc_hiker', dir: 'up', trainer: 'sailor_bram', sight: 2, script: 'trainer_after' },
-      { x: 6, y: 4, sprite: 'npc_woman', move: 'wander', script: 'r4_hint' },
+      { x: 11, y: 10, sprite: 'npc_hiker', dir: 'up', trainer: 'r4_hiker', sight: 2, script: 'trainer_after' },
+      { x: 4, y: 5, sprite: 'npc_fisher', dir: 'down', trainer: 'r4_fisher', sight: 2, script: 'trainer_after' },
+      { x: 13, y: 4, sprite: 'npc_woman', move: 'wander', script: 'r4_hint' },
     ],
     encounters: { rate: 16, grass: [
       { key: 'zapkid', min: 16, max: 19, weight: 2 }, { key: 'scrappup', min: 16, max: 18, weight: 2 },
@@ -112,7 +122,7 @@ function vRoute(id, name, env, northTo, northTx, southTo, southTx, enc, music) {
 vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
   { key: 'wispurr', min: 19, max: 22, weight: 3 }, { key: 'corvusk', min: 19, max: 22, weight: 2 },
   { key: 'chimebud', min: 19, max: 21, weight: 2 }, { key: 'glimmouse', min: 18, max: 21, weight: 2 },
-]);
+], 'route', rtn('r5_psychic', 'r5_aroma', 'npc_villager', 'npc_woman'));
 (() => {
   const g = blankGrid(20, 16, 'x'); gborder(g, 'T');
   const center = building(g, 2, 2, 'blue', 'C');
@@ -138,6 +148,7 @@ vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
       { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'lv_villager1' },
       { x: 13, y: 8, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'lv_villager2' },
       { x: 11, y: 12, sprite: 'ionar_grunt', dir: 'down', move: 'wander', script: 'lv_grunt' },
+      { x: 13, y: 5, sprite: 'rival_f', dir: 'down', move: 'static', script: 'rival_mid' },
     ],
     onEnter() { Overworld.showBanner(); },
   });
@@ -148,7 +159,7 @@ vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
 vRoute('route6', 'Route 6', 'cave', 'irondeep', 9, 'lumenveil', 9, [
   { key: 'oreling', min: 22, max: 25, weight: 3 }, { key: 'shardling', min: 22, max: 24, weight: 2 },
   { key: 'echomite', min: 21, max: 24, weight: 2 }, { key: 'wickwisp', min: 22, max: 24, weight: 1 },
-], 'cave');
+], 'cave', rtn('r6_miner', 'r6_hiker', 'npc_hiker', 'npc_villager'));
 (() => {
   const g = blankGrid(20, 16, 'x'); gborder(g, 'R');
   const center = building(g, 2, 2, 'blue', 'C');
@@ -173,6 +184,8 @@ vRoute('route6', 'Route 6', 'cave', 'irondeep', 9, 'lumenveil', 9, [
     npcs: [
       { x: 6, y: 6, sprite: 'npc_hiker', move: 'wander', script: 'id_villager1' },
       { x: 13, y: 12, sprite: 'npc_villager', move: 'wander', script: 'id_villager2' },
+      { x: 5, y: 5, sprite: 'npc_hiker', dir: 'down', move: 'static', script: 'fossil_choice' },
+      { x: 13, y: 5, sprite: 'prof', dir: 'down', move: 'static', script: 'fossil_reviver' },
     ],
     onEnter() { Overworld.showBanner(); },
   });
@@ -183,7 +196,7 @@ vRoute('route6', 'Route 6', 'cave', 'irondeep', 9, 'lumenveil', 9, [
 vRoute('route7', 'Route 7', 'snow', 'frostmoor', 9, 'irondeep', 9, [
   { key: 'frostkit', min: 25, max: 28, weight: 3 }, { key: 'zapkid', min: 25, max: 27, weight: 2 },
   { key: 'corvusk', min: 24, max: 27, weight: 2 }, { key: 'yetiling', min: 26, max: 28, weight: 1 },
-]);
+], 'route', rtn('r7_skier', 'r7_veteran', 'npc_woman', 'npc_oldman'));
 (() => {
   const g = blankGrid(20, 16, 'x'); gborder(g, 'Q');
   const center = building(g, 3, 2, 'blue', 'C');
@@ -218,7 +231,7 @@ vRoute('route7', 'Route 7', 'snow', 'frostmoor', 9, 'irondeep', 9, [
 vRoute('route8', 'Route 8', 'snow', 'glacierholm', 9, 'frostmoor', 9, [
   { key: 'frostkit', min: 28, max: 31, weight: 2 }, { key: 'yetiling', min: 28, max: 30, weight: 2 },
   { key: 'shiverfin', min: 28, max: 30, weight: 1 }, { key: 'glacierling', min: 29, max: 31, weight: 1 },
-]);
+], 'route', rtn('r8_snowboarder', 'r8_blackbelt', 'npc_villager', 'npc_hiker'));
 (() => {
   const g = blankGrid(20, 16, 'x'); gborder(g, 'Q');
   const center = building(g, 2, 2, 'blue', 'C');
@@ -253,7 +266,7 @@ vRoute('route8', 'Route 8', 'snow', 'glacierholm', 9, 'frostmoor', 9, [
 vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
   { key: 'skimmerling', min: 31, max: 34, weight: 2 }, { key: 'grimcorvid', min: 31, max: 33, weight: 2 },
   { key: 'nokkolt', min: 31, max: 33, weight: 2 }, { key: 'frystdrake', min: 32, max: 34, weight: 1 },
-], 'route');
+], 'route', rtn('r9_dragontamer', 'r9_ace', 'npc_hiker', 'npc_woman'));
 (() => {
   const g = blankGrid(20, 16, ' '); gborder(g, 'R');
   const center = building(g, 2, 2, 'blue', 'C');
@@ -272,10 +285,10 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
       { x: 10, y: 0, to: 'sky_spire', tx: 8, ty: 14, dir: 'up', always: true },
       { x: 9, y: 15, to: 'route9', tx: 9, ty: 1, dir: 'down', always: true },
       { x: 10, y: 15, to: 'route9', tx: 10, ty: 1, dir: 'down', always: true },
-      { x: 19, y: 7, to: 'aurora_plateau', tx: 8, ty: 15, dir: 'right', always: true },
+      { x: 19, y: 7, to: 'victory_road', tx: 2, ty: 14, dir: 'right', always: true },
     ],
     signs: [
-      { x: 8, y: 7, text: 'STORMCREST CITY — "At the foot of the Sky Spire." Leader: SIGNE (Dragon). Spire north, League east.' },
+      { x: 8, y: 7, text: 'STORMCREST CITY — "At the foot of the Sky Spire." Leader: SIGNE (Dragon). Spire north, VICTORY ROAD east to the League.' },
     ],
     npcs: [
       { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'sc_villager1' },
@@ -306,6 +319,58 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
   });
 })();
 
+// ============================================================ Victory Road (2 areas)
+const VLEG = { ' ': 'cavefloor', 'w': 'cavewall', 'R': 'rock', 'B': 'boulder', 'K': 'crackrock', 'c': 'crystal', 'd': 'stairs_down' };
+(() => {
+  const g = blankGrid(20, 16, ' '); gborder(g, 'w');
+  for (const [x, y] of [[5, 3], [5, 4], [5, 5], [10, 6], [10, 7], [10, 8], [14, 3], [14, 4],
+    [7, 10], [8, 10], [9, 10], [13, 11], [13, 12], [3, 8], [3, 9]]) gput(g, x, y, 'R');
+  gput(g, 16, 6, 'c'); gput(g, 6, 12, 'c'); gput(g, 12, 4, 'B');
+  gput(g, 17, 2, 'd');
+  defineMap({
+    id: 'victory_road', name: 'Victory Road', music: 'cave', battleEnv: 'cave', indoor: true, legend: VLEG, ground: gRows(g),
+    warps: [
+      { x: 2, y: 15, to: 'stormcrest', tx: 18, ty: 7, dir: 'down', always: true },
+      { x: 17, y: 2, to: 'victory_road2', tx: 2, ty: 13, dir: 'up', always: true },
+    ],
+    signs: [{ x: 3, y: 13, text: 'VICTORY ROAD. Only the strongest reach the League beyond.' }],
+    items: [{ x: 16, y: 12, item: 'max_revive', flag: 'vr_maxrevive' }, { x: 3, y: 3, item: 'ultraorb', count: 3, flag: 'vr_orbs' }],
+    npcs: [
+      { x: 8, y: 6, sprite: 'npc_hiker', dir: 'down', trainer: 'vr_ace1', sight: 3, script: 'trainer_after' },
+      { x: 12, y: 9, sprite: 'npc_villager', dir: 'up', trainer: 'vr_ace2', sight: 3, script: 'trainer_after' },
+    ],
+    encounters: { rate: 14, grass: [
+      { key: 'gulomaul', min: 40, max: 43, weight: 2 }, { key: 'prismarok', min: 40, max: 42, weight: 2 },
+      { key: 'grimcorvid', min: 40, max: 43, weight: 2 }, { key: 'ingotaur', min: 41, max: 43, weight: 1 },
+      { key: 'wyrmskim', min: 41, max: 44, weight: 1 },
+    ] },
+    onEnter() { Overworld.showBanner(); },
+  });
+})();
+(() => {
+  const g = blankGrid(20, 16, ' '); gborder(g, 'w');
+  for (const [x, y] of [[6, 4], [6, 5], [11, 5], [11, 6], [11, 7], [4, 9], [5, 9], [14, 9], [14, 10], [8, 11], [9, 11]]) gput(g, x, y, 'R');
+  gput(g, 15, 4, 'c'); gput(g, 4, 12, 'c');
+  gput(g, 17, 2, 'd');
+  defineMap({
+    id: 'victory_road2', name: 'Victory Road', music: 'cave', battleEnv: 'cave', indoor: true, legend: VLEG, ground: gRows(g),
+    warps: [
+      { x: 2, y: 13, to: 'victory_road', tx: 17, ty: 3, dir: 'down', always: true },
+      { x: 17, y: 2, to: 'aurora_plateau', tx: 8, ty: 15, dir: 'up', always: true },
+    ],
+    signs: [{ x: 16, y: 3, text: 'The exit to the AURORA PLATEAU. The League awaits.' }],
+    items: [{ x: 4, y: 4, item: 'full_heal', flag: 'vr2_fullheal' }],
+    npcs: [
+      { x: 9, y: 7, sprite: 'npc_hiker', dir: 'down', trainer: 'vr_veteran', sight: 3, script: 'trainer_after' },
+    ],
+    encounters: { rate: 14, grass: [
+      { key: 'ursnow', min: 42, max: 44, weight: 2 }, { key: 'boulderam', min: 42, max: 44, weight: 2 },
+      { key: 'nokkmare', min: 42, max: 44, weight: 2 }, { key: 'jarnwyrm', min: 43, max: 45, weight: 1 },
+    ] },
+    onEnter() { Overworld.showBanner(); },
+  });
+})();
+
 // ============================================================ Aurora Plateau (Elite Four + Champion)
 (() => {
   const g = blankGrid(17, 18, '.'); gborder(g, 'w');
@@ -315,7 +380,7 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
   defineMap({
     id: 'aurora_plateau', name: 'Aurora Plateau', music: 'route', battleEnv: 'aurora', indoor: true, legend: ILEG,
     ground: gRows(g),
-    warps: [{ x: 8, y: 16, to: 'stormcrest', tx: 17, ty: 7, dir: 'left', always: true }],
+    warps: [{ x: 8, y: 16, to: 'victory_road2', tx: 17, ty: 3, dir: 'down', always: true }],
     signs: [{ x: 7, y: 16, text: 'AURORA PLATEAU. Beyond wait the Elite Four and the Champion. Only eight-badge trainers may pass.' }],
     npcs: [
       { x: 8, y: 14, sprite: 'rival_f', dir: 'down', move: 'static', passable: false, script: 'rival_final' },

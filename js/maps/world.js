@@ -110,7 +110,10 @@ defineMap({
   ],
   npcs: [
     { x: 5, y: 7, sprite: 'npc_ranger', dir: 'right', trainer: 'youngster_finn', sight: 3, script: 'trainer_after' },
+    { x: 4, y: 3, sprite: 'npc_woman', dir: 'right', trainer: 'r1_lass', sight: 3, script: 'trainer_after' },
+    { x: 15, y: 11, sprite: 'npc_villager', dir: 'left', trainer: 'r1_bugcatcher', sight: 3, script: 'trainer_after' },
     { x: 14, y: 12, sprite: 'npc_villager', move: 'wander', script: 'r1_catcher' },
+    { x: 11, y: 5, sprite: 'rival_f', dir: 'down', move: 'static', script: 'rival_r1' },
   ],
   encounters: { rate: 14, grass: [
     { key: 'sprigfawn', min: 3, max: 5, weight: 3 }, { key: 'puffinch', min: 3, max: 5, weight: 3 },
@@ -203,6 +206,8 @@ defineMap({
   npcs: [
     { x: 12, y: 7, sprite: 'npc_hiker', dir: 'left', trainer: 'hiker_greta', sight: 3, script: 'trainer_after' },
     { x: 5, y: 12, sprite: 'npc_fisher', dir: 'down', trainer: 'fisher_odd', sight: 2, script: 'trainer_after' },
+    { x: 4, y: 3, sprite: 'npc_villager', dir: 'right', trainer: 'r2_camper', sight: 3, script: 'trainer_after' },
+    { x: 15, y: 3, sprite: 'npc_woman', dir: 'left', trainer: 'r2_picnicker', sight: 3, script: 'trainer_after' },
     { x: 14, y: 8, sprite: 'npc_villager', move: 'wander', script: 'r2_hint' },
   ],
   encounters: { rate: 16, grass: [
@@ -286,6 +291,8 @@ defineMap({
   items: [{ x: 16, y: 8, item: 'greatorb', count: 2, flag: 'r3_orbs' }],
   npcs: [
     { x: 13, y: 11, sprite: 'npc_sailor', dir: 'left', trainer: 'sailor_bram', sight: 3, script: 'trainer_after' },
+    { x: 4, y: 3, sprite: 'npc_sailor', dir: 'right', trainer: 'r3_sailor', sight: 3, script: 'trainer_after' },
+    { x: 15, y: 7, sprite: 'npc_woman', dir: 'left', trainer: 'r3_twins', sight: 3, script: 'trainer_after' },
     { x: 4, y: 12, sprite: 'npc_villager', move: 'wander', script: 'r3_hint' },
   ],
   encounters: { rate: 16, grass: [

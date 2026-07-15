@@ -214,6 +214,40 @@ Scripts.register('champion', (npc) => {
   });
 });
 
+// ---- Sidequest: choose one of two fossils, then revive it ----
+Scripts.register('fossil_choice', () => {
+  if (Game.flags.gotFossil) { Textbox.say('MINER: That was the last fossil I had spare. Get it revived at the lab bench!', Scripts.done); return; }
+  Textbox.ask('MINER: I dug up two fossils but can only part with one. Which speaks to you?',
+    ['Fin Fossil', 'Tusk Fossil', 'Neither'], (pick) => {
+      if (pick === 2) { Textbox.say('MINER: Ha, take your time. I\'m not going anywhere.', Scripts.done); return; }
+      Game.flags.gotFossil = true;
+      Scripts.giveItem(pick === 0 ? 'fin_fossil' : 'tusk_fossil', 1, Scripts.done);
+    });
+});
+Scripts.register('fossil_reviver', () => {
+  const has = Game.hasItem('fin_fossil') ? 'fin_fossil' : Game.hasItem('tusk_fossil') ? 'tusk_fossil' : null;
+  if (!has) { Textbox.say('SCIENTIST: Bring me an ancient FOSSIL and my machine will breathe life back into it!', Scripts.done); return; }
+  const species = Items[has].fossil;
+  Textbox.say('SCIENTIST: A genuine fossil! Onto the machine it goes... stand back!', () => {
+    Game.removeItem(has);
+    Scripts.giveMon(species, 20, () => Textbox.say('SCIENTIST: Extraordinary! An ancient fakemon, alive after all these ages!', Scripts.done));
+  });
+});
+
+// ---- Rival (Vera) battles: team evolves across the story ----
+function rivalMeet(flag, trainerKey, stage, count) {
+  return () => {
+    if (Game.flags[flag]) { Textbox.say('VERA: Don\'t slow down now. I certainly won\'t.', Scripts.done); return; }
+    const tr = resolveRivalParty(Trainers[trainerKey], { stage, count });
+    Textbox.say(tr.intro, () => {
+      Music.play('battle_trainer');
+      Game.startTrainerBattle(tr, () => { Game.flags[flag] = true; Textbox.say('VERA: ' + tr.loss, Scripts.done); });
+    });
+  };
+}
+Scripts.register('rival_r1', rivalMeet('beat_rival_early', 'rival_vera_early', 0, 1));
+Scripts.register('rival_mid', rivalMeet('beat_rival_mid', 'rival_vera_mid', 1, 3));
+
 // ---- townsfolk & flavor ----
 const chats = {
   fh_villager1: 'Under the aurora, they say a great fakemon sleeps. On calm nights you can almost hear it breathe.',
