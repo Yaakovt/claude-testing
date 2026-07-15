@@ -213,7 +213,8 @@ defineMap({
   encounters: { rate: 16, grass: [
     { key: 'mossbuck', min: 8, max: 11, weight: 2 }, { key: 'pineling', min: 7, max: 10, weight: 3 },
     { key: 'galewing', min: 8, max: 10, weight: 2 }, { key: 'sporeling', min: 7, max: 9, weight: 2 },
-    { key: 'scrappup', min: 8, max: 10, weight: 2 }, { key: 'cairnling', min: 7, max: 9, weight: 1 },
+    { key: 'scrappup', min: 8, max: 10, weight: 2 }, { key: 'pupperine', min: 8, max: 10, weight: 2 },
+    { key: 'pollywisp', min: 7, max: 10, weight: 2 }, { key: 'cairnling', min: 7, max: 9, weight: 1 },
   ] },
   onEnter() { Overworld.showBanner(); },
 });

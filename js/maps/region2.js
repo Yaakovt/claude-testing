@@ -158,6 +158,7 @@ vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
 // ============================================================ Route 6 + Irondeep (G6 Steel)
 vRoute('route6', 'Route 6', 'cave', 'irondeep', 9, 'lumenveil', 9, [
   { key: 'oreling', min: 22, max: 25, weight: 3 }, { key: 'shardling', min: 22, max: 24, weight: 2 },
+  { key: 'clodling', min: 22, max: 25, weight: 2 }, { key: 'gemkit', min: 22, max: 24, weight: 2 },
   { key: 'echomite', min: 21, max: 24, weight: 2 }, { key: 'wickwisp', min: 22, max: 24, weight: 1 },
 ], 'cave', rtn('r6_miner', 'r6_hiker', 'npc_hiker', 'npc_villager'));
 (() => {
@@ -369,7 +370,7 @@ const VLEG = { ' ': 'cavefloor', 'w': 'cavewall', 'R': 'rock', 'B': 'boulder', '
     encounters: { rate: 14, grass: [
       { key: 'gulomaul', min: 40, max: 43, weight: 2 }, { key: 'prismarok', min: 40, max: 42, weight: 2 },
       { key: 'grimcorvid', min: 40, max: 43, weight: 2 }, { key: 'ingotaur', min: 41, max: 43, weight: 1 },
-      { key: 'wyrmskim', min: 41, max: 44, weight: 1 },
+      { key: 'terrawyrm', min: 40, max: 44, weight: 1 }, { key: 'wyrmskim', min: 41, max: 44, weight: 1 },
     ] },
     onEnter() { Overworld.showBanner(); },
   });

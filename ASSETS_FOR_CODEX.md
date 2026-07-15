@@ -170,6 +170,16 @@ Match the type mood: cute basics, fierce finals, majestic legendary. Fill the fr
 | 108 | `aurorpix` | Aurorpix | Fairy/Electric | Aurora Sprite | A sliver of the aurora that slipped loose and learned to dance. It leaves a trail of light that lingers for hours. |
 | 109 | `mantasurge` | Mantasurge | Water/Flying | Sky Ray | It breaches the waves and glides on sea-wind for miles. Sailors call a passing Mantasurge the promise of fair weather. |
 | 110 | `umbryx` | Umbryx | Dark/Ghost | Night-Heart | When the aurora sleeps, its shadow wakes. The sagas say Auroryx and Umbryx are one being split by the turning of day into night. |
+| 111 | `clodling` | Clodling | Ground | Clod Pup | A pup of packed earth and stubborn will. It headbutts boulders for fun and never seems to tire. |
+| 112 | `terrawyrm` | Terrawyrm | Ground/Dragon | Burrow Wyrm | It tunnels the foothills for miles, following veins of ore it can taste through the stone. |
+| 113 | `magnadrake` | Magnadrake | Ground/Dragon | Titan Wyrm | The mountains themselves are said to be old Magnadrake, curled up and gone to sleep for good. Waking one is a very bad idea. |
+| 114 | `pupperine` | Pupperine | Normal | Loyal Pup | It bonds for life with the first trainer to share a meal. It sleeps pressed to their boots so it will wake if they stir. |
+| 115 | `lealkin` | Lealkin | Normal/Fairy | Noble Hound | Its coat gained a starlit sheen the day its bond with its trainer was sealed. It will not leave their side, in this life or beyond. |
+| 116 | `pollywisp` | Pollywisp | Water | Wisp Tadpole | A tadpole with a will-o-the-wisp for a tail. Where it grows up decides what it becomes: firm marsh, or haunted bog. |
+| 117 | `marshgil` | Marshgil | Water/Ground | Marsh Newt | It plants its broad feet in the mud and refuses to budge. Floods break around it like a stone in a stream. |
+| 118 | `mirephantom` | Mirephantom | Water/Ghost | Bog Wraith | A tadpole that drowned in a haunted fen and rose again as mist. The lights it dances are the last thoughts of the lost. |
+| 119 | `gemkit` | Gemkit | Rock | Gem Kit | A small beast studded with raw crystal. Under the right light it hums a note only its own kind can hear. |
+| 120 | `prismyx` | Prismyx | Rock/Fairy | Prism Fox | When an Aurora Stone touched its crystals, they bloomed into a living prism. It scatters the aurora into a thousand colors as it runs. |
 | 100 | `auroryx` | Auroryx | Dragon/Electric | Storm-Heart | The aurora over Norvenna is the light of its sleeping heartbeat. The sagas warn: the sky it dreams is gentler than the sky it wakes to. |
 
 Stage/evolution context (draw evolved forms bigger & more elaborate than their pre-evos):
@@ -218,6 +228,11 @@ Stage/evolution context (draw evolved forms bigger & more elaborate than their p
 - Frystdrake → Fimbulwyrm (Lv45)
 - Gloamcat → Nocturnyx (Lv30)
 - Lilypip → Lotanic (Lv28)
+- Clodling → Terrawyrm (Lv32)
+- Terrawyrm → Magnadrake (Lv52)
+- Pupperine → Lealkin (friendship)
+- Pollywisp → Marshgil (Lv30)  OR  Mirephantom (stone)
+- Gemkit → Prismyx (stone)
 
 ## 2) OVERWORLD CHARACTERS — 16×22, 4 directions × 2 walk frames
 Chibi Gen-3 overworld style (2-head-tall). For each id below produce 8 files:
