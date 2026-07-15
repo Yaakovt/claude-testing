@@ -318,7 +318,8 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
     warps: [{ x: 8, y: 16, to: 'stormcrest', tx: 17, ty: 7, dir: 'left', always: true }],
     signs: [{ x: 7, y: 16, text: 'AURORA PLATEAU. Beyond wait the Elite Four and the Champion. Only eight-badge trainers may pass.' }],
     npcs: [
-      { x: 8, y: 13, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_1' },
+      { x: 8, y: 14, sprite: 'rival_f', dir: 'down', move: 'static', passable: false, script: 'rival_final' },
+      { x: 8, y: 12, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_1' },
       { x: 8, y: 10, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_2' },
       { x: 8, y: 7, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_3' },
       { x: 8, y: 4, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_4' },

@@ -158,18 +158,41 @@ T('champion_sigrid', { name: 'Sigrid', cls: 'Champion', reward: 20000, music: 'b
   party: [{ key: 'stormgull', level: 54 }, { key: 'mystrix', level: 54 }, { key: 'ingotaur', level: 55 },
     { key: 'fjorddrake', level: 55 }, { key: 'ursnow', level: 56 }, { key: 'fimbulwyrm', level: 58 }] });
 
-/** Resolve rival placeholder keys from the player's starter choice. */
+// ---- Final rival (Vera): full randomized team of 6 incl. her evolved starter ----
+T('rival_vera_final', {
+  name: 'Vera', cls: 'Rival', reward: 9000, music: 'battle_champion', ai: 'smart', leader: true,
+  intro: 'So you made it to the Plateau too. Of course you did. One last time, then — no holding back. My full team against yours!',
+  loss: 'Heh... all these years chasing you, and you\'re STILL a step ahead. Go on. Go be Champion. I\'ll be right behind you.',
+  party: [{ key: 'RIVAL_STARTER_FINAL', level: 52 }], fullTeam: true,
+});
+
+const STARTER_WEAK = { trollsprout: 'selkip', cindrel: 'trollsprout', selkip: 'cindrel' };
+const STARTER_STRONG = { trollsprout: 'cindrel', cindrel: 'selkip', selkip: 'trollsprout' };
+const STARTER_FINAL = { trollsprout: 'jotunwald', cindrel: 'fafnirn', selkip: 'krakelott' };
+// Pool of fully-evolved mons the rival's team is randomly filled from.
+const RIVAL_POOL = ['grimcorvid', 'gulomaul', 'ingotaur', 'mystrix', 'sylphund', 'boulderam',
+  'thundram', 'vulpaura', 'ursnow', 'jarnwyrm', 'geysmog', 'hullghast', 'seidkona', 'skjaldhawk',
+  'cindercrag', 'drillvole', 'lemmoth', 'stormgull', 'prismarok', 'wyrmskim'];
+
+/**
+ * Resolve rival placeholder keys from the player's starter choice, and fill a
+ * `fullTeam` rival up to 6 with a fresh RANDOM selection each battle.
+ */
 function resolveRivalParty(trainer) {
-  const map = {
-    RIVAL_WEAK: { trollsprout: 'selkip', cindrel: 'trollsprout', selkip: 'cindrel' },
-    RIVAL_STRONG: { trollsprout: 'cindrel', cindrel: 'selkip', selkip: 'trollsprout' },
-  };
   const starter = Game.flags.starter || 'cindrel';
-  return {
-    ...trainer,
-    party: trainer.party.map((p) => {
-      if (map[p.key]) return { ...p, key: map[p.key][starter] };
-      return p;
-    }),
-  };
+  const party = trainer.party.map((p) => {
+    if (p.key === 'RIVAL_WEAK') return { ...p, key: STARTER_WEAK[starter] };
+    if (p.key === 'RIVAL_STRONG') return { ...p, key: STARTER_STRONG[starter] };
+    if (p.key === 'RIVAL_STARTER_FINAL') return { ...p, key: STARTER_FINAL[STARTER_STRONG[starter]] };
+    return p;
+  });
+  if (trainer.fullTeam) {
+    const used = new Set(party.map((p) => p.key));
+    const pool = Util.shuffle(RIVAL_POOL.filter((k) => !used.has(k)));
+    const baseLv = party[0] ? party[0].level : 52;
+    while (party.length < 6 && pool.length) {
+      party.push({ key: pool.pop(), level: baseLv - 1 - Util.rand(3) });
+    }
+  }
+  return { ...trainer, party };
 }

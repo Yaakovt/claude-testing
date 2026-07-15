@@ -76,6 +76,16 @@ const ItemIcons = (() => {
     s.set(9, 1, '#c8e0f0'); s.set(11, 1, '#c8e0f0'); // mist
     s.line(5, 5, 5, 13, g.l);
   }
+  function rod(s, col) {
+    const r = Px.ramp(col);
+    // diagonal rod shaft from lower-left grip to upper-right tip
+    s.stroke(3, 13, 12, 3, 1, r);
+    s.rect(2, 12, 3, 3, Px.shift(col, 0, 0, -0.2)); // grip
+    s.set(12, 3, r.h);
+    // line + hook
+    s.line(12, 3, 13, 9, '#d8d8e0');
+    s.set(13, 10, '#d8d8e0'); s.set(12, 11, '#d8d8e0');
+  }
   function candy(s) {
     const r = Px.ramp('#f088c0');
     s.fillCircle(8, 8, 4, r.b); s.set(6, 6, r.h);
@@ -89,6 +99,7 @@ const ItemIcons = (() => {
     else if (it.kind === 'ball') ball(s, BALL_COL[id] || '#e04838');
     else if (it.kind === 'stone') gem(s, STONE_COL[id] || '#a0a0c0');
     else if (it.kind === 'tm') disc(s, it.hm ? '#48b878' : (it.move && typeof Moves !== 'undefined' && Moves[it.move] ? TypeColors[Moves[it.move].type] : '#8890a0'));
+    else if (it.rod) rod(s, { old: '#9a6a3a', good: '#3f7fe0', super: '#e8c040' }[it.rod] || '#9a6a3a');
     else if (it.kind === 'key') key(s);
     else if (it.kind === 'battle') vial(s, '#c060d0');
     else if (it.kind === 'misc') { if (it.repel) spray(s); else charm(s, '#88c0e8'); }

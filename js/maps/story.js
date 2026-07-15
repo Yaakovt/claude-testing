@@ -167,36 +167,36 @@ Scripts.register('spire_boss', () => {
   });
 });
 
-// ---- Elite Four + Champion ----
-function e4Battle(idx, trainerKey, nextHint) {
-  return () => {
-    if (Game.flags['beat_' + trainerKey]) { Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done); return; }
-    if (Game.badgeCount() < 8) { Textbox.say('An attendant stops you: "Only trainers with all EIGHT badges may challenge the League."', Scripts.done); return; }
-    if (idx > 0 && !Game.flags['beat_' + ['corvin', 'freyda', 'mara', 'liv'][idx - 1] ? null : true]) { /* order enforced below */ }
-    Textbox.say(Trainers[trainerKey].intro, () => {
-      Music.play('battle_elite');
-      Game.startTrainerBattle(Trainers[trainerKey], () => {
+// ---- Aurora Plateau gauntlet: rival -> Elite Four (in order) -> Champion ----
+// Each challenger blocks the hall until beaten, then steps aside (passable).
+function plateauBattle(trainerKey, prereqFlag, prereqMsg, nextHint, music, resolver) {
+  return (npc) => {
+    if (Game.flags['beat_' + trainerKey]) {
+      if (npc) npc.passable = true;
+      Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done);
+      return;
+    }
+    if (Game.badgeCount() < 8) { Textbox.say('An attendant stops you: "Only trainers with all EIGHT badges may enter the League."', Scripts.done); return; }
+    if (prereqFlag && !Game.flags[prereqFlag]) { Textbox.say(prereqMsg, Scripts.done); return; }
+    const tr = resolver ? resolver(Trainers[trainerKey]) : Trainers[trainerKey];
+    Textbox.say(tr.intro, () => {
+      Music.play(music || 'battle_elite');
+      Game.startTrainerBattle(tr, () => {
         Game.flags['beat_' + trainerKey] = true;
-        Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done);
+        if (npc) npc.passable = true;
+        Textbox.say(tr.name + ': ' + tr.loss + ' ' + nextHint, Scripts.done);
       });
     });
   };
 }
-Scripts.register('e4_1', e4Battle(0, 'e4_corvin', 'Freyda waits ahead.'));
-Scripts.register('e4_2', () => {
-  if (!Game.flags.beat_e4_corvin) { Textbox.say('The path north is sealed until you defeat the first of the Elite Four.', Scripts.done); return; }
-  e4Battle(1, 'e4_freyda', 'Mara is next.')();
-});
-Scripts.register('e4_3', () => {
-  if (!Game.flags.beat_e4_freyda) { Textbox.say('Defeat Freyda before you pass.', Scripts.done); return; }
-  e4Battle(2, 'e4_mara', 'Only Liv remains before the Champion.')();
-});
-Scripts.register('e4_4', () => {
-  if (!Game.flags.beat_e4_mara) { Textbox.say('Defeat Mara before you pass.', Scripts.done); return; }
-  e4Battle(3, 'e4_liv', 'Beyond lies the Champion...')();
-});
-Scripts.register('champion', () => {
-  if (Game.flags.champion) { Textbox.say('SIGRID: The aurora is calm, and Norvenna has its Champion — you. Come challenge me any time!', Scripts.done); return; }
+Scripts.register('rival_final', plateauBattle('rival_vera_final', null, '', 'The Elite Four await beyond.', 'battle_champion', resolveRivalParty));
+Scripts.register('e4_1', plateauBattle('e4_corvin', 'beat_rival_vera_final', 'VERA blocks the way: "Beat me first if you want the League!"', 'Freyda is next.'));
+Scripts.register('e4_2', plateauBattle('e4_freyda', 'beat_e4_corvin', 'Defeat Corvin before you pass.', 'Mara awaits.'));
+Scripts.register('e4_3', plateauBattle('e4_mara', 'beat_e4_freyda', 'Defeat Freyda before you pass.', 'Only Liv remains before the Champion.'));
+Scripts.register('e4_4', plateauBattle('e4_liv', 'beat_e4_mara', 'Defeat Mara before you pass.', 'Beyond lies the Champion...'));
+Scripts.register('champion', (npc) => {
+  if (Game.flags.champion) { if (npc) npc.passable = true; Textbox.say('SIGRID: The aurora is calm, and Norvenna has its Champion — you. Come challenge me any time!', Scripts.done); return; }
+  if (Game.badgeCount() < 8) { Textbox.say('The Champion\'s hall is sealed.', Scripts.done); return; }
   if (!Game.flags.beat_e4_liv) { Textbox.say('The Champion\'s hall is sealed until the Elite Four are defeated.', Scripts.done); return; }
   Textbox.say(Trainers.champion_sigrid.intro, () => {
     Music.play('battle_champion');
