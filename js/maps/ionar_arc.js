@@ -14,13 +14,13 @@ T('ionar_sable', {
   name: 'Sable', cls: 'Ionar Lieutenant', reward: 2600, music: 'battle_ionar', ai: 'smart', leader: true,
   intro: 'I am SABLE, Team Ionar\'s field lieutenant. Turn back — this is bigger than you.',
   loss: 'Impressive... but the coordinates are already on their way to the boss.',
-  party: [{ key: 'geysmog', level: 29 }, { key: 'grimcorvid', level: 30 }, { key: 'walrust', level: 31, held: 'rally_berry' }],
+  party: [{ key: 'voltusk', level: 29 }, { key: 'grimcorvid', level: 30 }, { key: 'walrust', level: 31, held: 'rally_berry' }],
 });
 T('ionar_torr', {
   name: 'Torr', cls: 'Ionar Lieutenant', reward: 3400, music: 'battle_ionar', ai: 'smart', leader: true,
   intro: 'TORR, of Team Ionar. Can\'t have you playing hero with our prize!',
   loss: 'Ngh — take the trinket, then! Fat lot of good it\'ll do against the boss.',
-  party: [{ key: 'gulomaul', level: 37 }, { key: 'jarnwyrm', level: 38 }, { key: 'geysmog', level: 39, held: 'mendmoss' }],
+  party: [{ key: 'gulomaul', level: 37 }, { key: 'aurovolt', level: 38 }, { key: 'geysmog', level: 39, held: 'mendmoss' }],
 });
 
 // ---- Scene 1: Depot Theft (Birchwick) ----

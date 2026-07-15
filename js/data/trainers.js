@@ -103,7 +103,7 @@ T('brandt', {
   name: 'Brandt', cls: 'Leader', reward: 3600, music: 'battle_gym', ai: 'smart', leader: true,
   intro: 'Emberfall\'s springs run hot, and so does my spirit! I\'m BRANDT. Don\'t get burned!',
   loss: 'Ha! You blaze brighter than I do. The Ember Badge is yours.',
-  party: [{ key: 'sulfimer', level: 26 }, { key: 'cindercrag', level: 27 }, { key: 'geysmog', level: 29, held: 'emberband' }],
+  party: [{ key: 'sulfimer', level: 26 }, { key: 'cindpup', level: 27 }, { key: 'cindercrag', level: 28 }, { key: 'geysmog', level: 29, held: 'emberband' }],
 });
 // ---- Gym 5: Sylja (Psychic) ----
 T('sylja', {
@@ -117,14 +117,14 @@ T('torvald', {
   name: 'Torvald', cls: 'Leader', reward: 4800, music: 'battle_gym', ai: 'smart', leader: true,
   intro: 'Irondeep forges the sturdiest fakemon in Norvenna. I am TORVALD. Let\'s test your temper!',
   loss: 'Well struck. You\'ve earned the Iron Badge, and my respect.',
-  party: [{ key: 'ingotaur', level: 34 }, { key: 'drillvole', level: 35 }, { key: 'loadstork', level: 37, held: 'rally_berry' }],
+  party: [{ key: 'ingotaur', level: 34 }, { key: 'drillvole', level: 35 }, { key: 'mirrorclad', level: 36 }, { key: 'loadstork', level: 37, held: 'rally_berry' }],
 });
 // ---- Gym 7: Yrsa (Ice) ----
 T('yrsa', {
   name: 'Yrsa', cls: 'Leader', reward: 5400, music: 'battle_gym', ai: 'smart', leader: true,
   intro: 'The glacier does not forgive the unprepared. I am YRSA. Show me your warmth won\'t fail you.',
   loss: 'You did not freeze. The Glacier Badge is yours.',
-  party: [{ key: 'emperoyal', level: 38 }, { key: 'shiverfin', level: 39 }, { key: 'walrust', level: 40 }, { key: 'frystdrake', level: 41, held: 'mendmoss' }],
+  party: [{ key: 'emperoyal', level: 38 }, { key: 'shiverfin', level: 39 }, { key: 'glaciwraith', level: 40 }, { key: 'frystdrake', level: 41, held: 'mendmoss' }],
 });
 // ---- Gym 8: Signe (Dragon) ----
 T('signe', {
@@ -143,7 +143,7 @@ T('ionar_grunt1', {
   name: 'Ionar Grunt', cls: 'Team Ionar', reward: 500, music: 'battle_ionar', ai: 'smart',
   intro: 'Team Ionar will light the whole sky with free energy! Out of our way!',
   loss: 'Tch! You can\'t stop the future!',
-  party: [{ key: 'echomite', level: 12 }, { key: 'rattenkin', level: 13 }],
+  party: [{ key: 'echomite', level: 12 }, { key: 'ionette', level: 13 }],
 });
 T('ionar_grunt2', {
   name: 'Ionar Grunt', cls: 'Team Ionar', reward: 550, music: 'battle_ionar', ai: 'smart',
@@ -155,7 +155,7 @@ T('ionar_boss', {
   name: 'Magnus Voll', cls: 'Ionar Leader', reward: 5000, music: 'battle_ionar', ai: 'smart', leader: true,
   intro: 'I am MAGNUS VOLL. When Auroryx wakes, the sky will burn bright forever — and I will hold the switch. You would deny mankind limitless light?',
   loss: 'Impossible... the Storm-Heart chose YOU over me?',
-  party: [{ key: 'geysmog', level: 34 }, { key: 'grimcorvid', level: 34 }, { key: 'walrust', level: 35 }, { key: 'jarnwyrm', level: 37 }],
+  party: [{ key: 'geysmog', level: 34 }, { key: 'grimcorvid', level: 34 }, { key: 'voltusk', level: 35 }, { key: 'walrust', level: 35 }, { key: 'teslamaw', level: 38 }],
 });
 
 // ---- Rivals ----
@@ -184,7 +184,7 @@ T('rival_vera_mid', {
 T('e4_corvin', { name: 'Corvin', cls: 'Elite Four', reward: 8000, music: 'battle_elite', ai: 'smart', leader: true,
   intro: 'Darkness is not evil. It is honest. Face mine.',
   loss: 'You saw through the shadows.',
-  party: [{ key: 'grimcorvid', level: 48 }, { key: 'umbrafloe', level: 48 }, { key: 'gulomaul', level: 49 }, { key: 'rattenkin', level: 50 }] });
+  party: [{ key: 'grimcorvid', level: 48 }, { key: 'umbrafloe', level: 48 }, { key: 'gulomaul', level: 49 }, { key: 'pyrewolf', level: 50 }] });
 T('e4_freyda', { name: 'Freyda', cls: 'Elite Four', reward: 8000, music: 'battle_elite', ai: 'smart', leader: true,
   intro: 'Strength of body, strength of will. Show me both.',
   loss: 'A worthy blow!',
@@ -192,7 +192,7 @@ T('e4_freyda', { name: 'Freyda', cls: 'Elite Four', reward: 8000, music: 'battle
 T('e4_mara', { name: 'Mara', cls: 'Elite Four', reward: 8000, music: 'battle_elite', ai: 'smart', leader: true,
   intro: 'The departed still whisper. Can you hear them?',
   loss: 'The spirits favor you.',
-  party: [{ key: 'pyrelight', level: 50 }, { key: 'hullghast', level: 50 }, { key: 'barrowght', level: 51 }, { key: 'seidkona', level: 52 }] });
+  party: [{ key: 'pyrelight', level: 50 }, { key: 'tidewraith', level: 50 }, { key: 'barrowght', level: 51 }, { key: 'seidkona', level: 52 }] });
 T('e4_liv', { name: 'Liv', cls: 'Elite Four', reward: 8000, music: 'battle_elite', ai: 'smart', leader: true,
   intro: 'One last dance before the throne. Shall we?',
   loss: 'Beautifully played.',
