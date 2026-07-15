@@ -26,54 +26,52 @@
       entry: 'It naps beneath the taiga moss. The sprout on its head grows a new ring for every winter it survives.' },
     cry: { base: 420, sweep: 0.62, wave: 'square', dur: 0.42, vib: 12 },
     draw(s) {
-      // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========
+      // ==== FABLE ART v5: SpriteForge 3/4 action pose ====
       const SF = SpriteForge;
       const INNER = Px.ramp('#d9c39a');
       const BUD = Px.ramp('#e8b040');
       SF.draw(s, [
-      // feet
-      { path: SF.blob(22, 56, 5.5, 2.6), ramp: MOSSD, shade: { d: 1, hi: 1 } },
-      { path: SF.blob(42, 56, 5.5, 2.6), ramp: MOSSD, shade: { d: 1, hi: 1 } },
-      // big gnome body (head+body one mass)
-      { path: [[32, 21], [44, 25], [50, 37], [46, 50], [32, 55], [18, 50], [14, 37], [20, 25]],
-        ramp: MOSS, shade: { d: 3, hi: 1 }, gleam: [23, 27] },
-      // ears (in front of the head silhouette → ink at roots)
-      { path: SF.blob(11, 27, 5.5, 8), ramp: MOSS, shade: { d: 2, hi: 1 } },
-      { path: SF.blob(10, 27, 2.6, 4.4), ramp: INNER, shade: null, ink: false },
-      { path: SF.blob(53, 27, 5.5, 8), ramp: MOSS, shade: { d: 2, hi: 1 } },
-      { path: SF.blob(54, 27, 2.6, 4.4), ramp: INNER, shade: null, ink: false },
+      // planted right foot + lifted left foot (mid-step!)
+      { path: SF.blob(41, 55, 5.5, 2.8), ramp: MOSSD, shade: { d: 1, hi: 1 } },
+      { path: SF.blob(21, 53, 5, 2.8), ramp: MOSSD, shade: { d: 1, hi: 1 } },
+      // tilted gnome body with mossy fur edge
+      { path: [[31, 20], [43, 24], [49, 36], [45, 49], [31, 55], [17, 50], [13, 37], [19, 25]],
+        ramp: MOSS, shade: { d: 3, hi: 1 }, edge: 'fur', gleam: [23, 26] },
+      // ears: left perked high, right flopped low (head at play)
+      { path: SF.blob(13, 24, 5.5, 8), ramp: MOSS, shade: { d: 2, hi: 1 } },
+      { path: SF.blob(12, 24, 2.6, 4.4), ramp: INNER, shade: null, ink: false },
+      { path: SF.blob(52, 31, 5, 7), ramp: MOSS, shade: { d: 2, hi: 1 } },
+      { path: SF.blob(53, 32, 2.4, 4), ramp: INNER, shade: null, ink: false },
       // belly bib
-      { path: SF.blob(32, 47, 10, 7.5), ramp: CREAM, shade: { d: 2, hi: 1 } },
-      // right arm resting
-      { path: SF.limb(46, 42, 50, 49, 3.5, 2.5), ramp: MOSS, shade: { d: 1, hi: 0 } },
-      // left arm raised in a wave + paw
-      { path: SF.limb(17, 41, 9, 33, 3.5, 2.5), ramp: MOSS, shade: { d: 1, hi: 0 } },
-      { path: SF.blob(8, 32, 3.2, 3), ramp: MOSS, shade: { d: 1, hi: 0 } },
-      // head sprout: stem + two leaves + bud
-      { path: SF.limb(32, 22, 33, 15, 1.4, 1), ramp: BARK, shade: { d: 1, hi: 0 } },
-      { path: [[33, 15], [38, 12], [42, 7], [37, 8], [33, 11]], ramp: MOSS, shade: { d: 1, hi: 1 } },
-      { path: [[33, 15], [28, 11], [25, 6], [30, 8], [33, 11]], ramp: MOSSD, shade: { d: 1, hi: 1 } },
-      { path: SF.blob(33, 14, 1.6, 1.6), ramp: BUD, shade: null, ink: false },
+      { path: SF.blob(30, 46, 9.5, 7.5), ramp: CREAM, shade: { d: 2, hi: 1 } },
+      // arms out for balance: left reaching, right trailing
+      { path: SF.limb(16, 39, 7, 36, 3.5, 2.5), ramp: MOSS, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(45, 42, 51, 46, 3.2, 2.4), ramp: MOSS, shade: { d: 1, hi: 0 } },
+      // sprout swaying right with the step
+      { path: SF.limb(31, 21, 35, 14, 1.4, 1), ramp: BARK, shade: { d: 1, hi: 0 } },
+      { path: [[35, 14], [41, 12], [45, 7], [40, 7], [35, 10]], ramp: MOSS, shade: { d: 1, hi: 1 } },
+      { path: [[35, 14], [30, 10], [28, 5], [33, 7], [35, 10]], ramp: MOSSD, shade: { d: 1, hi: 1 } },
+      { path: SF.blob(35, 13, 1.6, 1.6), ramp: BUD, shade: null, ink: false },
       ], { light: [-1, -1] });
 
-      // rings on the stem
-      s.set(32, 19, BARK.o); s.set(33, 17, BARK.o);
-      // face: big amber eyes, mossy brows, open mouth
-      K.eye(s, 24, 32, 3, '#d9942a');
-      K.eye(s, 40, 32, 3, '#d9942a');
-      s.set(22, 27, MOSSD.d); s.set(23, 27, MOSSD.d);
-      s.set(40, 27, MOSSD.d); s.set(41, 27, MOSSD.d);
-      s.rect(30, 39, 5, 3, '#3a2528');
-      s.set(30, 39, '#ffffff');
-      s.rect(31, 41, 3, 1, '#c86858');
-      K.cheek(s, 18, 36, '#96c46e'); K.cheek(s, 44, 36, '#96c46e');
-      // claws on the raised paw + feet
-      s.set(6, 30, CREAM.b); s.set(9, 30, CREAM.b);
-      s.set(20, 54, CREAM.b); s.set(23, 54, CREAM.b);
-      s.set(41, 54, CREAM.b); s.set(44, 54, CREAM.b);
+      s.set(32, 18, BARK.o); s.set(33, 16, BARK.o);      // stem rings
+      // big amber Gen-3 eyes, mid-waddle glee
+      K.eyeBig(s, 23, 31, 2, 3, '#d9942a', { look: [-1, 0] });
+      K.eyeBig(s, 39, 31, 2, 3, '#d9942a', { look: [-1, 0] });
+      s.set(21, 26, MOSSD.d); s.set(22, 26, MOSSD.d);
+      s.set(39, 26, MOSSD.d); s.set(40, 26, MOSSD.d);
+      // open happy mouth
+      s.rect(29, 38, 5, 3, '#3a2528');
+      s.set(29, 38, '#ffffff');
+      s.rect(30, 40, 3, 1, '#c86858');
+      K.cheek(s, 17, 35, '#96c46e'); K.cheek(s, 44, 35, '#96c46e');
+      // claws
+      s.set(19, 51, CREAM.b); s.set(22, 51, CREAM.b);
+      s.set(40, 54, CREAM.b); s.set(43, 54, CREAM.b);
+      s.set(5, 34, CREAM.b); s.set(7, 33, CREAM.b);
       // moss tufts
-      s.dither(27, 23, 5, 2, MOSSD.b, 0); s.dither(39, 25, 4, 2, MOSSD.b, 1);
-      s.dither(43, 45, 4, 2, MOSSD.b, 0);
+      s.dither(27, 22, 5, 2, MOSSD.b, 0); s.dither(40, 26, 4, 2, MOSSD.b, 1);
+      s.dither(42, 44, 4, 2, MOSSD.b, 0);
     },
     drawBack(s) {
       // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========
@@ -286,54 +284,57 @@
       entry: 'It sleeps curled in cooling hearths. Villagers consider one moving in to be a blessing on the house.' },
     cry: { base: 640, sweep: 0.7, wave: 'square', dur: 0.35, vib: 18, chirps: 1 },
     draw(s) {
-      // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========
+      // ==== FABLE ART v5: SpriteForge 3/4 action pose ====
       const SF = SpriteForge;
       const WHT = '#fff8e0';
       SF.draw(s, [
-      // tail (curling out right)
-      { path: SF.limb(42, 48, 53, 37, 4.5, 2.5), ramp: FLAME, shade: { d: 2, hi: 1 } },
-      // tail flame: outer lick, inner tongue, hot core
-      { path: [[52, 36], [49, 29], [51, 22], [55, 15], [56, 22], [58, 27], [57, 33]], ramp: FLAME, shade: { d: 1, hi: 1 } },
-      { path: [[53, 34], [52, 28], [54, 22], [56, 27], [56, 32]], ramp: FLAMEY, shade: { d: 1, hi: 0 }, ink: false },
-      { path: [[54, 33], [54, 29], [56, 31]], flat: WHT, ink: false },
-      // body: soft pear
-      { path: [[31, 30], [40, 33], [44, 42], [41, 52], [31, 55], [21, 52], [18, 42], [22, 33]],
-        ramp: FLAME, shade: { d: 3, hi: 1 }, gleam: [24, 36] },
+      // tail whips HIGH behind-right, flame blazing
+      { path: SF.limb(41, 46, 51, 32, 4.5, 2.6), ramp: FLAME, shade: { d: 2, hi: 1 } },
+      { path: [[50, 31], [47, 25], [49, 17], [53, 10], [55, 17], [56, 24], [54, 30]], ramp: FLAME, shade: { d: 1, hi: 1 } },
+      { path: [[51, 28], [50, 22], [53, 15], [54, 22], [54, 27]], ramp: FLAMEY, shade: { d: 1, hi: 0 }, ink: false },
+      { path: [[52, 26], [52, 21], [54, 24]], flat: WHT, ink: false },
+      // body: soft pear with a slight lean left
+      { path: [[30, 30], [39, 33], [43, 42], [40, 52], [30, 55], [20, 52], [17, 42], [21, 33]],
+        ramp: FLAME, shade: { d: 3, hi: 1 }, gleam: [23, 36] },
       // belly plate
-      { path: [[30, 41], [37, 44], [38, 50], [30, 54], [23, 50], [23, 44]], ramp: BELLY, shade: { d: 2, hi: 1 } },
-      // haunches
-      { path: SF.blob(19, 49, 6, 5.5), ramp: FLAME, shade: { d: 2, hi: 1 } },
-      { path: SF.blob(44, 49, 6, 5.5), ramp: FLAME, shade: { d: 2, hi: 1 } },
-      // soot feet
-      { path: SF.blob(16, 56, 4.5, 2.2), ramp: CHAR, shade: { d: 1, hi: 1 } },
-      { path: SF.blob(46, 56, 4.5, 2.2), ramp: CHAR, shade: { d: 1, hi: 1 } },
-      // little arms + soot mitts
-      { path: SF.limb(24, 43, 20, 51, 2.5, 2), ramp: FLAME, shade: { d: 1, hi: 0 } },
-      { path: SF.limb(39, 43, 43, 51, 2.5, 2), ramp: FLAME, shade: { d: 1, hi: 0 } },
+      { path: [[29, 41], [36, 44], [37, 50], [29, 54], [22, 50], [22, 44]], ramp: BELLY, shade: { d: 2, hi: 1 } },
+      // haunches + soot feet
+      { path: SF.blob(18, 49, 6, 5.5), ramp: FLAME, shade: { d: 2, hi: 1 } },
+      { path: SF.blob(43, 49, 6, 5.5), ramp: FLAME, shade: { d: 2, hi: 1 } },
+      { path: SF.blob(15, 56, 4.5, 2.2), ramp: CHAR, shade: { d: 1, hi: 1 } },
+      { path: SF.blob(45, 56, 4.5, 2.2), ramp: CHAR, shade: { d: 1, hi: 1 } },
+      // near arm planted, far arm raised in a little cheer
+      { path: SF.limb(23, 43, 20, 51, 2.5, 2), ramp: FLAME, shade: { d: 1, hi: 0 } },
       { path: SF.blob(19, 52, 2.8, 2), ramp: CHAR, shade: { d: 1, hi: 0 } },
-      { path: SF.blob(44, 52, 2.8, 2), ramp: CHAR, shade: { d: 1, hi: 0 } },
-      // head: big with round cheeks
-      { path: [[29, 13], [37, 15], [41, 21], [40, 28], [34, 33], [24, 33], [18, 28], [17, 20], [22, 14]],
-        ramp: FLAME, shade: { d: 2, hi: 1 }, gleam: [23, 17] },
+      { path: SF.limb(38, 42, 43, 37, 2.4, 2), ramp: FLAME, shade: { d: 1, hi: 0 } },
+      { path: SF.blob(44, 36, 2.6, 2.1), ramp: CHAR, shade: { d: 1, hi: 0 } },
+      // head: round with a SHORT eager snout, turned 3/4 left
+      { path: [[28, 12], [36, 14], [40, 20], [39, 27], [33, 32], [24, 32], [18, 27], [17, 19], [22, 13]],
+        ramp: FLAME, shade: { d: 2, hi: 1 }, gleam: [23, 16] },
+      { path: SF.blob(16, 24, 3, 2.8), ramp: FLAME, shade: { d: 1, hi: 0 } },
       // ear nubs
-      { path: SF.blob(17, 16, 2, 2.6), ramp: FLAME, shade: { d: 1, hi: 0 } },
-      { path: SF.blob(40, 16, 2.2, 2.8), ramp: FLAME, shade: { d: 1, hi: 0 } },
-      // crest flame swept back off the crown
-      { path: [[32, 16], [31, 10], [34, 5], [38, 3], [37, 8], [39, 12], [37, 16]], ramp: FLAME, shade: { d: 1, hi: 1 } },
-      { path: [[34, 13], [34, 8], [36, 6], [37, 11]], ramp: FLAMEY, shade: null, ink: false },
+      { path: SF.blob(18, 14, 2.2, 2.8), ramp: FLAME, shade: { d: 1, hi: 0 } },
+      { path: SF.blob(40, 14, 2, 2.4), ramp: FLAME, shade: { d: 1, hi: 0 } },
+      // crest flame licking back off the crown, clearly its own form
+      { path: [[31, 13], [30, 7], [33, 3], [37, 1], [36, 6], [38, 10], [35, 13]], ramp: FLAME, shade: { d: 1, hi: 1 } },
+      { path: [[32, 10], [33, 6], [35, 4], [35, 9]], ramp: FLAMEY, shade: null, ink: false },
       ], { light: [-1, -1] });
 
-      // face
-      K.eye(s, 24, 24, 2, '#3d7fd4'); s.set(23, 22, '#7db8f0');
-      K.eye(s, 36, 24, 2, '#3d7fd4'); s.set(35, 22, '#7db8f0');
-      s.line(22, 19, 24, 20, FLAME.o); s.line(36, 20, 38, 19, FLAME.o);   // brows
-      s.set(29, 27, '#8a4530'); s.set(31, 27, '#8a4530');                  // nostrils
-      K.smile(s, 30, 30, 2);
-      K.cheek(s, 20, 26, FLAMEY.b); K.cheek(s, 39, 26, FLAMEY.b);
-      // soot chevron on the flank
-      s.line(40, 40, 43, 43, CHAR.b); s.line(40, 43, 43, 46, CHAR.b);
+      // open calling mouth under the snout, on the head
+      s.rect(19, 27, 5, 3, '#3a2528');
+      s.set(19, 27, '#ffffff');
+      s.rect(20, 29, 3, 1, '#c86858');
+      s.set(15, 22, '#8a4530');                            // nostril on the snout
+      // eyes: big near eye, slightly narrower far eye (subtle 3/4)
+      K.eyeBig(s, 25, 21, 2, 3, '#3d7fd4', { look: [-1, 0] });
+      K.eyeBig(s, 35, 21, 2, 2.5, '#3d7fd4', { look: [-1, 0] });
+      s.set(23, 16, CHAR.d); s.set(24, 16, CHAR.d);        // brows
+      s.set(34, 16, CHAR.d); s.set(35, 16, CHAR.d);
+      K.cheek(s, 39, 25, FLAMEY.b);
+      // soot chevrons on the flank
+      s.line(39, 41, 42, 44, CHAR.b); s.line(39, 45, 42, 48, CHAR.b);
       // toe glints
-      s.set(14, 55, CHAR.l); s.set(48, 55, CHAR.l);
+      s.set(12, 55, CHAR.l); s.set(48, 55, CHAR.l);
     },
     drawBack(s) {
       // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========
@@ -529,47 +530,51 @@
       entry: 'Fisherfolk swear it borrows lost mittens to sleep on. It sheds a single tear when winter\'s first snow falls.' },
     cry: { base: 700, sweep: 0.8, wave: 'sine', dur: 0.4, vib: 22, chirps: 1 },
     draw(s) {
-      // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========
+      // ==== FABLE ART v5: SpriteForge 3/4 action pose ====
       const SF = SpriteForge;
       SF.draw(s, [
-      // tail flukes right
-      { path: [[43, 46], [57, 37], [54, 48]], smooth: 0.4, ramp: SEAL, shade: { d: 1, hi: 1 } },
-      { path: [[43, 48], [59, 51], [51, 58]], smooth: 0.4, ramp: SEAL, shade: { d: 2, hi: 0 } },
-      // plump bean body
-      { path: SF.blob(30, 44, 15.5, 11.5, 0.04), ramp: SEAL, shade: { d: 3, hi: 1 } },
-      // pale belly
-      { path: SF.blob(28, 48, 9.5, 6.5), ramp: PALE, shade: { d: 2, hi: 1 } },
-      // mitten flippers
-      { path: SF.limb(19, 50, 13, 56, 3.5, 2.8), ramp: SEAL, shade: { d: 1, hi: 0 } },
-      { path: SF.limb(40, 52, 44, 57, 3.5, 2.8), ramp: SEAL, shade: { d: 1, hi: 0 } },
-      // big baby head
-      { path: SF.blob(27, 24, 13, 12, 0.03), ramp: SEAL, shade: { d: 2, hi: 1 } },
-      // hood cap
-      { path: [[15, 21], [17, 14], [27, 11], [37, 14], [39, 21], [33, 19], [27, 22], [21, 19]],
+      // tail flukes raised mid-slap
+      { path: [[42, 43], [55, 33], [53, 45]], smooth: 0.4, ramp: SEAL, shade: { d: 1, hi: 1 } },
+      { path: [[43, 45], [58, 47], [51, 55]], smooth: 0.4, ramp: SEAL, shade: { d: 2, hi: 0 } },
+      // body: chest lifted 3/4
+      { path: [[28, 33], [38, 36], [43, 44], [40, 52], [29, 56], [18, 52], [14, 44], [19, 36]],
+        ramp: SEAL, shade: { d: 3, hi: 1 } },
+      // pale belly catching the lift
+      { path: [[27, 38], [34, 41], [35, 50], [29, 54], [21, 50], [20, 42]], ramp: PALE, shade: { d: 2, hi: 1 } },
+      // mitten flippers braced wide
+      { path: SF.limb(18, 48, 11, 54, 3.5, 2.8), ramp: SEAL, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(38, 50, 44, 55, 3.5, 2.8), ramp: SEAL, shade: { d: 1, hi: 0 } },
+      // big head tilted up-left
+      { path: [[25, 10], [34, 12], [39, 19], [37, 28], [29, 34], [19, 33], [13, 24], [15, 15]],
+        ramp: SEAL, shade: { d: 2, hi: 1 } },
+      // hood cap following the tilt
+      { path: [[13, 19], [15, 12], [25, 9], [35, 12], [38, 19], [31, 17], [25, 20], [19, 17]],
         ramp: SEALD, shade: { d: 2, hi: 1 } },
-      // muzzle
-      { path: SF.blob(26, 32, 6, 4.6), ramp: PALE, shade: { d: 1, hi: 1 } },
+      // muzzle raised
+      { path: SF.blob(23, 27, 6, 4.6), ramp: PALE, shade: { d: 1, hi: 1 } },
       ], { light: [-1, -1] });
 
       // widow's peak + cap folds
-      s.set(27, 23, SEALD.b); s.set(27, 24, SEALD.b);
-      s.line(17, 21, 20, 23, SEALD.d); s.line(37, 21, 34, 23, SEALD.d);
-      // nose + smile + whiskers
-      s.rect(25, 29, 3, 2, '#22283a'); s.set(26, 31, '#4a5570');
-      K.smile(s, 26, 34, 2);
-      s.set(18, 32, SEALD.d); s.set(17, 31, SEALD.d);
-      s.set(34, 32, SEALD.d); s.set(35, 31, SEALD.d);
-      // glossy eyes
-      K.eye(s, 19, 25, 2, '#33405e'); s.set(20, 26, '#8fa8c8');
-      K.eye(s, 35, 25, 2, '#33405e'); s.set(36, 26, '#8fa8c8');
-      s.set(18, 28, PALE.d); s.set(34, 28, PALE.d);
-      K.cheek(s, 15, 28, '#bcd8ea'); K.cheek(s, 38, 28, '#bcd8ea');
+      s.set(25, 21, SEALD.b); s.set(25, 22, SEALD.b);
+      s.line(15, 19, 18, 21, SEALD.d); s.line(35, 19, 32, 21, SEALD.d);
+      // nose + open happy mouth
+      s.rect(22, 24, 2, 2, '#22283a'); s.set(23, 26, '#4a5570');
+      s.rect(22, 29, 4, 2, '#3a3548');
+      s.rect(23, 30, 2, 1, '#c88098');                    // tongue
+      s.set(15, 27, SEALD.d); s.set(14, 26, SEALD.d);     // whiskers
+      s.set(31, 27, SEALD.d); s.set(32, 26, SEALD.d);
+      // glossy Gen-3 puppy eyes looking up
+      K.eyeBig(s, 17, 21, 2, 2.5, '#33405e', { look: [0, -1] });
+      K.eyeBig(s, 33, 21, 2, 2.5, '#33405e', { look: [0, -1] });
+      K.cheek(s, 13, 25, '#bcd8ea'); K.cheek(s, 36, 25, '#bcd8ea');
       // chest droplet gem
-      s.set(30, 39, GLOW.l); s.rect(29, 40, 3, 2, GLOW.b);
-      s.set(30, 42, GLOW.d); s.set(31, 39, '#ffffff');
-      // mitten cuffs + fluke ribs
-      s.line(13, 53, 16, 53, SEALD.d); s.line(41, 55, 44, 55, SEALD.d);
-      s.line(54, 40, 48, 45, SEAL.d); s.line(55, 52, 48, 52, SEAL.d);
+      s.set(29, 38, GLOW.l); s.rect(28, 39, 3, 2, GLOW.b);
+      s.set(29, 41, GLOW.d); s.set(30, 38, '#ffffff');
+      // cuffs + fluke ribs
+      s.line(11, 51, 14, 51, SEALD.d); s.line(40, 53, 43, 53, SEALD.d);
+      s.line(52, 36, 46, 42, SEAL.d); s.line(54, 48, 47, 49, SEAL.d);
+      // back dapples
+      s.set(37, 40, SEALD.d); s.set(39, 44, SEALD.d); s.set(35, 37, SEALD.d);
     },
     drawBack(s) {
       // ======== FABLE ART v4: SpriteForge (contours + auto-ink + cel) ========

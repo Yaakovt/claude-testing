@@ -107,32 +107,72 @@ const SpriteForge = (() => {
       if (mask[y * W + x]) s.set(x, y, baseColor);
     }
 
-    // 2. cel bands (skip for flat parts)
+    // 2. cel bands (skip for flat parts) — with reflected rim light and
+    //    dithered seams on EVERY band edge (the Gen-3 anti-banding trick)
     if (!flat && part.shade !== null) {
       const sh = part.shade || {};
       const d = sh.d !== undefined ? sh.d : 2;
       const hi = sh.hi !== undefined ? sh.hi : 1;
+      const rim = sh.rim !== undefined ? sh.rim : d >= 2;   // bounce light in the shadow
+      const rimColor = ramp.rim || (ramp.rim = Px.shift(ramp.d, -0.012, -0.03, 0.055));
       if (d > 0) {
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
           if (!mask[y * W + x]) continue;
-          // shadow: near the edge away from the light
-          if (!inMask(mask, x - lightX * d, y - lightY * d)) s.set(x, y, ramp.d);
-          else if (d > 1 && !inMask(mask, x - lightX * (d + 1), y - lightY * (d + 1)) && ((x + y) & 1)) s.set(x, y, ramp.d); // 1px dither seam
+          if (!inMask(mask, x - lightX * d, y - lightY * d)) {
+            // outermost shadow ring gets the reflected-light tone
+            if (rim && !inMask(mask, x - lightX, y - lightY)) s.set(x, y, rimColor);
+            else s.set(x, y, ramp.d);
+          } else if (!inMask(mask, x - lightX * (d + 1), y - lightY * (d + 1)) && ((x + y) & 1)) {
+            s.set(x, y, ramp.d);   // dithered seam into the base tone
+          }
         }
       }
       if (hi > 0) {
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
           if (!mask[y * W + x]) continue;
           if (!inMask(mask, x + lightX * hi, y + lightY * hi)) s.set(x, y, ramp.l);
+          else if (!inMask(mask, x + lightX * (hi + 1), y + lightY * (hi + 1)) && ((x + y) & 1)) s.set(x, y, ramp.l);
         }
       }
     }
 
-    // 3. ink pass: boundary pixels over earlier art get a contour line
+    // 2b. fur/scale edge texture
+    if (part.edge === 'fur' && ramp) {
+      for (const [x, y] of boundary) {
+        const k = (x * 7 + y * 13) % 5;
+        if (k === 0) {
+          // outward tuft
+          if (!inMask(mask, x - 1, y)) s.set(x - 1, y, s.get(x, y));
+          else if (!inMask(mask, x + 1, y)) s.set(x + 1, y, s.get(x, y));
+          else if (!inMask(mask, x, y - 1)) s.set(x, y - 1, s.get(x, y));
+        } else if (k === 2) {
+          // inward dark tick
+          if (inMask(mask, x + 1, y + 1)) s.set(x + 1, y + 1, ramp.d);
+        }
+      }
+    } else if (part.edge === 'scale' && ramp) {
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (!mask[y * W + x]) continue;
+        if ((x * 3 + y * 5) % 11 === 0 && inMask(mask, x - lightX * 2, y - lightY * 2)) s.set(x, y, ramp.d);
+      }
+    }
+
+    // 3. ink pass: boundary pixels over earlier art get a contour line,
+    //    and the overlapped part below gets a 1px occlusion shadow.
     if (part.ink !== false) {
       const inkColor = (ramp && ramp.o) || Px.shift(baseColor, 0.04, 0.1, -0.32);
+      const occl = {};
       for (const [x, y] of boundary) {
-        if (part.inkAll || under[y * W + x] !== null) s.set(x, y, inkColor);
+        if (part.inkAll || under[y * W + x] !== null) {
+          s.set(x, y, inkColor);
+          // cast a crevice shadow onto whatever this part overhangs
+          const ox = x - lightX, oy = y - lightY;   // one step away from the light
+          if (!inMask(mask, ox, oy) && under[oy * W + ox]) {
+            const c = under[oy * W + ox];
+            if (!occl[c]) occl[c] = Px.shift(c, 0.01, 0.03, -0.10);
+            if (s.get(ox, oy) === c) s.set(ox, oy, occl[c]);
+          }
+        }
       }
     }
 

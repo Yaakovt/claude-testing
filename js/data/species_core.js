@@ -149,6 +149,30 @@ const SpriteKit = {
     s.set(x - Math.max(1, r - 1), y - Math.max(1, r - 1), '#ffffff');
     if (r >= 2) s.set(x - r + 1, y - r + 2, '#ffffff');
   },
+  /**
+   * Full Gen-3 eye: white sclera, colored iris with dark pupil, double
+   * catchlight, dark rim, and an optional lid line for expression.
+   * (x,y) is the eye center; w/h the sclera radii.
+   * opts: { lid: -1 fierce / 0 none / 1 sleepy, look: [dx,dy] pupil offset }
+   */
+  eyeBig(s, x, y, w, h, iris = '#3d7fd4', opts = {}) {
+    const rim = '#1a1418';
+    s.fillEllipse(x, y, w + 1, h + 1, rim);
+    s.fillEllipse(x, y, w, h, '#f8f8f8');
+    const lx = (opts.look ? opts.look[0] : 0), ly = (opts.look ? opts.look[1] : 0);
+    // iris fills the lower 2/3, pupil at its heart
+    s.fillEllipse(x + lx, y + 1 + ly, Math.max(1, w - 1), Math.max(1, h - 1), iris);
+    s.fillEllipse(x + lx, y + 1 + ly, Math.max(1, w - 2), Math.max(1, h - 2), Px.shift(iris, 0, 0.05, -0.10));
+    s.rect(x + lx - 1, y + ly, 2, 2, rim);                       // pupil
+    s.set(x + lx - Math.max(1, w - 2), y + ly - Math.max(1, h - 2), '#ffffff');   // big catchlight
+    s.set(x + lx + 1, y + ly + Math.max(0, h - 2), '#ffffff');                     // small low glint
+    if (opts.lid === -1) {          // fierce: angled upper lid
+      s.line(x - w, y - h + 1, x + w, y - h - 1, rim);
+      s.line(x - w, y - h + 2, x + w, y - h, iris === '#f8f8f8' ? rim : Px.shift(iris, 0, 0, -0.2));
+    } else if (opts.lid === 1) {    // sleepy: flat upper lid
+      s.line(x - w, y - h + 2, x + w, y - h + 2, rim);
+    }
+  },
   /** Small angry brow above an eye. */
   brow(s, x, y, w, c = '#1a1418') { s.line(x - w, y, x + w, y - 1, c); },
   /** Simple smiling mouth. */
