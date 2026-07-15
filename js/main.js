@@ -73,6 +73,7 @@ const Game = {
       case 'evolve': EvolveScene.update(); break;
       case 'trainercard': TrainerCard.update(); break;
       case 'moveforget': MoveForget.update(); break;
+      case 'relearn': MoveRelearn.update(); break;
     }
     if (Game.state !== 'title' && Game.state !== 'intro' && Game.state !== 'naming') Game.playtime++;
   },
@@ -95,6 +96,7 @@ const Game = {
       case 'evolve': EvolveScene.draw(ctx); break;
       case 'trainercard': TrainerCard.draw(ctx); break;
       case 'moveforget': MoveForget.draw(ctx); break;
+      case 'relearn': MoveRelearn.draw(ctx); break;
       default: Screen.clear('#000');
     }
     if (Textbox.active) Textbox.draw(ctx);
