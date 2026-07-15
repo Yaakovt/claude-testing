@@ -10,6 +10,7 @@ const Chars = (() => {
   const cache = {};
 
   // A palette-driven template: skin, hair, top, bottom, shoe, accent.
+  // FABLE ART: bouncier stride, swinging arms, layered hair, dressed jackets.
   function drawWalker(s, dir, frame, pal) {
     const skin = Px.ramp(pal.skin);
     const hair = Px.ramp(pal.hair);
@@ -18,77 +19,114 @@ const Chars = (() => {
     const shoe = Px.ramp(pal.shoe);
     const acc = pal.accent ? Px.ramp(pal.accent) : top;
     const step = frame === 1 ? 1 : 0;
+    const bob = step;                    // whole body bobs 1px on the off-step
     const back = dir === 'up';
     const side = dir === 'left' || dir === 'right';
     const flip = dir === 'left';
 
-    // shadow
+    // ground shadow
     s.fillEllipse(8, 21, 5, 2, '#00000030');
 
-    // legs (walk cycle: one forward one back)
-    const ly = 16;
+    // ---- legs & shoes (proper stride) ----
+    const ly = 16 - bob;
     if (side) {
-      s.rect(6, ly, 3, 4 - step, bot.b);
-      s.rect(8, ly + step, 3, 4 - step, bot.d);
-      s.rect(6, ly + (4 - step), 3, 2, shoe.b);
-      s.rect(8, ly + 4, 3, 2, shoe.d);
+      if (step) {   // legs scissored mid-stride
+        s.rect(4, ly, 3, 4, bot.d); s.rect(4, ly + 4, 3, 2, shoe.d);       // trailing leg
+        s.rect(8, ly, 3, 3, bot.b); s.rect(9, ly + 3, 3, 2, shoe.b);       // leading leg kicks
+        s.set(11, ly + 4, shoe.l);
+      } else {      // standing pass
+        s.rect(6, ly, 3, 4, bot.b); s.rect(6, ly + 4, 3, 2, shoe.b);
+        s.rect(8, ly + 1, 3, 3, bot.d); s.rect(8, ly + 4, 3, 2, shoe.d);
+      }
     } else {
-      s.rect(5, ly + (step && 0), 3, 5 - step, bot.b);
-      s.rect(9, ly + step, 3, 5 - step, bot.d);
-      s.rect(5, ly + 5 - step, 3, 2, shoe.b);
+      s.rect(5, ly + (step ? 1 : 0), 3, 5 - step, bot.b);
+      s.rect(9, ly + (step ? 0 : 1), 3, 5 - (step ? 0 : 1), bot.d);
+      s.rect(5, ly + 5 - (step ? -1 + 1 : 0), 3, 2, shoe.b);
       s.rect(9, ly + 5, 3, 2, shoe.d);
+      s.set(6, ly + 6, shoe.l); s.set(10, ly + 6, shoe.l);   // toe caps
     }
 
-    // torso / jacket
-    s.rect(4, 10, 8, 7, top.b);
-    s.rect(4, 10, 8, 2, top.l);
-    s.rect(4, 15, 8, 2, top.d);
-    // accent stripe
-    if (!back) s.rect(7, 11, 2, 5, acc.b);
-    // arms
+    // ---- torso: jacket with collar, hem and side shade ----
+    const ty = 10 - bob;
+    s.rect(4, ty, 8, 7, top.b);
+    s.rect(4, ty, 2, 7, top.d);                    // side shade
+    s.rect(5, ty, 6, 1, top.l);                    // shoulder light
+    s.rect(4, ty + 6, 8, 1, top.d);                // hem
+    if (!back) {
+      // collar V + zip/buttons
+      s.set(7, ty, top.l); s.set(8, ty, top.l);
+      s.set(7, ty + 1, acc.b); s.set(8, ty + 1, acc.b);
+      s.set(8, ty + 3, acc.d); s.set(8, ty + 5, acc.d);
+    } else {
+      s.rect(5, ty + 1, 6, 1, top.d);              // back yoke seam
+    }
+
+    // ---- arms: swing opposite to the legs ----
     if (side) {
-      s.rect(flip ? 4 : 10, 11, 2, 4, top.d);
+      const swing = step ? 2 : -1;                 // forward / back
+      s.rect(7 + swing, ty + 1, 2, 4, top.d);
+      s.set(7 + swing, ty + 5, skin.b);            // hand
     } else {
-      s.rect(3, 11, 2, 4, top.d);
-      s.rect(11, 11, 2, 4, top.d);
-      s.set(3, 14, skin.b); s.set(12, 14, skin.b); // hands
+      const lsw = step ? 1 : 0, rsw = step ? 0 : 1;
+      s.rect(3, ty + 1 + lsw, 2, 4, top.d);
+      s.rect(11, ty + 1 + rsw, 2, 4, top.d);
+      s.set(3, ty + 5 + lsw, skin.b); s.set(12, ty + 5 + rsw, skin.b);
     }
 
-    // head
-    s.fillEllipse(8, 6, 5, 5, skin.b);
-    // hair
+    // ---- head ----
+    const hy = 6 - bob;
+    s.fillEllipse(8, hy, 5, 5, skin.b);
+    s.set(4, hy + 2, skin.d); s.set(12, hy + 2, skin.d);   // cheek shading
+
+    // ---- hair: layered cap + fringe + sheen ----
     if (back) {
-      s.fillEllipse(8, 5, 5, 4, hair.b);
-      s.rect(3, 5, 10, 3, hair.b);
-      s.fillEllipse(8, 8, 5, 2, hair.d);
-      s.dither(4, 3, 8, 3, hair.l, 0);
+      s.fillEllipse(8, hy - 1, 5, 4, hair.b);
+      s.rect(3, hy - 1, 10, 4, hair.b);
+      s.fillEllipse(8, hy + 2, 5, 3, hair.d);      // under-layer
+      s.line(4, hy - 2, 7, hy - 3, hair.l);        // sheen band
+      if (pal.longHair) {                           // falling back-hair sways
+        s.rect(4, hy + 3, 3, 6 + step, hair.b); s.rect(9, hy + 3, 3, 7 - step, hair.b);
+        s.rect(4, hy + 8 + step, 3, 1, hair.d); s.rect(9, hy + 9 - step, 3, 1, hair.d);
+      }
     } else if (side) {
-      s.fillEllipse(8, 4, 5, 3, hair.b);
-      s.rect(flip ? 8 : 3, 3, 5, 4, hair.b);
-      // face on the side
-      const fx = flip ? 5 : 10;
-      s.set(fx, 6, '#1a1418'); // eye
-      if (pal.longHair) { s.rect(flip ? 9 : 4, 6, 3, 6, hair.b); }
+      s.fillEllipse(8, hy - 2, 5, 3, hair.b);
+      s.rect(3, hy - 2, 6, 4, hair.b);             // swept crown
+      s.set(9, hy - 1, hair.b); s.set(10, hy - 1, hair.d);
+      s.line(4, hy - 3, 7, hy - 3, hair.l);
+      s.set(3, hy + 1, hair.d);                    // sideburn
+      if (pal.longHair) { s.rect(3, hy + 1, 3, 6 + step, hair.b); s.set(4, hy + 7 + step, hair.d); }
+      // profile: eye + nose nub + mouth
+      s.set(10, hy, '#1a1418');
+      s.set(13, hy + 1, skin.d);                   // nose
+      s.set(11, hy + 3, skin.d);                   // mouth
     } else {
-      // front hair with bangs
-      s.fillEllipse(8, 4, 5, 3, hair.b);
-      s.rect(3, 3, 10, 3, hair.b);
-      s.set(4, 6, hair.b); s.set(11, 6, hair.b);
-      if (pal.longHair) { s.rect(3, 6, 2, 6, hair.b); s.rect(11, 6, 2, 6, hair.b); }
-      // eyes
-      s.set(6, 6, '#1a1418'); s.set(10, 6, '#1a1418');
-      s.set(6, 7, skin.d); s.set(10, 7, skin.d);
-      // mouth
-      s.set(8, 8, skin.d);
+      s.fillEllipse(8, hy - 2, 5, 3, hair.b);
+      s.rect(3, hy - 3, 10, 3, hair.b);
+      // fringe points
+      s.set(4, hy, hair.b); s.set(7, hy - 1, hair.d); s.set(11, hy, hair.b);
+      s.line(4, hy - 3, 7, hy - 4, hair.l);        // sheen
+      if (pal.longHair) {
+        s.rect(2, hy, 2, 7 + step, hair.b); s.rect(12, hy, 2, 8 - step, hair.b);
+        s.set(2, hy + 6 + step, hair.d); s.set(13, hy + 7 - step, hair.d);
+      }
+      // face: eyes with lash line, mouth
+      s.set(6, hy, '#1a1418'); s.set(10, hy, '#1a1418');
+      s.set(6, hy + 1, skin.d); s.set(10, hy + 1, skin.d);
+      s.set(8, hy + 3, '#a06848');
     }
-    // hat/accessory
+
+    // ---- hat: domed cap with band + bill ----
     if (pal.hat) {
       const hatc = Px.ramp(pal.hat);
-      s.rect(3, 2, 10, 2, hatc.b);
-      s.fillEllipse(8, 2, 5, 2, hatc.b);
-      if (!back) s.rect(4, 3, 8, 1, hatc.d);
-      s.rect(3, 3, 10, 1, hatc.l);
-      if (pal.hatBill && !back) s.rect(6, 4, 6, 1, hatc.d); // cap bill
+      s.fillEllipse(8, hy - 3, 5, 3, hatc.b);
+      s.rect(3, hy - 3, 10, 2, hatc.b);
+      s.rect(3, hy - 2, 10, 1, hatc.d);            // band
+      s.line(5, hy - 5, 8, hy - 5, hatc.l);        // dome light
+      if (pal.hatBill && !back) {
+        if (side) s.rect(9, hy - 2, 5, 1, hatc.d);
+        else s.rect(4, hy - 1, 8, 1, hatc.d);
+      }
+      if (!back && !side) { s.set(8, hy - 3, acc.b); }   // front emblem
     }
 
     if (flip) return s.mirrored();

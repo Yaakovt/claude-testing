@@ -50,77 +50,150 @@ const BattleAnim = {
 
   px(ctx, x, y, c, size = 2) { ctx.fillStyle = c; ctx.fillRect(x | 0, y | 0, size, size); },
 
+  /** 4-point impact star (the classic pixel "hit" flash). */
+  star(ctx, x, y, r, col, core = '#fff') {
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.28, y - r * 0.28);
+    ctx.lineTo(x + r, y); ctx.lineTo(x + r * 0.28, y + r * 0.28);
+    ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.28, y + r * 0.28);
+    ctx.lineTo(x - r, y); ctx.lineTo(x - r * 0.28, y - r * 0.28);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = core;
+    ctx.fillRect(x - 1, y - 1, 3, 3);
+  },
+
   kinds: {
     lunge: {
-      dur: () => 22,
+      dur: () => 24,
       draw(ctx, spec, g, t) {
-        // speed lines behind the user
         const dx = g.tx - g.ux, dy = g.ty - g.uy;
         const len = Math.hypot(dx, dy) || 1;
+        // dust kick at launch
+        if (t < 0.35) {
+          for (let i = 0; i < 4; i++) {
+            ctx.globalAlpha = 1 - t * 2.5;
+            BattleAnim.px(ctx, g.ux - (dx / len) * (4 + i * 4) + (i - 1.5) * 3, g.uy + 10 - t * 20 - i, '#d8d0c0', 2);
+            ctx.globalAlpha = 1;
+          }
+        }
+        // layered speed streaks (long, tapering)
         for (let i = 0; i < spec.n; i++) {
-          const off = (i / spec.n - 0.5) * 26;
-          const bx = g.ux + dx * t * 0.8 - (dy / len) * off * 0.4;
-          const by = g.uy + dy * t * 0.8 + (dx / len) * off * 0.4;
-          BattleAnim.px(ctx, bx - (dx / len) * (6 + i * 3), by - (dy / len) * (6 + i * 3), spec.col[i % spec.col.length]);
+          const off = (i / spec.n - 0.5) * 24;
+          const bx = g.ux + dx * t * 0.85 - (dy / len) * off * 0.4;
+          const by = g.uy + dy * t * 0.85 + (dx / len) * off * 0.4;
+          const c = spec.col[i % spec.col.length];
+          const tail = 8 + (i % 3) * 5;
+          ctx.globalAlpha = 0.85 - (i % 3) * 0.2;
+          ctx.strokeStyle = c; ctx.lineWidth = i % 2 ? 1 : 2;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx - (dx / len) * tail, by - (dy / len) * tail);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+        // impact star as contact lands
+        if (t > 0.62) {
+          const it = (t - 0.62) / 0.38;
+          BattleAnim.star(ctx, g.tx + 4, g.ty - 2, 12 * (1 - it * 0.4), spec.col[0]);
+          ctx.globalAlpha = 1 - it;
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(g.tx, g.ty, 6 + it * 14, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = 1;
         }
       },
     },
     slash: {
-      dur: () => 20,
-      draw(ctx, spec, g, t, f) {
-        const n = spec.n;
+      dur: () => 22,
+      draw(ctx, spec, g, t) {
+        const n = Math.min(3, spec.n);
         for (let i = 0; i < n; i++) {
-          const start = (i / n) * 0.5;
+          const start = i * 0.18;
           if (t < start) continue;
-          const lt = Math.min(1, (t - start) / 0.4);
-          const cx = g.tx - 12 + i * (24 / Math.max(1, n - 1));
+          const lt = Math.min(1, (t - start) / 0.5);
+          const cx = g.tx - 8 + i * 8, cy = g.ty;
+          // crescent arc: bright core + colored edge, sweeping down-right
+          const a0 = -2.4 + lt * 0.9, a1 = -0.9 + lt * 0.9;
+          ctx.globalAlpha = 1 - lt * 0.65;
           ctx.strokeStyle = spec.col[i % spec.col.length];
-          ctx.lineWidth = 2;
-          ctx.globalAlpha = 1 - lt * 0.7;
-          ctx.beginPath();
-          ctx.moveTo(cx - 10 + lt * 6, g.ty - 16);
-          ctx.lineTo(cx + 4 + lt * 6, g.ty + 14);
-          ctx.stroke();
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(cx, cy, 15, a0, a1); ctx.stroke();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(cx, cy, 15, a0 + 0.15, a1 - 0.15); ctx.stroke();
+          ctx.globalAlpha = 1;
+          // trailing spark at the arc tip
+          const tipx = cx + Math.cos(a1) * 15, tipy = cy + Math.sin(a1) * 15;
+          BattleAnim.px(ctx, tipx, tipy, '#fff', 2);
+        }
+        if (t > 0.55) {
+          const it = (t - 0.55) / 0.45;
+          ctx.globalAlpha = 1 - it;
+          BattleAnim.star(ctx, g.tx, g.ty, 8, spec.col[0]);
           ctx.globalAlpha = 1;
         }
       },
     },
     impact: {
-      dur: () => 20,
+      dur: () => 22,
       draw(ctx, spec, g, t) {
-        const r = t * 20;
-        for (let i = 0; i < spec.n; i++) {
-          const ang = (i / spec.n) * Math.PI * 2;
-          BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r * 0.8,
-            spec.col[i % spec.col.length], t < 0.5 ? 3 : 2);
+        // white flash-frame, then star + shockwave + gravity debris
+        if (t < 0.14) {
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(g.tx, g.ty, 10, 0, Math.PI * 2); ctx.fill();
+          return;
         }
-        if (t < 0.3) {
-          ctx.fillStyle = spec.col[0];
-          ctx.fillRect(g.tx - 4, g.ty - 4, 8, 8);
+        const et = (t - 0.14) / 0.86;
+        BattleAnim.star(ctx, g.tx, g.ty, 13 * (1 - et * 0.5), spec.col[0]);
+        // expanding shockwave ring
+        ctx.globalAlpha = 1 - et;
+        ctx.strokeStyle = spec.col[spec.col.length - 1] || '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(g.tx, g.ty, 4 + et * 20, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+        // debris chunks flying out with gravity
+        for (let i = 0; i < spec.n; i++) {
+          const ang = (i / spec.n) * Math.PI * 2 + i * 0.7;
+          const r = et * (14 + (i % 4) * 5);
+          const x = g.tx + Math.cos(ang) * r;
+          const y = g.ty + Math.sin(ang) * r * 0.7 + et * et * 10;
+          BattleAnim.px(ctx, x, y, spec.col[i % spec.col.length], et < 0.5 ? 2 : 1);
         }
       },
     },
     beam: {
-      dur: () => 30,
-      draw(ctx, spec, g, t) {
-        const grow = Math.min(1, t * 3);
-        const fade = t > 0.75 ? 1 - (t - 0.75) * 4 : 1;
-        ctx.globalAlpha = fade;
+      dur: () => 32,
+      draw(ctx, spec, g, t, f) {
+        const grow = Math.min(1, t * 3.2);
+        const fade = t > 0.78 ? 1 - (t - 0.78) * 4.5 : 1;
         const dx = g.tx - g.ux, dy = g.ty - g.uy;
+        // muzzle charge glow at the user
+        if (t < 0.25) {
+          ctx.globalAlpha = t * 4 * fade;
+          ctx.fillStyle = spec.col[spec.col.length - 1] || '#fff';
+          ctx.beginPath(); ctx.arc(g.ux, g.uy, 6 - t * 8, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = fade * 0.35;   // soft outer glow pass
+        ctx.strokeStyle = spec.col[0]; ctx.lineWidth = 9;
+        ctx.beginPath(); ctx.moveTo(g.ux, g.uy); ctx.lineTo(g.ux + dx * grow, g.uy + dy * grow); ctx.stroke();
+        ctx.globalAlpha = fade;
         for (let i = spec.col.length - 1; i >= 0; i--) {
-          const w = (spec.col.length - i) * 3;
+          const w = (spec.col.length - i) * 2 + ((f >> 2) & 1);   // pulsing core
           ctx.strokeStyle = spec.col[i];
           ctx.lineWidth = w;
-          ctx.beginPath();
-          ctx.moveTo(g.ux, g.uy);
-          ctx.lineTo(g.ux + dx * grow, g.uy + dy * grow);
-          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(g.ux, g.uy); ctx.lineTo(g.ux + dx * grow, g.uy + dy * grow); ctx.stroke();
         }
-        // sparks at contact
+        // energy motes riding the beam
+        for (let i = 0; i < 4; i++) {
+          const pt = ((f / 14) + i / 4) % 1;
+          if (pt < grow) BattleAnim.px(ctx, g.ux + dx * pt, g.uy + dy * pt - 2, '#fff', 1);
+        }
+        // contact burst
         if (grow >= 1) {
-          for (let i = 0; i < 5; i++) {
-            const ang = Math.random() * Math.PI * 2;
-            BattleAnim.px(ctx, g.tx + Math.cos(ang) * 8 * Math.random(), g.ty + Math.sin(ang) * 8 * Math.random(), spec.col[0]);
+          BattleAnim.star(ctx, g.tx, g.ty, 8 + ((f >> 1) & 3), spec.col[0]);
+          for (let i = 0; i < 6; i++) {
+            const ang = (i / 6) * Math.PI * 2 + f / 4;
+            BattleAnim.px(ctx, g.tx + Math.cos(ang) * 10, g.ty + Math.sin(ang) * 8, spec.col[i % spec.col.length]);
           }
         }
         ctx.globalAlpha = 1;
@@ -128,35 +201,72 @@ const BattleAnim = {
     },
     proj: {
       dur: (spec) => 16 + spec.n * 4,
-      draw(ctx, spec, g, t, f) {
+      draw(ctx, spec, g, t) {
         for (let i = 0; i < spec.n; i++) {
           const start = i / (spec.n + 2);
           const pt = (t - start) * (spec.n + 2) / 2.2;
-          if (pt < 0 || pt > 1) continue;
-          const x = Util.lerp(g.ux, g.tx, pt);
-          const arc = -Math.sin(pt * Math.PI) * (14 + (i % 3) * 6);
-          const y = Util.lerp(g.uy, g.ty, pt) + arc;
-          BattleAnim.px(ctx, x, y, spec.col[i % spec.col.length], 3);
+          if (pt < 0 || pt > 1.1) continue;
+          const arcH = 14 + (i % 3) * 6;
+          const c = spec.col[i % spec.col.length];
+          // fading trail ghosts behind each projectile
+          for (let k = 3; k >= 1; k--) {
+            const bp = Math.max(0, pt - k * 0.06);
+            const bx = Util.lerp(g.ux, g.tx, bp);
+            const by = Util.lerp(g.uy, g.ty, bp) - Math.sin(bp * Math.PI) * arcH;
+            ctx.globalAlpha = 0.5 - k * 0.13;
+            BattleAnim.px(ctx, bx, by, c, 2);
+            ctx.globalAlpha = 1;
+          }
+          if (pt <= 1) {
+            const x = Util.lerp(g.ux, g.tx, pt);
+            const y = Util.lerp(g.uy, g.ty, pt) - Math.sin(pt * Math.PI) * arcH;
+            BattleAnim.px(ctx, x - 1, y - 1, c, 3);
+            BattleAnim.px(ctx, x, y - 1, '#fff', 1);   // glint
+          } else {
+            // pop on landing
+            const et = (pt - 1) * 6;
+            ctx.globalAlpha = Math.max(0, 1 - et);
+            BattleAnim.star(ctx, g.tx, g.ty, 6, c);
+            ctx.globalAlpha = 1;
+          }
         }
       },
     },
     burst: {
-      dur: () => 26,
+      dur: () => 28,
       draw(ctx, spec, g, t) {
+        // white core flash
+        if (t < 0.22) {
+          ctx.globalAlpha = 1 - t * 3;
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(g.tx, g.ty, 16 * (t * 4.5), 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        // radial streaks
+        ctx.globalAlpha = Math.max(0, 1 - t * 1.2);
+        for (let i = 0; i < 8; i++) {
+          const ang = (i / 8) * Math.PI * 2 + 0.3;
+          ctx.strokeStyle = spec.col[i % spec.col.length];
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(g.tx + Math.cos(ang) * 6, g.ty + Math.sin(ang) * 5);
+          ctx.lineTo(g.tx + Math.cos(ang) * (10 + t * 22), g.ty + Math.sin(ang) * (8 + t * 18));
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        // particle shells
         for (let i = 0; i < spec.n; i++) {
           const ang = (i / spec.n) * Math.PI * 2 + i;
           const r = t * (16 + (i % 4) * 6);
-          const size = t < 0.4 ? 4 : t < 0.7 ? 3 : 2;
-          BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r, spec.col[i % spec.col.length], size);
+          const size = t < 0.4 ? 3 : t < 0.7 ? 2 : 1;
+          BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r * 0.85, spec.col[i % spec.col.length], size);
         }
-        if (t < 0.25) {
-          ctx.globalAlpha = 1 - t * 4;
-          ctx.fillStyle = spec.col[spec.col.length - 1];
-          ctx.beginPath();
-          ctx.arc(g.tx, g.ty, 14 * (t * 4), 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 1;
-        }
+        // shockwave ring
+        ctx.globalAlpha = Math.max(0, 0.9 - t);
+        ctx.strokeStyle = spec.col[spec.col.length - 1] || '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(g.tx, g.ty, 6 + t * 26, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
       },
     },
     spray: {
@@ -189,13 +299,39 @@ const BattleAnim = {
       draw(ctx, spec, g, t, f, st) {
         if (t < 0.55) {
           const flash = (f % 4) < 2;
+          // sky flash on the first strike frames
+          if (t < 0.2 && flash) {
+            ctx.globalAlpha = 0.18; ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, Screen.W, Screen.H); ctx.globalAlpha = 1;
+          }
+          // outer colored bolt + hot white core
           ctx.strokeStyle = flash ? spec.col[0] : spec.col[1 % spec.col.length];
-          ctx.lineWidth = flash ? 3 : 2;
+          ctx.lineWidth = flash ? 4 : 2;
           ctx.beginPath();
           for (const [x1, y1, x2, y2] of st.segs) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
           ctx.stroke();
+          if (flash) {
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (const [x1, y1, x2, y2] of st.segs) { ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
+            ctx.stroke();
+          }
+          // crackling branches off the main bolt
+          if (flash && st.segs.length > 2) {
+            const [bx, by] = [st.segs[1][2], st.segs[1][3]];
+            ctx.strokeStyle = spec.col[0]; ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(bx, by); ctx.lineTo(bx - 7, by + 5);
+            ctx.moveTo(bx, by); ctx.lineTo(bx + 6, by + 7);
+            ctx.stroke();
+          }
         } else {
           const bt = (t - 0.55) / 0.45;
+          BattleAnim.star(ctx, g.tx, g.ty, 11 * (1 - bt * 0.4), spec.col[0]);
+          ctx.globalAlpha = 1 - bt;
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(g.tx, g.ty, 5 + bt * 16, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = 1;
           for (let i = 0; i < spec.n * 3; i++) {
             const ang = (i / (spec.n * 3)) * Math.PI * 2;
             BattleAnim.px(ctx, g.tx + Math.cos(ang) * bt * 18, g.ty + Math.sin(ang) * bt * 12, spec.col[i % spec.col.length]);

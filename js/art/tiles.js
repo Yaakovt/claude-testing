@@ -114,14 +114,28 @@ const Tiles = (() => {
   T('water', {
     solid: true, water: true, anim: 4,
     draw(s, ph) {
+      // FABLE ART: rolling swells — a deep gradient base, sinuous wave crests
+      // that travel with the phase, and sparkling crest-glints.
+      const DEEP = Px.shift(WATER.b, 0.01, 0.04, -0.08);
       s.rect(0, 0, 16, 16, WATER.b);
-      const off = [0, 1, 2, 1][ph % 4];
-      for (let j = 0; j < 3; j++) {
-        const y = 2 + j * 5 + off;
-        s.line(1 + j * 2, y, 5 + j * 2, y, WATER.l);
-        s.line(9 - j, y + 2, 12 - j, y + 2, WATER.d);
+      s.rect(0, 10, 16, 6, DEEP);                    // deeper toward tile bottom
+      s.dither(0, 9, 16, 2, DEEP, ph % 2);           // soft gradient seam
+      const t = (ph % 4) / 4;
+      // two rows of sinuous crests drifting right as the phase advances
+      for (let row = 0; row < 2; row++) {
+        const baseY = 3 + row * 8;
+        for (let x = 0; x < 16; x++) {
+          const w = Math.sin((x / 16 + t + row * 0.5) * Math.PI * 2);
+          const y = baseY + Math.round(w * 1.5);
+          if (w > 0.55) { s.set(x, y, WATER.h); }            // sunlit crest
+          else if (w > -0.2) { s.set(x, y, WATER.l); }        // face of the swell
+          else if (w < -0.75) { s.set(x, y + 1, WATER.d); }   // trough shadow
+        }
       }
-      if (ph % 4 === 2) { s.set(13, 4, '#d8f0ff'); s.set(3, 11, '#d8f0ff'); }
+      // traveling sparkle glints
+      const g1 = (ph * 5 + 2) % 16, g2 = (ph * 7 + 11) % 16;
+      s.set(g1, 5, '#e8f8ff'); s.set(g2, 12, '#d8f0ff');
+      if (ph % 2) s.set((g1 + 8) % 16, 13, WATER.h);
     },
   });
 
