@@ -328,12 +328,16 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
   for (let y = 3; y <= 10; y++) for (let x = 4; x <= 13; x++) gput(g, x, y, '_');
   for (let y = 4; y <= 9; y++) for (let x = 6; x <= 11; x++) gput(g, x, y, ',');
   for (const [x, y] of [[5, 3], [12, 3], [5, 10], [12, 10]]) gput(g, x, y, 'P');
+  const tower = building(g, 6, 4, 'purple');   // the Battle Tower (postgame)
   gput(g, 8, 11, '_'); gput(g, 8, 12, '_'); gput(g, 8, 13, 'W');   // beach landing at the south
-  gput(g, 9, 3, 's');
+  gput(g, 11, 3, 's');
   defineMap({
     id: 'tempest_isle', name: 'Tempest Isle', music: 'surf', battleEnv: 'water', legend: LEG, ground: gRows(g),
-    warps: [{ x: 8, y: 13, to: 'tidesend', tx: 14, ty: 12, dir: 'down', always: true }],
-    signs: [{ x: 9, y: 3, text: 'TEMPEST ISLE — a windswept rock far off the harbor. Rare fakemon shelter here.' }],
+    warps: [
+      { x: 8, y: 13, to: 'tidesend', tx: 14, ty: 12, dir: 'down', always: true },
+      { x: tower.doorX, y: tower.doorY, to: 'battle_tower', tx: 5, ty: 7, dir: 'up' },
+    ],
+    signs: [{ x: 11, y: 3, text: 'TEMPEST ISLE — a windswept rock far off the harbor. Rare fakemon shelter here, and the BATTLE TOWER rises to the north.' }],
     items: [{ x: 10, y: 5, item: 'rift_stone', flag: 'isle_rift' }, { x: 6, y: 8, item: 'ultraorb', count: 5, flag: 'isle_orbs' }],
     npcs: [
       { x: 9, y: 6, sprite: 'npc_sailor', dir: 'down', trainer: 'sailor_bram', sight: 2, script: 'trainer_after' },

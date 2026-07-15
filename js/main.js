@@ -15,6 +15,7 @@ const Game = {
   playerName: 'Aksel',
   gender: 'M',           // 'M' | 'F'
   money: 3000,
+  bp: 0,                 // Battle Points (Battle Tower currency)
   party: [],             // Mon[]
   box: [],               // serialized Mon[]
   bag: {},               // { itemId: count }
@@ -228,7 +229,7 @@ const Game = {
   // ---------------------------------------------------------------- save
   save() {
     const data = {
-      v: 1, playerName: Game.playerName, gender: Game.gender, money: Game.money,
+      v: 1, playerName: Game.playerName, gender: Game.gender, money: Game.money, bp: Game.bp,
       party: Game.party.map((m) => m.serialize()), box: Game.box, bag: Game.bag,
       dexSeen: Game.dexSeen, dexCaught: Game.dexCaught, badges: Game.badges,
       flags: Game.flags, playtime: Game.playtime, seenIntro: true,
@@ -248,7 +249,7 @@ const Game = {
     if (!raw) return false;
     try {
       const d = JSON.parse(raw);
-      Game.playerName = d.playerName; Game.gender = d.gender; Game.money = d.money;
+      Game.playerName = d.playerName; Game.gender = d.gender; Game.money = d.money; Game.bp = d.bp || 0;
       Game.party = d.party.map((m) => Mon.deserialize(m));
       Game.box = d.box || []; Game.bag = d.bag || {};
       Game.dexSeen = d.dexSeen || {}; Game.dexCaught = d.dexCaught || {};

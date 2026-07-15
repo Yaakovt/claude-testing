@@ -265,6 +265,10 @@ const TrainerCard = {
     Font.draw(ctx, 'MONEY  $' + Game.money, 24, 54, { color: '#383838', shadow: '#d8d8c8' });
     Font.draw(ctx, 'DEX  ' + Game.dexCaughtCount() + '/' + Dex.count() + ' caught', 24, 68, { color: '#383838', shadow: '#d8d8c8' });
     Font.draw(ctx, 'TIME  ' + Game.timeString(), 24, 82, { color: '#383838', shadow: '#d8d8c8' });
+    // BP + Battle Tower honors (right column)
+    Font.draw(ctx, 'BP  ' + (Game.bp || 0), 150, 40, { color: '#383838', shadow: '#d8d8c8' });
+    if (Game.flags.towerBest) Font.draw(ctx, 'TOWER  ' + Game.flags.towerBest, 150, 54, { color: '#383838', shadow: '#d8d8c8' });
+    if (Game.flags.towerTitle) Font.draw(ctx, Game.flags.towerTitle, 150, 68, { color: '#c05028', shadow: '#f0e0c0' });
     Font.draw(ctx, 'BADGES', 24, 100, { color: '#383838', shadow: '#d8d8c8' });
     for (let i = 0; i < 8; i++) {
       const x = 24 + i * 24, y = 112;
