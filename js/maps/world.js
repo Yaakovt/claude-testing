@@ -217,14 +217,14 @@ defineMap({
 (() => {
   const g = blankGrid(20, 16, ' ');
   gborder(g, 'T');
-  const center = building(g, 3, 2, 'blue', 'C');
-  const mart = building(g, 13, 2, 'red', 'M');
-  const gym = building(g, 8, 9, 'purple');
-  for (let y = 1; y <= 14; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
+  const center = building(g, 2, 2, 'blue', 'C');
+  const mart = building(g, 14, 2, 'red', 'M');
+  const gym = building(g, 14, 9, 'purple');       // right side, clear of the N-S path
+  for (let y = 1; y <= 14; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }   // full N-S corridor
   for (let x = 2; x <= 17; x++) gput(g, x, 7, '.');
   // mossy wetland flavor
-  for (const [x, y] of [[3, 12], [4, 13], [15, 12], [16, 11], [5, 5], [14, 13]]) gput(g, x, y, 'F');
-  gput(g, 3, 11, 'W'); gput(g, 4, 11, 'W'); gput(g, 16, 13, 'W');
+  for (const [x, y] of [[3, 12], [4, 13], [6, 5], [13, 13], [16, 13], [5, 11]]) gput(g, x, y, 'F');
+  gput(g, 3, 11, 'W'); gput(g, 4, 11, 'W');
   gput(g, 8, 7, 's');
 
   defineMap({
@@ -236,13 +236,95 @@ defineMap({
       { x: gym.doorX, y: gym.doorY, to: 'mossmere_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 0, to: 'route2', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route2', tx: 10, ty: 14, dir: 'up', always: true },
+      { x: 9, y: 15, to: 'route3', tx: 9, ty: 1, dir: 'down', always: true },
+      { x: 10, y: 15, to: 'route3', tx: 10, ty: 1, dir: 'down', always: true },
     ],
-    signs: [{ x: 8, y: 7, text: 'MOSSMERE TOWN — "The forest remembers every footstep."' }],
+    signs: [{ x: 8, y: 7, text: 'MOSSMERE TOWN — "The forest remembers every footstep." (Harbor to the south)' }],
     npcs: [
       { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'mm_villager1' },
-      { x: 14, y: 8, sprite: 'npc_villager', move: 'wander', script: 'mm_villager2' },
+      { x: 12, y: 8, sprite: 'npc_villager', move: 'wander', script: 'mm_villager2' },
       { x: 11, y: 13, sprite: 'npc_ranger', move: 'look', script: 'mm_ranger' },
       { x: 4, y: 6, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'mm_oldman' },
+    ],
+    onEnter() { Overworld.showBanner(); },
+    _doors: { center, mart, gym },
+  });
+})();
+
+// ============================================================ Route 3 (coast)
+defineMap({
+  id: 'route3', name: 'Route 3', music: 'route', battleEnv: 'grass',
+  legend: LEG,
+  ground: [
+    'TTTTTTTTT..TTTTTTTTT',
+    'Txxxxxxxx..xxxxxxxxT',
+    'Txx,,,xxx..xxx,,,xxT',
+    'Txx,,,xxx..xxx,,,xxT',
+    'Txxxxxxx....xxxxxxxT',
+    'Txx....s..s....xxxxT',
+    'TxxxxWWWWWWWWxxxxxxT',
+    'TxxxxWWWWWWWWxx,,,xT',
+    'Txx..xWWWWWWxx.,,,xT',
+    'Txx.......s....xxxxT',
+    'Txx,,,xxx..xxxxxxxxT',
+    'Txx,,,xxx..xxx,,,xxT',
+    'TxxxxHxxx..xxx,,,xxT',
+    'TxxxxxxLx..xLxxxxxxT',
+    'Txxxxxxxx..xxxxxxxxT',
+    'TTTTTTTTT..TTTTTTTTT',
+  ],
+  warps: [
+    { x: 9, y: 0, to: 'mossmere', tx: 9, ty: 14, dir: 'up', always: true },
+    { x: 10, y: 0, to: 'mossmere', tx: 10, ty: 14, dir: 'up', always: true },
+    { x: 9, y: 15, to: 'tidesend', tx: 9, ty: 1, dir: 'down', always: true },
+    { x: 10, y: 15, to: 'tidesend', tx: 10, ty: 1, dir: 'down', always: true },
+  ],
+  signs: [
+    { x: 6, y: 5, text: 'ROUTE 3 — TIDESEND HARBOR to the south.' },
+    { x: 9, y: 5, text: 'A wide inlet. With SURF you could cross and fish the deeps.' },
+  ],
+  items: [{ x: 16, y: 8, item: 'greatorb', count: 2, flag: 'r3_orbs' }],
+  npcs: [
+    { x: 13, y: 11, sprite: 'npc_sailor', dir: 'left', trainer: 'sailor_bram', sight: 3, script: 'trainer_after' },
+    { x: 4, y: 12, sprite: 'npc_villager', move: 'wander', script: 'r3_hint' },
+  ],
+  encounters: { rate: 16, grass: [
+    { key: 'puffle', min: 12, max: 15, weight: 2 }, { key: 'nokkolt', min: 12, max: 14, weight: 2 },
+    { key: 'corvusk', min: 12, max: 15, weight: 2 }, { key: 'glimmouse', min: 11, max: 14, weight: 2 },
+    { key: 'zapkid', min: 12, max: 14, weight: 2 },
+  ] },
+  onEnter() { Overworld.showBanner(); },
+});
+
+// ============================================================ Tidesend Harbor (Gym 3)
+(() => {
+  const g = blankGrid(20, 16, '_');               // sandy harbor ground
+  gborder(g, 'T');
+  const center = building(g, 2, 2, 'blue', 'C');
+  const mart = building(g, 14, 2, 'red', 'M');
+  const gym = building(g, 3, 9, 'purple');
+  for (let y = 1; y <= 8; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
+  for (let x = 2; x <= 17; x++) gput(g, x, 7, '.');
+  // the harbor water + docks (south half)
+  for (let y = 10; y <= 14; y++) for (let x = 8; x <= 17; x++) gput(g, x, y, 'W');
+  for (let y = 9; y <= 12; y++) gput(g, 11, y, '.');   // a wooden dock jutting out
+  gput(g, 8, 7, 's');
+
+  defineMap({
+    id: 'tidesend', name: 'Tidesend Harbor', music: 'town', battleEnv: 'water',
+    legend: LEG, ground: gRows(g),
+    warps: [
+      { x: center.doorX, y: center.doorY, to: 'center', tx: 5, ty: 5, dir: 'up' },
+      { x: mart.doorX, y: mart.doorY, to: 'mart', tx: 4, ty: 4, dir: 'up' },
+      { x: gym.doorX, y: gym.doorY, to: 'tidesend_gym', tx: 5, ty: 8, dir: 'up' },
+      { x: 9, y: 0, to: 'route3', tx: 9, ty: 14, dir: 'up', always: true },
+      { x: 10, y: 0, to: 'route3', tx: 10, ty: 14, dir: 'up', always: true },
+    ],
+    signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water).' }],
+    npcs: [
+      { x: 6, y: 5, sprite: 'npc_sailor', move: 'wander', script: 'ts_sailor' },
+      { x: 13, y: 5, sprite: 'npc_fisher', dir: 'down', move: 'static', script: 'ts_fisher' },
+      { x: 5, y: 6, sprite: 'npc_woman', move: 'wander', script: 'ts_villager' },
     ],
     onEnter() { Overworld.showBanner(); },
     _doors: { center, mart, gym },

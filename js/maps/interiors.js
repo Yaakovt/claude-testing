@@ -148,6 +148,31 @@ defineMap({
   signs: [{ x: 6, y: 8, text: 'MOSSMERE GYM — Leader: EIRIK. "The Rooted Will."' }],
 });
 
+// ---- Tidesend Gym (Water, Runa) ----
+defineMap({
+  id: 'tidesend_gym', name: 'Tidesend Gym', music: 'town', battleEnv: 'interior', indoor: true,
+  legend: ILEG,
+  ground: [
+    'wwwwwwwwwww',
+    'w.h.h.h.h.w',
+    'w.........w',
+    'w..r.r.r..w',
+    'w.........w',
+    'w..r.r.r..w',
+    'w.........w',
+    'w....r....w',
+    'w....d....w',
+    'wwwwwdwwwww',
+  ],
+  warps: [back(5, 9)],
+  npcs: [
+    { x: 5, y: 2, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'gym_runa' },
+    { x: 2, y: 5, sprite: 'npc_sailor', dir: 'right', trainer: 'gym_helper1', sight: 2, script: 'trainer_after' },
+    { x: 8, y: 5, sprite: 'npc_fisher', dir: 'left', trainer: 'gym_helper2', sight: 2, script: 'trainer_after' },
+  ],
+  signs: [{ x: 6, y: 8, text: 'TIDESEND GYM — Leader: RUNA. "The Turning Tide."' }],
+});
+
 // ---- Frosthollow house ----
 defineMap({
   id: 'frost_house1', name: 'House', music: 'town', battleEnv: 'interior', indoor: true,

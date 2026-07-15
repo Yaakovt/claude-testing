@@ -88,6 +88,23 @@ Scripts.register('gym_eirik', () => {
   });
 });
 
+// ---- Gym 3: Runa (Water) ----
+Scripts.register('gym_runa', () => {
+  if (Game.badges[2]) { Textbox.say('RUNA: Ride safe out there. They say Team Ionar has moved on the Lumenveil observatory...', Scripts.done); return; }
+  if (!Game.badges[1]) { Textbox.say('RUNA: Earn the Verdant Badge in Mossmere first, little wave. Then the tide will test you.', Scripts.done); return; }
+  Textbox.say('RUNA: I am RUNA, the Turning Tide. Let\'s see if your resolve floats or sinks!', () => {
+    Music.play('battle_gym');
+    Game.startTrainerBattle(Trainers.runa, () => {
+      Scripts.giveBadge(2, 'Tidal', () => {
+        Game.flags.hm_surf = true;
+        Scripts.giveItem('tm03', 1, () => {   // TM03 Glacier Ray
+          Textbox.say('RUNA: The Tidal Badge lets fakemon up to Lv 40 obey you, and you can now use SURF! The sea is yours to cross.', Scripts.done);
+        });
+      });
+    });
+  });
+});
+
 // ---- Team Ionar first appearance (Route 2 grunt, optional trigger) ----
 Scripts.register('ionar_grunt_r2', (npc) => {
   Textbox.say('GRUNT: Team Ionar is "borrowing" the aurora\'s energy. You didn\'t see anything, kid — unless you want a battle!', () => {
@@ -119,6 +136,10 @@ const chats = {
   mm_villager2: 'Leader EIRIK never loses on his home turf. Bring a Fire or Flying type, maybe!',
   mm_ranger: 'South of here is TIDESEND HARBOR. You\'ll need SURF to go much further, though.',
   mm_oldman: 'Team Ionar bought up the old aurora-observatory in Lumenveil. For "research," they say. Ha!',
+  r3_hint: 'Beat Leader RUNA and you can SURF. Then this whole coast opens up — fishing spots, hidden isles, everything!',
+  ts_sailor: 'Tidesend never sleeps. Ships in at dawn, ships out at dusk, and RUNA training in between.',
+  ts_fisher: 'Cast a rod on the docks and who knows what bites. Bigger rods, bigger catches!',
+  ts_villager: 'RUNA once out-swam a Fjorddrake, they say. Bring your sturdiest team!',
 };
 for (const name in chats) {
   const line = chats[name];

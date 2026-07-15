@@ -37,6 +37,22 @@ T('astrid', {
   party: [{ key: 'lemmoth', level: 11 }, { key: 'brockle', level: 13 }],
 });
 
+// ---- Route 3 trainer ----
+T('sailor_bram', {
+  name: 'Bram', cls: 'Sailor', reward: 720, music: 'battle_trainer', ai: 'smart',
+  intro: 'Ahoy! No landlubber passes the coast without besting me!',
+  loss: 'Ha! You\'ve got sea legs after all.',
+  party: [{ key: 'berguin', level: 15 }, { key: 'mudlusk', level: 15 }, { key: 'clampike', level: 16 }],
+});
+
+// ---- Gym 3: Runa (Water) ----
+T('runa', {
+  name: 'Runa', cls: 'Leader', reward: 3000, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'The tide turns for no one — but it does test everyone. I am RUNA. Show me your current!',
+  loss: 'You rode the wave beautifully. The Tidal Badge is yours.',
+  party: [{ key: 'reefclad', level: 21 }, { key: 'jelluna', level: 21 }, { key: 'fjorddrake', level: 23 }],
+});
+
 // ---- Gym 2: Eirik (Grass) ----
 T('eirik', {
   name: 'Eirik', cls: 'Leader', reward: 2200, music: 'battle_gym', ai: 'smart', leader: true,
