@@ -215,6 +215,11 @@ const STARTER_WEAK = { trollsprout: 'selkip', cindrel: 'trollsprout', selkip: 'c
 const STARTER_STRONG = { trollsprout: 'cindrel', cindrel: 'selkip', selkip: 'trollsprout' };
 const STARTER_MID = { trollsprout: 'bryteknott', cindrel: 'pyrolisk', selkip: 'selkora' };
 const STARTER_FINAL = { trollsprout: 'jotunwald', cindrel: 'fafnirn', selkip: 'krakelott' };
+/** A tougher rematch copy of a trainer: every mon's level bumped up. */
+function rematchTrainer(tr, bump) {
+  return { ...tr, party: tr.party.map((p) => ({ ...p, level: Math.min(72, p.level + bump) })) };
+}
+
 /** Walk `n` pre-evolutions back from a species (stops at the base form). */
 function preEvoStages(key, n) {
   let k = key;

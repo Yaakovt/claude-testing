@@ -328,8 +328,9 @@ defineMap({
       { x: 9, y: 0, to: 'route3', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route3', tx: 10, ty: 14, dir: 'up', always: true },
       { x: 19, y: 7, to: 'route4', tx: 1, ty: 7, dir: 'right', always: true },
+      { x: 14, y: 13, to: 'tempest_isle', tx: 8, ty: 12, dir: 'up', always: true },
     ],
-    signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water). Route 4 east.' }],
+    signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water). Route 4 east; SURF south to the isle.' }],
     npcs: [
       { x: 6, y: 5, sprite: 'npc_sailor', move: 'wander', script: 'ts_sailor' },
       { x: 13, y: 5, sprite: 'npc_fisher', dir: 'down', move: 'static', script: 'ts_fisher' },

@@ -173,7 +173,15 @@ function plateauBattle(trainerKey, prereqFlag, prereqMsg, nextHint, music, resol
   return (npc) => {
     if (Game.flags['beat_' + trainerKey]) {
       if (npc) npc.passable = true;
-      Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done);
+      if (Game.flags.champion) {   // postgame rematch, +12 levels
+        Textbox.ask(Trainers[trainerKey].name + ': Back for a REMATCH? I won\'t hold back this time.', ['Yes', 'No'], (pick) => {
+          if (pick !== 0) { Textbox.say('Come find me any time.', Scripts.done); return; }
+          const base = resolver ? resolver(Trainers[trainerKey], { stage: 2 }) : Trainers[trainerKey];
+          const tr = rematchTrainer(base, 12);
+          Music.play(music || 'battle_elite');
+          Game.startTrainerBattle(tr, () => Textbox.say(tr.name + ': As sharp as the day you took the title!', Scripts.done));
+        });
+      } else Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done);
       return;
     }
     if (Game.badgeCount() < 8) { Textbox.say('An attendant stops you: "Only trainers with all EIGHT badges may enter the League."', Scripts.done); return; }
@@ -195,7 +203,16 @@ Scripts.register('e4_2', plateauBattle('e4_freyda', 'beat_e4_corvin', 'Defeat Co
 Scripts.register('e4_3', plateauBattle('e4_mara', 'beat_e4_freyda', 'Defeat Freyda before you pass.', 'Only Liv remains before the Champion.'));
 Scripts.register('e4_4', plateauBattle('e4_liv', 'beat_e4_mara', 'Defeat Mara before you pass.', 'Beyond lies the Champion...'));
 Scripts.register('champion', (npc) => {
-  if (Game.flags.champion) { if (npc) npc.passable = true; Textbox.say('SIGRID: The aurora is calm, and Norvenna has its Champion — you. Come challenge me any time!', Scripts.done); return; }
+  if (Game.flags.champion) {
+    if (npc) npc.passable = true;
+    Textbox.ask('SIGRID: The aurora is calm, and Norvenna has its Champion — you. Care for a title REMATCH?', ['Yes', 'No'], (pick) => {
+      if (pick !== 0) { Textbox.say('SIGRID: Any time, Champ.', Scripts.done); return; }
+      const tr = rematchTrainer(Trainers.champion_sigrid, 12);
+      Music.play('battle_champion');
+      Game.startTrainerBattle(tr, () => Textbox.say('SIGRID: Still the strongest in Norvenna. Well earned!', Scripts.done));
+    });
+    return;
+  }
   if (Game.badgeCount() < 8) { Textbox.say('The Champion\'s hall is sealed.', Scripts.done); return; }
   if (!Game.flags.beat_e4_liv) { Textbox.say('The Champion\'s hall is sealed until the Elite Four are defeated.', Scripts.done); return; }
   Textbox.say(Trainers.champion_sigrid.intro, () => {
@@ -211,6 +228,19 @@ Scripts.register('champion', (npc) => {
         Scripts.done();
       });
     });
+  });
+});
+
+// ---- Postgame: UMBRYX, the Night-Heart (Sky Spire altar, after Champion) ----
+Scripts.register('summit_umbryx', () => {
+  if (Game.flags.caughtUmbryx || Game.flags.beat_umbryx) { Textbox.say('The altar is silent now. Day and night rest in balance.', Scripts.done); return; }
+  if (!Game.flags.champion) { Textbox.say('You touch the summit altar. On moonless nights, they say, the aurora\'s shadow stirs here... but not for you. Not yet.', Scripts.done); return; }
+  Textbox.say(['As you lay your hand on the altar, the aurora above drains to pure black.',
+    'From that darkness, a second Storm-Heart uncoils — UMBRYX, the night to Auroryx\'s day!'], () => {
+    Game.give('ultraorb', 10);
+    Game.registerDex('umbryx', 'seen');
+    Music.play('battle_champion');
+    Overworld.beginBattleFlash(() => { Game.startWildBattle('umbryx', 60, 'aurora'); });
   });
 });
 

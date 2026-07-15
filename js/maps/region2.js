@@ -310,13 +310,39 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
   defineMap({
     id: 'sky_spire', name: 'Sky Spire', music: 'cave', battleEnv: 'aurora', indoor: true, legend: LEG, ground: gRows(g),
     warps: [{ x: 8, y: 15, to: 'stormcrest', tx: 9, ty: 1, dir: 'down', always: true }],
-    signs: [{ x: 7, y: 2, text: 'The Sky Spire summit. The aurora coils here, close enough to touch.' }],
+    signs: [{ x: 8, y: 1, script: 'summit_umbryx', text: 'The Sky Spire summit altar.' }],
     npcs: [
       { x: 8, y: 8, sprite: 'ionar_grunt', dir: 'down', trainer: 'ionar_grunt1', sight: 3, script: 'trainer_after' },
       { x: 6, y: 3, sprite: 'ionar_grunt', dir: 'right', trainer: 'ionar_grunt2', sight: 2, script: 'trainer_after' },
       { x: 8, y: 2, sprite: 'ionar_boss', dir: 'down', move: 'static', passable: false, script: 'spire_boss' },
     ],
     onEnter() { Overworld.showBanner(); if (!Game.flags.spireIntro) { Game.flags.spireIntro = true; Textbox.say('A storm-grey figure stands at the summit altar, the aurora writhing above him...'); } },
+  });
+})();
+
+// ============================================================ Tempest Isle (optional, Surf)
+(() => {
+  const g = blankGrid(18, 14, 'W'); // ringed by sea
+  // sandy shore + grassy interior
+  for (let y = 3; y <= 10; y++) for (let x = 4; x <= 13; x++) gput(g, x, y, '_');
+  for (let y = 4; y <= 9; y++) for (let x = 6; x <= 11; x++) gput(g, x, y, ',');
+  for (const [x, y] of [[5, 3], [12, 3], [5, 10], [12, 10]]) gput(g, x, y, 'P');
+  gput(g, 8, 11, '_'); gput(g, 8, 12, '_'); gput(g, 8, 13, 'W');   // beach landing at the south
+  gput(g, 9, 3, 's');
+  defineMap({
+    id: 'tempest_isle', name: 'Tempest Isle', music: 'surf', battleEnv: 'water', legend: LEG, ground: gRows(g),
+    warps: [{ x: 8, y: 13, to: 'tidesend', tx: 14, ty: 12, dir: 'down', always: true }],
+    signs: [{ x: 9, y: 3, text: 'TEMPEST ISLE — a windswept rock far off the harbor. Rare fakemon shelter here.' }],
+    items: [{ x: 10, y: 5, item: 'rift_stone', flag: 'isle_rift' }, { x: 6, y: 8, item: 'ultraorb', count: 5, flag: 'isle_orbs' }],
+    npcs: [
+      { x: 9, y: 6, sprite: 'npc_sailor', dir: 'down', trainer: 'sailor_bram', sight: 2, script: 'trainer_after' },
+    ],
+    encounters: { rate: 20, grass: [
+      { key: 'mantasurge', min: 25, max: 30, weight: 2 }, { key: 'volteel', min: 25, max: 30, weight: 2 },
+      { key: 'aurorpix', min: 26, max: 30, weight: 1 }, { key: 'skimmerling', min: 24, max: 28, weight: 2 },
+      { key: 'corvusk', min: 24, max: 28, weight: 2 },
+    ] },
+    onEnter() { Overworld.showBanner(); },
   });
 })();
 

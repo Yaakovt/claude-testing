@@ -191,6 +191,7 @@ const Game = {
       onEnd: (result) => {
         Game.setState('overworld');
         if (key === 'auroryx' && (result === 'caught' || result === 'win')) Game.flags.caughtAuroryx = true;
+        if (key === 'umbryx') { if (result === 'caught') Game.flags.caughtUmbryx = true; if (result === 'win') Game.flags.beat_umbryx = true; }
         if (result === 'lose') Game.whiteout();
         else Game.checkEvolutions({ level: true }, () => {});
         Music.play(Overworld.currentMusic());

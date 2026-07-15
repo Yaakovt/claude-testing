@@ -194,7 +194,7 @@ const Overworld = {
     let it = m.itemAt(x, y) || m.itemAt(p.tx, p.ty);
     if (it) { Overworld.pickupItem(it); return true; }
     const sign = m.signAt(x, y);
-    if (sign) { Textbox.say(sign.text); return true; }
+    if (sign) { if (sign.script) Scripts.run(sign.script); else Textbox.say(sign.text); return true; }
     // field tile actions
     const d = m.tileDef(x, y);
     if (d && d.water && !p.surfing && Overworld.bestRod()) { Overworld.fish(x, y); return true; }
