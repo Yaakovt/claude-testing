@@ -64,6 +64,7 @@ const BattleUI = {
       case 'menu': BattleUI.updateMenu(); break;
       case 'moves': BattleUI.updateMoves(); break;
       case 'learn': BattleUI.updateLearn(); break;
+      case 'end': BattleUI.updateEnd(); break;
     }
   },
 
