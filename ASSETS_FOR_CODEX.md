@@ -160,6 +160,16 @@ Match the type mood: cute basics, fierce finals, majestic legendary. Fill the fr
 | 97 | `glacierling` | Glacierling | Dragon/Ice | Glacier Cub | A chunk of living glacier just learning to walk. Its deep-blue eyes hold the slow memory of a thousand frozen winters. |
 | 98 | `frystdrake` | Frystdrake | Dragon/Ice | Rime Drake | Ice wings still budding, it races down glacier slopes faster than an avalanche and just as impossible to stop. |
 | 99 | `fimbulwyrm` | Fimbulwyrm | Dragon/Ice | Winter Wyrm | The saga-beast said to bring the fimbulwinter that ends the world. Its crown of icicles glints with a captive scrap of aurora. |
+| 101 | `mothpyre` | Mothpyre | Bug/Fire | Ember Moth | It drinks the heat of dying campfires. Its wing-dust glows like embers on the night wind. |
+| 102 | `gloamcat` | Gloamcat | Dark | Dusk Kit | A kitten of the twilight. The crescent on its brow glows faintly when it hunts by night. |
+| 103 | `nocturnyx` | Nocturnyx | Dark/Psychic | Panther of Dusk | It stalks the space between waking and dreaming. Prey never hears it — they simply stop remembering the moment before. |
+| 104 | `lilypip` | Lilypip | Water/Grass | Lilypad Frog | It rides a lily pad it grew itself. When startled, it curls the pad over its head like a green umbrella. |
+| 105 | `lotanic` | Lotanic | Water/Grass | Lotus Toad | A great lotus blooms from its back, opening at dawn. Ponds where it lives run crystal clear. |
+| 106 | `volteel` | Volteel | Water/Electric | Coil Eel | It coils in kelp and waits. A touch of its skin delivers a jolt strong enough to stun a Fjorddrake. |
+| 107 | `claydoll` | Claydoll | Rock/Fairy | Kiln Doll | An ancient votive figure fired in a forgotten kiln. The glowing glyphs on its body are a prayer no one now can read. |
+| 108 | `aurorpix` | Aurorpix | Fairy/Electric | Aurora Sprite | A sliver of the aurora that slipped loose and learned to dance. It leaves a trail of light that lingers for hours. |
+| 109 | `mantasurge` | Mantasurge | Water/Flying | Sky Ray | It breaches the waves and glides on sea-wind for miles. Sailors call a passing Mantasurge the promise of fair weather. |
+| 110 | `umbryx` | Umbryx | Dark/Ghost | Night-Heart | When the aurora sleeps, its shadow wakes. The sagas say Auroryx and Umbryx are one being split by the turning of day into night. |
 | 100 | `auroryx` | Auroryx | Dragon/Electric | Storm-Heart | The aurora over Norvenna is the light of its sleeping heartbeat. The sagas warn: the sky it dreams is gentler than the sky it wakes to. |
 
 Stage/evolution context (draw evolved forms bigger & more elaborate than their pre-evos):
@@ -206,6 +216,8 @@ Stage/evolution context (draw evolved forms bigger & more elaborate than their p
 - Cubbly → Ursnow (Lv30)
 - Glacierling → Frystdrake (Lv35)  OR  Frostfern (stone)
 - Frystdrake → Fimbulwyrm (Lv45)
+- Gloamcat → Nocturnyx (Lv30)
+- Lilypip → Lotanic (Lv28)
 
 ## 2) OVERWORLD CHARACTERS — 16×22, 4 directions × 2 walk frames
 Chibi Gen-3 overworld style (2-head-tall). For each id below produce 8 files:
@@ -404,6 +416,7 @@ like bottles, berries/charms for held items, gems for stones, discs for TMs, etc
 | `soothe_berry` | Soothe Berry | held | berry or charm |
 | `rally_berry` | Rally Berry | held | berry or charm |
 | `stillstone` | Stillstone | held | berry or charm |
+| `rift_stone` | Rift Stone | held | berry or charm |
 | `emberband` | Emberband | held | berry or charm |
 | `tideband` | Tideband | held | berry or charm |
 | `leafband` | Leafband | held | berry or charm |

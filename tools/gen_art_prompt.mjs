@@ -12,7 +12,7 @@ const files = [
   'js/data/typechart.js', 'js/data/natures.js', 'js/data/abilities.js',
   'js/data/moves.js', 'js/data/items.js', 'js/data/species_core.js',
   'js/data/dex/starters.js', 'js/data/dex/batch_a.js', 'js/data/dex/batch_b.js',
-  'js/data/dex/batch_c.js', 'js/data/dex/batch_d.js', 'js/data/dex/batch_e.js',
+  'js/data/dex/batch_c.js', 'js/data/dex/batch_d.js', 'js/data/dex/batch_e.js', 'js/data/dex/batch_f.js',
   'js/data/dex/legends.js', 'js/art/tiles.js', 'js/art/chars.js',
 ];
 const fakeCtx2d = { createImageData: () => ({ data: [] }), putImageData: () => {}, drawImage: () => {}, fillRect: () => {} };
