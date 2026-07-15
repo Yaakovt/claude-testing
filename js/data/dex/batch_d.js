@@ -968,38 +968,46 @@
       entry: 'It holds a rune-coin no smith remembers striking. Where it drops the coin, folk quietly rewrite their wills.' },
     cry: { base: 300, sweep: 0.48, wave: 'sawtooth', dur: 0.7, vib: 8, grit: 0.5 },
     draw(s) {
-      // tattered cloak wings draping like a mantle
-      s.fillPoly([[20, 22], [14, 50], [18, 46], [21, 52], [25, 47], [27, 54]], RAVEND.b);
-      s.fillPoly([[44, 22], [50, 50], [46, 46], [43, 52], [39, 47], [37, 54]], RAVEND.b);
-      s.line(17, 30, 16, 46, SHEEN.d);
-      s.line(47, 30, 48, 46, SHEEN.d);
-      // tall body
-      s.ball(32, 36, 10, 14, RAVEN);
-      // chest sheen feathers
-      s.set(30, 34, SHEEN.b); s.set(34, 37, SHEEN.b); s.set(31, 41, SHEEN.d);
-      s.dither(28, 30, 9, 6, RAVEND.b, 1);
-      // tail
-      s.fillPoly([[28, 48], [26, 58], [32, 55], [38, 58], [36, 48]], RAVEND.b);
-      // legs
-      s.limb(28, 50, 27, 56, 2, 1, RAVEND);
-      s.limb(36, 50, 37, 56, 2, 1, RAVEND);
-      K.claws(s, 25, 57, 2, BONE.d); K.claws(s, 36, 57, 2, BONE.d);
-      // regal head with crest
-      s.ball(32, 18, 8, 7, RAVEN);
-      K.horn(s, 27, 12, -0.5, -1, 6, 2, RAVEND);
-      K.horn(s, 33, 11, 0.2, -1, 6, 2, RAVEND);
-      K.horn(s, 38, 12, 0.7, -0.8, 5, 2, RAVEND);
-      // bone mask brow
-      s.ball(34, 18, 5, 3, BONE, { flat: true });
-      // long beak holding the rune-coin
-      s.tri(38, 17, 47, 19, 38, 22, BONE.b);
-      s.line(39, 21, 45, 20, BONE.d);
-      s.ball(48, 22, 3, 3, COIN, { flat: true });
-      s.set(48, 22, COIN.d); s.set(48, 21, COIN.l); // rune notch
-      // baleful eyes
-      K.eye(s, 30, 17, 2, '#e04848');
-      K.eye(s, 36, 17, 2, '#e04848');
-      K.brow(s, 30, 14, 2); K.brow(s, 37, 14, 2);
+      // ==== FABLE ART v6: SpriteForge (contours, ink, cel, AA) ====
+      const SF = SpriteForge;
+      const CROW = Px.ramp('#454e63');
+      const CROWD = Px.ramp('#2b3242');
+      const BEAK = Px.ramp('#8a93a8');
+      const BONE = Px.ramp('#d8d4c8');
+      SF.draw(s, [
+      // long tail feathers sweeping down-right
+      { path: [[38, 38], [52, 48], [58, 56], [50, 54], [40, 46]], smooth: 0.5, ramp: CROWD, shade: { d: 1, hi: 1 } },
+      { path: [[37, 41], [48, 52], [52, 58], [44, 55], [36, 46]], smooth: 0.5, ramp: CROW, shade: { d: 1, hi: 1 } },
+      // legs gripping (drawn before body so the belly overlaps their tops)
+      { path: SF.limb(26, 48, 24, 56, 2, 1.5), smooth: 0.5, ramp: BEAK, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(34, 48, 35, 56, 2, 1.5), smooth: 0.5, ramp: BEAK, shade: { d: 1, hi: 0 } },
+      // body teardrop, chest proud
+      { path: [[28, 22], [37, 26], [41, 34], [39, 44], [31, 50], [23, 47], [19, 38], [21, 28]],
+        ramp: CROW, shade: { d: 3, hi: 1 }, gleam: [24, 28] },
+      // folded wing across the back with feather-notched edge
+      { path: [[33, 26], [42, 31], [45, 40], [41, 49], [34, 46], [31, 36]],
+        ramp: CROWD, shade: { d: 2, hi: 1 }, edge: 'fur' },
+      // head: sleek with a heavy brow
+      { path: [[26, 8], [33, 10], [36, 16], [34, 22], [27, 25], [20, 22], [18, 15], [21, 10]],
+        ramp: CROW, shade: { d: 2, hi: 1 } },
+      // heavy grey beak, hooked
+      { path: [[19, 15], [12, 17], [9, 20], [13, 21], [19, 20]], smooth: 0.6, ramp: BEAK, shade: { d: 1, hi: 1 } },
+      // pale skull-brow marking
+      { path: [[22, 10], [30, 9], [33, 12], [27, 13], [22, 13]], smooth: 0.6, ramp: BONE, shade: { d: 1, hi: 0 } },
+      ], { light: [-1, -1] });
+
+      // baleful red eye under the bone brow
+      K.eyeBig(s, 25, 16, 2, 2, '#c83a3a', { lid: -1, look: [-1, 0] });
+      // beak hook + nostril
+      s.line(9, 20, 12, 21, '#1a1418');
+      s.set(15, 17, CROWD.d);
+      // wing feather separations
+      s.line(36, 32, 42, 36, CROWD.d); s.line(34, 38, 41, 43, CROWD.d);
+      // talon claws
+      s.set(23, 56, '#1a1418'); s.set(25, 56, '#1a1418');
+      s.set(34, 56, '#1a1418'); s.set(36, 56, '#1a1418');
+      // tail sheen
+      s.line(46, 48, 52, 53, CROW.l);
     },
     drawBack(s) {
       // Rear: full tattered cloak covering the back, crest from behind, tail to camera.

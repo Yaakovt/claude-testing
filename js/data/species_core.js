@@ -46,6 +46,7 @@ const Dex = {
     s.weld(3);                              // reattach floating parts
     if (def.outlineColor) s.outline(def.outlineColor);
     else s.outlineSel();                    // hue-keyed selective outline
+    s.smoothSilhouette(0.42);               // AA the outline stair-steps
     s.innerEdge(0.10);
     const cv = s.toCanvas();
     Dex._spriteCache[ck] = cv;

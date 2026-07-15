@@ -48,6 +48,11 @@ const Px = {
     const p = 2 * l - q;
     return [hue(p, q, h + 1 / 3) * 255, hue(p, q, h) * 255, hue(p, q, h - 1 / 3) * 255];
   },
+  /** Linear blend between two hex colors. */
+  mix(a, b, t) {
+    const [r1, g1, b1] = Px.hexToRgb(a), [r2, g2, b2] = Px.hexToRgb(b);
+    return Px.rgbToHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+  },
   shift(hex, dh, ds, dl) {
     const [r, g, b] = Px.hexToRgb(hex);
     let [h, s, l] = Px.rgbToHsl(r, g, b);
@@ -261,6 +266,38 @@ class PixelSurface {
         if (!nb) continue;
         // pixels UNDER the silhouette (filled neighbor above) ground the sprite
         this.data[idx(x, y)] = darken(nb, !!up && !dn);
+      }
+    }
+  }
+
+  /**
+   * Anti-alias the silhouette: any interior pixel cornered by BOTH a
+   * horizontal and a vertical outline neighbor sits on an outline stair-step —
+   * blend it toward the outline so the edge reads as a smooth curve.
+   */
+  smoothSilhouette(strength = 0.45) {
+    const src = this.data.slice();
+    const idx = (x, y) => y * this.w + x;
+    const isOut = (x, y) => {
+      if (x < 0 || y < 0 || x >= this.w || y >= this.h) return false;
+      const c = src[idx(x, y)];
+      if (!c) return false;
+      // outline pixels are very dark; cheap luma test
+      const [r, g, b] = Px.hexToRgb(c);
+      return (r + g + b) < 210;
+    };
+    for (let y = 1; y < this.h - 1; y++) {
+      for (let x = 1; x < this.w - 1; x++) {
+        const c = src[idx(x, y)];
+        if (!c) continue;
+        const [r, g, b] = Px.hexToRgb(c);
+        if ((r + g + b) < 210) continue;                 // skip outline itself
+        const h = isOut(x - 1, y) || isOut(x + 1, y);
+        const v = isOut(x, y - 1) || isOut(x, y + 1);
+        if (h && v) {
+          const oc = isOut(x - 1, y) ? src[idx(x - 1, y)] : src[idx(x + 1, y)];
+          this.data[idx(x, y)] = Px.mix(c, oc, strength);
+        }
       }
     }
   }

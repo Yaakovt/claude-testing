@@ -26,17 +26,41 @@
     dex: { species: 'Iced Spirit', h: '0.5m', w: '20.0kg', entry: 'A restless spirit sealed inside a block of never-melting ice. It drifts through frozen caverns, waiting to thaw free.' },
     cry: { base: 300, sweep: 0.5, wave: 'sine', dur: 0.5, vib: 14, grit: 0.15, sub: true },
     draw(s) {
-      // floating ice cube
-      s.rect(20, 22, 24, 24, ICE.b);
-      s.rect(20, 22, 24, 4, ICE.l); s.rect(20, 22, 4, 24, ICE.l);
-      s.rect(40, 26, 4, 20, ICED.b); s.rect(24, 42, 20, 4, ICED.b);
-      s.dither(24, 26, 14, 14, ICE.h, 1);
-      // ghost face frozen inside
-      s.ball(32, 34, 6, 6, GHOST, { flat: true });
-      K.eye(s, 29, 33, 2, EYEC); K.eye(s, 35, 33, 2, EYEC);
-      s.line(30, 38, 34, 38, ICED.d);
-      // frosty shine
-      s.set(23, 25, '#ffffff'); s.set(25, 24, '#ffffff');
+      // ==== FABLE ART v6: SpriteForge (contours, ink, cel, AA) ====
+      const SF = SpriteForge;
+      const ICE = Px.ramp('#a8d8f0');
+      const ICED = Px.ramp('#6aa8d0');
+      const SOUL = Px.ramp('#e8f2fb');
+      const EYEC = '#7ce0ff';
+      SF.draw(s, [
+      // cube: front face (sharp corners — smooth 0)
+      { path: [[18, 24], [46, 24], [46, 52], [18, 52]], smooth: 0, ramp: ICE, shade: { d: 3, hi: 2 } },
+      // top facet catching the light
+      { path: [[18, 24], [24, 17], [52, 17], [46, 24]], smooth: 0, flat: ICE.h },
+      // right facet in shade
+      { path: [[46, 24], [52, 17], [52, 45], [46, 52]], smooth: 0, flat: ICED.b },
+      // the spirit swirling inside (soft blob, no ink — it's BEHIND the ice)
+      { path: SF.blob(31, 38, 8, 9, 0.08), ramp: SOUL, shade: { d: 1, hi: 1 }, ink: false },
+      { path: [[31, 47], [35, 51], [38, 49], [34, 46]], smooth: 0.7, ramp: SOUL, shade: null, ink: false },
+      ], { light: [-1, -1] });
+
+      const K2 = K;
+      // hollow spirit eyes + wavering mouth
+      s.fillEllipse(27, 36, 2, 2.6, '#2a4a68'); s.fillEllipse(35, 36, 2, 2.6, '#2a4a68');
+      s.set(27, 35, EYEC); s.set(35, 35, EYEC);
+      s.set(26, 34, '#ffffff'); s.set(34, 34, '#ffffff');
+      s.line(28, 42, 30, 43, '#3a5878'); s.line(31, 43, 33, 42, '#3a5878');
+      // frozen-in bubbles + facet cracks
+      s.set(23, 30, '#ffffff'); s.set(41, 45, '#e8f8ff'); s.set(38, 28, '#e8f8ff');
+      s.line(20, 26, 24, 30, ICE.l); s.line(43, 46, 40, 42, ICED.d);
+      s.line(19, 45, 23, 49, ICE.l);
+      // top-facet sparkle
+      s.set(28, 20, '#ffffff'); s.set(29, 20, '#ffffff'); s.set(28, 19, '#ffffff');
+      s.set(44, 21, '#e8f8ff');
+      // icicle drips under the cube
+      s.rect(22, 52, 2, 3, ICED.b); s.set(22, 55, ICED.d);
+      s.rect(36, 52, 2, 4, ICED.b); s.set(36, 56, ICED.d);
+      s.rect(30, 52, 2, 2, ICED.b);
     },
     drawBack(s) {
       s.rect(20, 22, 24, 24, ICED.b);

@@ -136,6 +136,34 @@ const SpriteForge = (() => {
       }
     }
 
+    // 2a. interior anti-aliasing: soften stair-step corners between the
+    //     part's own tone bands (the finish real sprites have). Ink-dark
+    //     tones are excluded so contour lines stay crisp.
+    if (!flat && part.aa !== false && ramp) {
+      const tones = [ramp.h, ramp.l, ramp.b, ramp.d];
+      const toneSet = new Set(tones);
+      const src = s.data.slice();
+      const at = (x, y) => (x >= 0 && y >= 0 && x < W && y < H) ? src[y * W + x] : null;
+      const mixMemo = {};
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        if (!mask[y * W + x]) continue;
+        const A = at(x, y);
+        if (!toneSet.has(A)) continue;
+        // convex corner: two orthogonal neighbors share tone B (adjacent band)
+        for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+          const B = at(x + dx, y);
+          if (B === null || B === A || !toneSet.has(B)) continue;
+          if (at(x, y + dy) !== B || at(x + dx, y + dy) !== B) continue;
+          const ai = tones.indexOf(A), bi = tones.indexOf(B);
+          if (Math.abs(ai - bi) !== 1) continue;        // only adjacent bands
+          const k = A + B;
+          if (!mixMemo[k]) mixMemo[k] = Px.mix(A, B, 0.5);
+          s.set(x, y, mixMemo[k]);
+          break;
+        }
+      }
+    }
+
     // 2b. fur/scale edge texture
     if (part.edge === 'fur' && ramp) {
       for (const [x, y] of boundary) {

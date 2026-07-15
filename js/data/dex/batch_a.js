@@ -28,40 +28,61 @@
       entry: 'Born where the Whisperwood moss grows thickest. If it stands still in a Route meadow, songbirds nest between its sprout-antlers.' },
     cry: { base: 700, sweep: 0.95, wave: 'sine', dur: 0.35, vib: 20, chirps: 1 },
     draw(s) {
-      // slender legs with dark hooves
-      s.limb(27, 47, 26, 55, 1.5, 1, FAWN); s.set(26, 56, BARKA.o);
-      s.limb(31, 48, 31, 55, 1.5, 1, FAWN); s.set(31, 56, BARKA.o);
-      s.limb(40, 47, 41, 55, 1.5, 1, FAWN); s.set(41, 56, BARKA.o);
-      s.limb(44, 46, 46, 54, 1.5, 1, FAWN); s.set(46, 55, BARKA.o);
-      // body
-      s.ball(35, 44, 10, 7, FAWN);
-      // mossy coat over the back
-      s.ball(36, 40, 8, 4, MOSS, { flat: true });
-      s.dither(30, 42, 12, 2, MOSS.l, 1);
-      // cream chest + tail
-      s.ball(28, 46, 4, 4, CREAM, { flat: true });
-      s.ball(45, 41, 2, 2, CREAM, { flat: true });
-      // fawn spots on the rump
-      s.set(39, 44, CREAM.b); s.set(42, 46, CREAM.b); s.set(44, 44, CREAM.b);
-      // neck + head
-      s.limb(28, 41, 25, 34, 3, 3, FAWN);
-      s.ball(24, 31, 6, 5.5, FAWN);
-      // big gentle ears
-      K.horn(s, 18, 27, -1, -0.4, 6, 2, FAWN);
-      K.horn(s, 30, 26, 0.9, -0.6, 6, 2, FAWN);
-      s.set(15, 25, BARKA.d); s.set(33, 23, BARKA.d);
-      // twin sprout-antlers
-      s.line(22, 26, 21, 21, MOSSD.d);
-      s.line(26, 26, 27, 21, MOSSD.d);
-      K.leaf(s, 20, 20, 4, MOSS);
-      K.leaf(s, 27, 20, 4, MOSS);
-      // face: big gentle eyes
-      K.eye(s, 21, 31, 2, '#7a5a30');
-      K.eye(s, 27, 31, 2, '#7a5a30');
-      s.ball(24, 34, 3, 2, CREAM, { flat: true });
-      s.set(24, 33, '#1a1418');
-      K.smile(s, 24, 35, 1);
-      K.cheek(s, 18, 33, '#e8b088'); K.cheek(s, 29, 33, '#e8b088');
+      // ==== FABLE ART v6: SpriteForge (contours, ink, cel, AA) ====
+      const SF = SpriteForge;
+      const FAWN = Px.ramp('#c9985e');
+      const FAWND = Px.ramp('#96703f');
+      const MOSS = Px.ramp('#5da24e');
+      const CREAM = Px.ramp('#e8dfc0');
+      const INNER = Px.ramp('#d9c39a');
+      const BARK = Px.ramp('#8a6a44');
+      const BUD = Px.ramp('#e8b040');
+      SF.draw(s, [
+      // far legs first (darker)
+      { path: SF.limb(29, 45, 28, 56, 2, 1.6), smooth: 0.5, ramp: FAWND, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(41, 44, 43, 55, 2, 1.7), smooth: 0.5, ramp: FAWND, shade: { d: 1, hi: 0 } },
+      // tail puff
+      { path: SF.blob(47, 37, 2.6, 2.6), ramp: CREAM, shade: { d: 1, hi: 0 } },
+      // body barrel, 3/4
+      { path: [[23, 33], [36, 31], [44, 35], [46, 41], [39, 47], [26, 48], [18, 43], [18, 36]],
+        ramp: FAWN, shade: { d: 2, hi: 1 }, gleam: [24, 35] },
+      // near legs
+      { path: SF.limb(24, 45, 22, 57, 2.2, 1.8), smooth: 0.5, ramp: FAWN, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(37, 45, 39, 57, 2.3, 1.9), smooth: 0.5, ramp: FAWN, shade: { d: 1, hi: 0 } },
+      // neck rising up-left
+      { path: SF.limb(25, 36, 20, 25, 4.5, 3.6), ramp: FAWN, shade: { d: 2, hi: 1 } },
+      // moss saddle on the back
+      { path: [[27, 31], [37, 30], [43, 34], [41, 38], [32, 37], [26, 35]], ramp: MOSS, shade: { d: 1, hi: 1 }, edge: 'fur' },
+      // head: gentle wedge, muzzle down-left
+      { path: [[18, 12], [25, 14], [27, 19], [24, 25], [18, 27], [13, 23], [11, 17], [14, 13]],
+        ramp: FAWN, shade: { d: 2, hi: 1 } },
+      // muzzle tip
+      { path: SF.blob(13, 25, 3, 2.6), ramp: CREAM, shade: { d: 1, hi: 0 } },
+      // big fawn ears: one flicked up, one out
+      { path: [[22, 14], [27, 6], [31, 3], [29, 10], [26, 15]], ramp: FAWN, shade: { d: 1, hi: 1 } },
+      { path: [[24, 12], [27, 7], [29, 5], [27, 10]], ramp: INNER, shade: null, ink: false },
+      { path: [[14, 12], [8, 7], [4, 6], [8, 12], [13, 15]], ramp: FAWN, shade: { d: 1, hi: 1 } },
+      { path: [[12, 12], [8, 9], [6, 8], [10, 12]], ramp: INNER, shade: null, ink: false },
+      // sprout antler-buds on the crown
+      { path: SF.limb(19, 12, 18, 8, 1.2, 1), ramp: BARK, shade: { d: 1, hi: 0 } },
+      { path: [[18, 8], [21, 5], [24, 3], [21, 3], [18, 5]], ramp: MOSS, shade: { d: 1, hi: 0 } },
+      { path: SF.blob(17, 7, 1.4, 1.4), ramp: BUD, shade: null, ink: false },
+      ], { light: [-1, -1] });
+
+      // gentle amber eye (near) + hint of the far eye
+      K.eyeBig(s, 19, 19, 2, 2.5, '#8a5a24', { look: [-1, 0] });
+      s.set(17, 15, FAWND.d); s.set(18, 15, FAWND.d);       // brow
+      // nose + soft mouth
+      s.rect(11, 24, 2, 1, '#2a2024');
+      s.set(12, 26, FAWND.d);
+      // cream dapples on the moss saddle + flank
+      s.set(30, 33, CREAM.b); s.set(35, 32, CREAM.b); s.set(39, 35, CREAM.b);
+      s.set(28, 41, CREAM.b); s.set(35, 43, CREAM.b); s.set(41, 40, CREAM.b);
+      // hoof tips
+      s.rect(21, 56, 3, 2, FAWND.d); s.rect(38, 56, 3, 2, FAWND.d);
+      s.rect(27, 55, 3, 2, FAWND.o); s.rect(42, 54, 3, 2, FAWND.o);
+      // cheek
+      K.cheek(s, 14, 20, '#e8c890');
     },
     drawBack(s) {
       // Rear: mossy back and spotted rump, head turned away above.
