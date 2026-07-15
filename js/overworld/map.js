@@ -142,8 +142,11 @@ const Overworld = {
     const it = m.itemAt(x, y);
     // warp (auto on doors/stairs/ledges handled in tryMove); grass encounter:
     const d = m.tileDef(x, y);
-    if (d && d.grass) {
-      Overworld.stepFx = 6;
+    // Wild encounters fire on grass/tall-snow, and — for indoor caves that carry
+    // an encounter table — on any open cave floor (no grass tiles underground).
+    const caveWild = m.indoor && m.encounters && m.encounters.grass && d && !d.solid && !d.water;
+    if (d && (d.grass || caveWild)) {
+      if (d.grass) Overworld.stepFx = 6;
       if (Game.repelSteps > 0) Game.repelSteps--;
       Overworld.tryEncounter();
     }
