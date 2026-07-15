@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Compare</title>
+<style>
+  body { background: #2b3450; font-family: monospace; color: #fff; padding: 10px; }
+  h2 { color: #a8b8e0; font-size: 15px; }
+  .cell { display: inline-block; margin: 5px; text-align: center; background: #46557a; padding: 6px; border-radius: 6px; }
+  canvas { image-rendering: pixelated; display: block; margin: 0 auto; background: #90b8a8; border-radius: 3px; }
+  .lbl { font-size: 12px; margin-top: 3px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<h2>Spot the difference &mdash; which do you think were drawn by which model?</h2>
+<div id="grid"></div>
+<script src="../js/core/util.js"></script>
+<script src="../js/core/pixel.js"></script>
+<script src="../js/data/species_core.js"></script>
+<script src="../js/data/dex/starters.js"></script>
+<script src="../js/data/dex/batch_a.js"></script>
+<script src="../js/data/dex/batch_b.js"></script>
+<script src="../js/data/dex/batch_c.js"></script>
+<script src="../js/data/dex/batch_d.js"></script>
+<script src="../js/data/dex/batch_e.js"></script>
+<script src="../js/data/dex/legends.js"></script>
+<script>
+  // Curated mix, presented in a neutral order (labelled A..N, no author hint).
+  const picks = ['elderhorn','jarnwyrm','emperoyal','ursnow','aurorwing','fimbulwyrm',
+    'lumedusa','seidkona','fjorddrake','cindercrag','voltuft','skjaldhawk',
+    'grimcorvid','geysmog'];
+  const grid = document.getElementById('grid');
+  let tag = 'A'.charCodeAt(0);
+  for (const key of picks) {
+    const def = Dex.byKey[key];
+    if (!def) { console.error('missing', key); continue; }
+    for (const side of ['front','back']) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const cv = document.createElement('canvas');
+      cv.width = 140; cv.height = 140;
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(Dex.sprite(key, side), 0, 0, 140, 140);
+      cell.appendChild(cv);
+      const lbl = document.createElement('div');
+      lbl.className = 'lbl';
+      lbl.textContent = def.name + ' (' + side + ')';
+      cell.appendChild(lbl);
+      grid.appendChild(cell);
+    }
+  }
+  window.PREVIEW_READY = true;
+</script>
+</body>
+</html>

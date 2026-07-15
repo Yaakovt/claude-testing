@@ -530,10 +530,15 @@ const Tiles = (() => {
 
   return {
     def(id) { return defs[id]; },
+    list() { return Object.keys(defs).map((id) => ({ id, anim: defs[id].anim || 1 })); },
     /** Render tile to canvas (cached per phase). */
     canvas(id, phase = 0) {
       const d = defs[id];
       const ph = d.anim ? phase % d.anim : 0;
+      if (typeof Assets !== 'undefined') {
+        const ov = Assets.get('tiles/' + id + (d.anim ? '_' + ph : '')) || Assets.get('tiles/' + id);
+        if (ov) return ov;
+      }
       const key = id + ':' + ph;
       if (!cache[key]) {
         const s = new PixelSurface(16, 16);

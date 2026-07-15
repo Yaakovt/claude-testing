@@ -112,6 +112,10 @@ const BattleBG = (() => {
   return {
     get(kind) {
       const k = defs[kind] ? kind : 'grass';
+      if (typeof Assets !== 'undefined') {
+        const ov = Assets.get('battlebg/' + k);
+        if (ov) return ov;
+      }
       if (!cache[k]) {
         const s = surface();
         defs[k](s);

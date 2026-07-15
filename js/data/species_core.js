@@ -31,6 +31,11 @@ const Dex = {
 
   /** Render (and cache) a species sprite. side: 'front' | 'back' */
   sprite(key, side) {
+    // External PNG override (if delivered) wins.
+    if (typeof Assets !== 'undefined') {
+      const ov = Assets.get('pokemon/' + side + '/' + key);
+      if (ov) return ov;
+    }
     const ck = key + ':' + side;
     if (Dex._spriteCache[ck]) return Dex._spriteCache[ck];
     const def = Dex.byKey[key];
