@@ -7,6 +7,8 @@
 // ---- Professor Aspen: mandatory starter gift ----
 Scripts.register('aspen_starter', () => {
   if (Game.flags.starter) {
+    // Postgame: once you're Champion, Aspen reveals himself as a hidden master.
+    if (Game.flags.champion && typeof aspenMasterChallenge === 'function') { aspenMasterChallenge(); return; }
     Textbox.say('ASPEN: How is your ' + Dex.byKey[Game.flags.starter].name + ' doing? A fine partner. Off you go — the aurora won\'t study itself!', Scripts.done);
     return;
   }
