@@ -23,7 +23,20 @@ class NPC {
 
   get beaten() { return this.trainer && Game.flags['beat_' + this.trainer]; }
 
+  /**
+   * Hidden entities aren't drawn, don't block, and can't be interacted with.
+   * Used for legendaries that only appear once a prerequisite is met and vanish
+   * after they're caught/defeated (showFlag must be set, hideFlag must be unset).
+   */
+  hidden() {
+    const d = this.def;
+    if (d.showFlag && !Game.flags[d.showFlag]) return true;
+    if (d.hideFlag && Game.flags[d.hideFlag]) return true;
+    return false;
+  }
+
   update() {
+    if (this.hidden()) return;
     if (this.moving) { this.advance(); return; }
     // Trainer line-of-sight
     if (this.trainer && !this.beaten && !Scripts.running && Game.state === 'overworld') {
@@ -80,8 +93,20 @@ class NPC {
   }
 
   draw(ctx, camX, camY) {
+    if (this.hidden()) return;
     const x = Math.round(this.px - camX);
     const y = Math.round(this.py - camY) - 6;
+    // A fakemon standing in the overworld (legendaries): draw its battle front
+    // sprite scaled down, with a gentle idle float. Real overworld sprites are a
+    // Fable task; this is a faithful placeholder.
+    if (this.def.monSprite) {
+      const spr = Dex.sprite(this.def.monSprite, 'front');
+      const bob = Math.round(Math.sin(Game.frame / 20) * 1.5);
+      const S = this.def.monScale || 30;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(spr, x + 8 - S / 2, y + 16 - S + bob, S, S);
+      return;
+    }
     const frame = this.moving ? (Math.floor(this.moveT / 8) % 2) : 0;
     ctx.drawImage(Chars.get(this.spriteId, this.dir, frame), x, y);
     // trainer "!" when about to battle

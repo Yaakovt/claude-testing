@@ -76,6 +76,7 @@ Scripts.register('depths_legendary', () => {
         if (result === 'lose') { Game.whiteout(); return; }
         if (result === 'caught') Game.flags.caughtMagnadrake = true;
         if (result === 'win') Game.flags.beatMagnadrake = true;
+        if (result === 'caught' || result === 'win') Game.flags.magnadrakeDone = true;
         Music.play(Overworld.currentMusic());
         Textbox.say(result === 'caught' ? 'The sovereign of the Depths is yours. Few trainers will ever stand beside one.' : 'The Magnadrake sinks back into the ore, its challenge answered.', Scripts.done);
       },

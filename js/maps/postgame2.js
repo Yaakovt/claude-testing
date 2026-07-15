@@ -84,6 +84,7 @@ Scripts.register('dusk_shrine_legend', () => {
         if (result === 'lose') { Game.whiteout(); return; }
         if (result === 'caught') Game.flags.caughtVesperyx = true;
         if (result === 'win') Game.flags.beatVesperyx = true;
+        if (result === 'caught' || result === 'win') Game.flags.vesperyxDone = true;
         Music.play(Overworld.currentMusic());
         Textbox.say(result === 'caught'
           ? 'Day, night, and the dusk between — all three Storm-Hearts now walk beside you. The sagas will remember your name.'

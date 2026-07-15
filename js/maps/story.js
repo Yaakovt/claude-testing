@@ -152,25 +152,12 @@ Scripts.register('spire_boss', () => {
     Music.play('battle_ionar');
     Game.startTrainerBattle(Trainers.ionar_boss, () => {
       Game.flags.beat_ionar_boss = true;
+      Game.give('ultraorb', 10);
+      Game.registerDex('auroryx', 'seen');
       Textbox.say([Trainers.ionar_boss.name + ': ' + Trainers.ionar_boss.loss,
         'MAGNUS VOLL: The Storm-Heart rejects me... but it has already half-woken. AURORYX descends! It falls to YOU now!',
-        '(Magnus flees down the spire. Above the altar, the aurora gathers into a single, blazing shape.)'], () => {
-        Game.give('ultraorb', 10);
-        const aspenLine = () => Textbox.say('(Prof. Aspen\'s voice crackles over your radio: "I gave you Ultraorbs — CATCH it, or Norvenna\'s sky will never be calm again!")', () => {
-          Game.registerDex('auroryx', 'seen');
-          Music.play('battle_champion');
-          Overworld.beginBattleFlash(() => {
-            Game.startWildBattle('auroryx', 50, 'aurora');
-            Game.flags.auroryxEncountered = true;
-          });
-        });
-        if (Game.hasItem('storm_charm')) {
-          Game.give('ultraorb', 5);
-          Textbox.say('(You raise the STORM CHARM. Its ancient light pulses, and the raging Auroryx falters — steadied just enough for you to make your throw. Aspen slips you a few more Ultraorbs.)', aspenLine);
-        } else {
-          aspenLine();
-        }
-      });
+        '(Magnus flees down the spire. Above the altar, the aurora gathers into a single blazing shape — AURORYX, wings spread wide.)',
+        '(Prof. Aspen\'s voice crackles over your radio: "I gave you Ultraorbs — approach the altar and CATCH it, or Norvenna\'s sky will never be calm again!")'], Scripts.done);
     });
   });
 });

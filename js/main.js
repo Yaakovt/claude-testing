@@ -195,6 +195,8 @@ const Game = {
         Game.setState('overworld');
         if (key === 'auroryx' && (result === 'caught' || result === 'win')) Game.flags.caughtAuroryx = true;
         if (key === 'umbryx') { if (result === 'caught') Game.flags.caughtUmbryx = true; if (result === 'win') Game.flags.beat_umbryx = true; }
+        // Unified "seen off" flag for overworld legendary sprites (hidden once caught OR beaten).
+        if (['auroryx', 'umbryx', 'vesperyx', 'magnadrake'].includes(key) && (result === 'caught' || result === 'win')) Game.flags[key + 'Done'] = true;
         if (result === 'lose') Game.whiteout();
         else Game.checkEvolutions({ level: true }, () => {});
         Music.play(Overworld.currentMusic());

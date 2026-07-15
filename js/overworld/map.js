@@ -64,7 +64,7 @@ class Tilemap {
     if (od && Tiles.def(od) && Tiles.def(od).solid) return true;
     // NPCs block
     for (const npc of this.npcs) {
-      if (npc.tx === x && npc.ty === y && !npc.passable) return true;
+      if (npc.tx === x && npc.ty === y && !npc.passable && !npc.hidden()) return true;
     }
     if (Overworld.followerBlocks(x, y)) return true;
     return false;
@@ -73,7 +73,7 @@ class Tilemap {
   warpAt(x, y) { return this.warps.find((w) => w.x === x && w.y === y); }
   signAt(x, y) { return this.signs.find((s) => s.x === x && s.y === y); }
   itemAt(x, y) { return this.items.find((it) => it.x === x && it.y === y && !Game.flags[it.flag]); }
-  npcAt(x, y) { return this.npcs.find((n) => n.tx === x && n.ty === y); }
+  npcAt(x, y) { return this.npcs.find((n) => n.tx === x && n.ty === y && !n.hidden()); }
 }
 
 const Overworld = {

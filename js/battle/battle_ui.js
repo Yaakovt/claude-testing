@@ -30,6 +30,8 @@ const BattleUI = {
     BattleUI.hpShown = { pl: Battle.pl.mon.curHp / Battle.pl.mon.maxHp, en: 1 };
     BattleUI.expShown = Battle.pl.mon.expPct();
     BattleUI.spriteState = { pl: { visible: false, y: 0, alpha: 1 }, en: { visible: false, y: 0, alpha: 1 } };
+    BattleUI.trainerIntro = (Battle.kind === 'trainer');   // show foe trainer until first send
+    BattleUI.throwFx = null;
     Music.play(Battle.kind === 'trainer' ? (Battle.trainer.music || 'battle_trainer') : 'battle_wild');
   },
 
@@ -162,14 +164,19 @@ const BattleUI = {
         break;
       }
       case 'sendEnemy':
+        BattleUI.trainerIntro = false;        // foe trainer throws its ball and steps back
+        BattleUI.throwBall('en');
         BattleUI.spriteState.en = { visible: true, y: -40, alpha: 1 };
         BattleUI.hpShown.en = Battle.en ? Util.clamp(Battle.en.mon.curHp / Battle.en.mon.maxHp, 0, 1) : 1;
+        AudioSys.sfx('ball_throw');
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 20;
         break;
       case 'sendPlayer':
+        BattleUI.throwBall('pl');
         BattleUI.spriteState.pl = { visible: true, y: -40, alpha: 1 };
         BattleUI.hpShown.pl = Util.clamp(Battle.pl.mon.curHp / Battle.pl.mon.maxHp, 0, 1);
         BattleUI.expShown = Battle.pl.mon.expPct();
+        AudioSys.sfx('ball_throw');
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 20;
         break;
       case 'recall':
@@ -325,6 +332,47 @@ const BattleUI = {
     }
   },
 
+  // ------------------------------------------------------------- send-out ball throw
+  /** A poke-ball arcing to a mon's spot when it's sent out (both sides). */
+  throwBall(side) {
+    const g = BattleUI.GEOM;
+    const to = side === 'en' ? { x: g.tx, y: g.ty } : { x: g.ux, y: g.uy };
+    const from = side === 'en' ? { x: 150, y: 96 } : { x: 40, y: 150 };
+    BattleUI.throwFx = { t: 0, dur: 14, from, to };
+  },
+
+  drawBallIcon(ctx, x, y, rot) {
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(rot);
+    ctx.fillStyle = '#e83828'; ctx.beginPath(); ctx.arc(0, 0, 4, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#f8f8f8'; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI); ctx.fill();
+    ctx.strokeStyle = '#181818'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.stroke();
+    ctx.fillStyle = '#f8f8f8'; ctx.beginPath(); ctx.arc(0, 0, 1.4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  },
+
+  drawThrowFx(ctx) {
+    const f = BattleUI.throwFx;
+    if (!f) return;
+    if (f.t <= f.dur) {
+      const t = f.t / f.dur;
+      const x = Util.lerp(f.from.x, f.to.x, t);
+      const y = Util.lerp(f.from.y, f.to.y, t) - Math.sin(t * Math.PI) * 28;   // arc
+      BattleUI.drawBallIcon(ctx, x, y, f.t * 0.7);
+    } else {
+      // burst of light where the mon materialises
+      const bt = f.t - f.dur;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - bt / 9);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(f.to.x, f.to.y, 6 + bt * 2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      if (bt > 9) BattleUI.throwFx = null;
+    }
+    f.t++;
+  },
+
   // ------------------------------------------------------------- ball anim
   startBall(ev) {
     AudioSys.sfx('ball_throw');
@@ -377,6 +425,10 @@ const BattleUI = {
     const off = BattleAnim.userOffset();
     const anim = BattleAnim.current;
     const enSt = BattleUI.spriteState.en, plSt = BattleUI.spriteState.pl;
+    // Foe trainer stands in until they send out their first mon.
+    if (Battle.kind === 'trainer' && BattleUI.trainerIntro && typeof TrainerArt !== 'undefined') {
+      ctx.drawImage(TrainerArt.get(Battle.trainer), g.tx - 24, g.ty - 36, 48, 48);
+    }
     if (enSt.visible && Battle.en) {
       let ex = g.tx - 32, ey = g.ty - 32;
       if (enSt.y < 0) { enSt.y += 4; ey += enSt.y; }
@@ -397,6 +449,9 @@ const BattleUI = {
       }
       ctx.globalAlpha = 1;
     }
+
+    // send-out ball throw
+    BattleUI.drawThrowFx(ctx);
 
     // ball animation
     if (BattleUI.ball) BattleUI.drawBall(ctx);
