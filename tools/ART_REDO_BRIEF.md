@@ -85,3 +85,27 @@ integer-scaled. Prioritize smooth, characterful motion over detail.
   the opponent, per earlier note). Cries already pair with a flash on entry.
 - **Evolution + Mega flashes, heal orbs, weather (rain/sun/hail/sandstorm):** keep them
   lively. Any sprite that moves in-engine needs frames that look good in motion.
+
+## Weather sprites & animations (Fable)
+The battle engine drives four weather states (`rain`, `sun`, `hail`, `sandstorm`)
+plus the aurora ambience. Each needs a looping, good-looking animation layered
+over the battle backdrop (see js/battle/battle_ui.js drawWeather + battlebg):
+- **Rain:** streaking droplets + occasional splash on the ground line; darker tint.
+- **Sun (harsh sunlight):** warm overexposed tint + slow lens-glint motes.
+- **Hail:** tumbling ice pellets + a cold blue tint, pellets bounce on landing.
+- **Sandstorm:** driven grit sheets sweeping across, ochre tint, low visibility.
+- **Aurora (ambient):** the ribbon shimmer already in battlebg — keep it flowing.
+Also the in-battle move animations now include type-flavored fx (flames, iceshards,
+shock, psywave, fairydust, venom, vortex, phantom, crush, explosion) — Fable can
+repaint these particle effects to match the new sprite style.
+
+## In-battle GUI / HUD (Fable)
+- HP/EXP bars, the name+level boxes, the FIGHT/BAG/MON/RUN command box, the move
+  menu with type-colored chips and PP, the catch/faint overlays, and the Poke Ball
+  throw + send-out burst. Keep them crisp at 240×160; match the overworld UI frame.
+- Trainer battle sprites: one per class (Youngster, Hiker, Lass, Sailor, Psychic,
+  Ace, Veteran, …) plus named bosses (each Leader, the Rival, Elite Four, Champion,
+  Team Ionar grunts/lieutenants/Magnus, Professor Aspen). Override via assets/
+  manifest key `trainers/<Class or id>`.
+- Overworld legendary sprites: Auroryx, Umbryx, Vesperyx, Magnadrake need proper
+  down-facing overworld sprites (currently their scaled battle art stands in).

@@ -399,5 +399,149 @@ const BattleAnim = {
         }
       },
     },
+
+    // ---- second wave: type-flavored attack fx for more battle variety ----
+    flames: {
+      dur: () => 26,
+      draw(ctx, spec, g, t, f) {
+        for (let i = 0; i < spec.n; i++) {
+          const pt = (t * 1.5 + i / spec.n) % 1;
+          const x = g.tx - 16 + ((i * 37) % 32) + Math.sin(pt * 10 + i) * 3;
+          const y = g.ty + 12 - pt * 30;
+          ctx.globalAlpha = 1 - pt * 0.7;
+          BattleAnim.px(ctx, x, y, spec.col[i % spec.col.length], pt < 0.5 ? 3 : 2);
+          ctx.globalAlpha = 1;
+        }
+        if (t < 0.3) { ctx.fillStyle = spec.col[0]; ctx.beginPath(); ctx.arc(g.tx, g.ty + 6, 10 * (t * 3), 0, Math.PI * 2); ctx.fill(); }
+      },
+    },
+    iceshards: {
+      dur: () => 24,
+      draw(ctx, spec, g, t) {
+        const n = spec.n;
+        for (let i = 0; i < n; i++) {
+          const ang = (i / n) * Math.PI * 2;
+          if (t < 0.6) {
+            const r = (1 - t / 0.6) * 26;
+            const x = g.tx + Math.cos(ang) * r, y = g.ty + Math.sin(ang) * r;
+            ctx.fillStyle = spec.col[i % spec.col.length];
+            ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.fillRect(-1, -3, 2, 6); ctx.restore();
+          } else {
+            const r = (t - 0.6) / 0.4 * 22;
+            BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r, spec.col[i % spec.col.length], 2);
+          }
+        }
+      },
+    },
+    shock: {
+      dur: () => 22,
+      draw(ctx, spec, g, t, f) {
+        for (let i = 0; i < spec.n; i++) {
+          const ang = i * 2.4 + t * 4;
+          const r = 6 + (f % 3) * 3 + t * 10;
+          ctx.strokeStyle = spec.col[i % spec.col.length]; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(g.tx, g.ty); ctx.lineTo(g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r * 0.8); ctx.stroke();
+        }
+        if ((f % 4) < 2) { ctx.fillStyle = spec.col[0]; ctx.fillRect(g.tx - 3, g.ty - 3, 6, 6); }
+      },
+    },
+    psywave: {
+      dur: () => 28,
+      draw(ctx, spec, g, t) {
+        for (let i = 0; i < spec.n; i++) {
+          const pt = (t * 1.5 + i / spec.n) % 1;
+          ctx.globalAlpha = 1 - pt;
+          ctx.strokeStyle = spec.col[i % spec.col.length]; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(g.tx, g.ty, 4 + pt * 20, (4 + pt * 20) * 0.6, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      },
+    },
+    fairydust: {
+      dur: () => 28,
+      draw(ctx, spec, g, t, f) {
+        for (let i = 0; i < spec.n; i++) {
+          const ang = i * 2.4 - t * 4;
+          const r = 6 + (i % 4) * 5 + Math.sin(t * 6 + i) * 3;
+          const x = g.tx + Math.cos(ang) * r, y = g.ty + Math.sin(ang) * r * 0.8;
+          if ((f + i) % 6 < 4) {
+            const c = spec.col[i % spec.col.length];
+            BattleAnim.px(ctx, x, y, c, 1); BattleAnim.px(ctx, x, y - 2, c, 1);
+            BattleAnim.px(ctx, x - 2, y, c, 1); BattleAnim.px(ctx, x + 2, y, c, 1); BattleAnim.px(ctx, x, y + 2, c, 1);
+          }
+        }
+      },
+    },
+    venom: {
+      dur: () => 26,
+      draw(ctx, spec, g, t) {
+        for (let i = 0; i < spec.n; i++) {
+          const pt = Util.clamp(t * 1.4 - i * 0.05, 0, 1);
+          const x = Util.lerp(g.ux, g.tx, pt) + Math.sin(i) * 6;
+          const y = Util.lerp(g.uy, g.ty, pt) + pt * pt * 8;
+          const c = spec.col[i % spec.col.length];
+          ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+          if (pt > 0.9) BattleAnim.px(ctx, x, y + 3, c, 1);
+        }
+      },
+    },
+    vortex: {
+      dur: () => 28,
+      draw(ctx, spec, g, t) {
+        for (let i = 0; i < spec.n; i++) {
+          const base = (i / spec.n) * Math.PI * 2;
+          const pt = (t + i / spec.n) % 1;
+          const ang = base + pt * Math.PI * 3;
+          const r = 24 * (1 - pt);
+          BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + Math.sin(ang) * r * 0.8, spec.col[i % spec.col.length], pt < 0.5 ? 3 : 2);
+        }
+      },
+    },
+    phantom: {
+      dur: () => 26,
+      draw(ctx, spec, g, t, f) {
+        for (let i = 0; i < spec.n; i++) {
+          const pt = (t * 1.3 + i / spec.n) % 1;
+          const x = Util.lerp(g.ux, g.tx, pt) + Math.sin(pt * 8 + i) * 8;
+          const y = Util.lerp(g.uy, g.ty, pt) + Math.cos(pt * 6 + i) * 8;
+          ctx.globalAlpha = (f + i) % 8 < 5 ? (1 - pt * 0.5) : 0;
+          BattleAnim.px(ctx, x, y, spec.col[i % spec.col.length], 3);
+          ctx.globalAlpha = 1;
+        }
+      },
+    },
+    crush: {
+      dur: () => 24,
+      draw(ctx, spec, g, t, f) {
+        if (t < 0.5) {
+          const y = g.ty - 40 + (t / 0.5) * 40;
+          ctx.fillStyle = spec.col[0]; ctx.fillRect(g.tx - 6, y - 6, 12, 12);
+        } else {
+          Screen.shakeOffset = (f % 4 < 2) ? 3 : -3;
+          const bt = (t - 0.5) / 0.5;
+          for (let i = 0; i < spec.n; i++) {
+            const ang = (i / spec.n) * Math.PI; const r = bt * 24;
+            BattleAnim.px(ctx, g.tx + Math.cos(ang) * r, g.ty + 6 - Math.sin(ang) * r * 0.5, spec.col[i % spec.col.length], 3);
+          }
+        }
+        if (t > 0.95) Screen.shakeOffset = 0;
+      },
+    },
+    explosion: {
+      dur: () => 28,
+      draw(ctx, spec, g, t, f) {
+        Screen.shakeOffset = t < 0.7 ? ((f % 3) - 1) * 3 : 0;
+        const r = t * 30;
+        ctx.globalAlpha = Math.max(0, 1 - t);
+        ctx.fillStyle = spec.col[0]; ctx.beginPath(); ctx.arc(g.tx, g.ty, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = spec.col[spec.col.length - 1] || '#fff'; ctx.beginPath(); ctx.arc(g.tx, g.ty, r * 0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        for (let i = 0; i < spec.n; i++) {
+          const ang = (i / spec.n) * Math.PI * 2 + i; const rr = t * (18 + (i % 5) * 6);
+          BattleAnim.px(ctx, g.tx + Math.cos(ang) * rr, g.ty + Math.sin(ang) * rr, spec.col[i % spec.col.length], t < 0.5 ? 3 : 2);
+        }
+        if (t > 0.95) Screen.shakeOffset = 0;
+      },
+    },
   },
 };
