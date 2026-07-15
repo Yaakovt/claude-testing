@@ -16,18 +16,33 @@ const files = [
   'js/data/dex/legends.js',
 ];
 
-const ctx = { console, Math, JSON, Array, Object, window: {} };
+const fakeCtx2d = {
+  createImageData: () => ({ data: [] }),
+  putImageData: () => {}, drawImage: () => {}, fillRect: () => {},
+};
+const ctx = {
+  console, Math, JSON, Array, Object, window: {},
+  document: { createElement: () => ({ getContext: () => fakeCtx2d }) },
+};
 vm.createContext(ctx);
+// Concatenate all sources into ONE script so top-level `const` bindings are
+// shared (separate runInContext calls each get their own lexical scope).
+let combined = '';
 let loaded = 0;
 for (const f of files) {
   let src;
   try { src = readFileSync(path.join(root, f), 'utf8'); }
   catch { console.log('  (missing: ' + f + ')'); continue; }
-  try { vm.runInContext(src, ctx, { filename: f }); loaded++; }
-  catch (e) { console.error('LOAD FAIL ' + f + ': ' + e.message); process.exit(1); }
+  combined += '\n' + src + '\n';
+  loaded++;
 }
+// Epilogue: expose the lexical globals we need onto the context object.
+combined += '\nthis.__X = { Dex, Moves, Items, Types, Abilities, Growth };\n';
+try { vm.runInContext(combined, ctx, { filename: 'combined' }); }
+catch (e) { console.error('LOAD FAIL: ' + e.message + '\n' + (e.stack || '').split('\n').slice(0, 4).join('\n')); process.exit(1); }
 
-const { Dex, Moves, Items, Types, Abilities } = ctx;
+const { Dex, Moves, Items, Types, Abilities } = ctx.__X;
+ctx.Growth = ctx.__X.Growth;
 const errs = [];
 const warn = [];
 
@@ -50,9 +65,12 @@ for (const key of Dex.order) {
   if (!d.learn.some(([lv]) => lv === 1)) errs.push(tag + ': no level-1 move');
   for (const tm of d.tms || []) if (!Items[tm]) errs.push(tag + `: unknown tm ${tm}`);
   if (d.evolve) {
-    if (!Dex.byKey[d.evolve.to]) errs.push(tag + `: evolves to unknown ${d.evolve.to}`);
-    if (!d.evolve.level && !d.evolve.stone && !d.evolve.friendship) errs.push(tag + ': evolve has no trigger');
-    if (d.evolve.stone && !Items[d.evolve.stone]) errs.push(tag + `: unknown stone ${d.evolve.stone}`);
+    const opts = Array.isArray(d.evolve) ? d.evolve : [d.evolve];
+    for (const opt of opts) {
+      if (!Dex.byKey[opt.to]) errs.push(tag + `: evolves to unknown ${opt.to}`);
+      if (!opt.level && !opt.stone && !opt.friendship) errs.push(tag + ': evolve has no trigger');
+      if (opt.stone && !Items[opt.stone]) errs.push(tag + `: unknown stone ${opt.stone}`);
+    }
   }
   if (!d.dex || !d.dex.entry || !d.dex.species) errs.push(tag + ': missing dex entry');
   if (!d.cry || !d.cry.base) errs.push(tag + ': missing cry');
