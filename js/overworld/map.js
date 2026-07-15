@@ -197,6 +197,7 @@ const Overworld = {
     if (sign) { Textbox.say(sign.text); return true; }
     // field tile actions
     const d = m.tileDef(x, y);
+    if (d && d.water && !p.surfing && Overworld.bestRod()) { Overworld.fish(x, y); return true; }
     if (d && d.water && Game.flags.hm_surf && !p.surfing) { Overworld.promptSurf(x, y); return true; }
     if (d && d.cut && Game.flags.hm_cut) { Overworld.useCut(x, y); return true; }
     if (d && d.boulder && Game.flags.hm_strength) { Overworld.useStrength(x, y, p.dir); return true; }
@@ -210,6 +211,32 @@ const Overworld = {
     AudioSys.sfx('jingle_item');
     const name = Items[it.item].name;
     Textbox.say(Game.playerName + ' found ' + (it.count > 1 ? it.count + ' ' : 'a ') + name + '!');
+  },
+
+  bestRod() {
+    if (Game.hasItem('super_rod')) return 'super';
+    if (Game.hasItem('good_rod')) return 'good';
+    if (Game.hasItem('old_rod')) return 'old';
+    return null;
+  },
+
+  fish(x, y) {
+    const rod = Overworld.bestRod();
+    if (!rod) return;
+    const name = { old: 'Old Rod', good: 'Good Rod', super: 'Super Rod' }[rod];
+    const hook = { old: 45, good: 65, super: 85 }[rod];
+    const boost = { old: 0, good: 2, super: 5 }[rod];
+    AudioSys.sfx('confirm');
+    Textbox.say('You cast the ' + name + ' into the water...', () => {
+      if (!Util.chance(hook)) { Textbox.say('...Not even a nibble.'); return; }
+      const table = fishTable(Overworld.map.id);
+      const pick = Overworld.rollEncounter(table);
+      if (!pick) { Textbox.say('...Not even a nibble.'); return; }
+      Textbox.say('Oh! A bite!', () => {
+        Music.play('battle_wild');
+        Overworld.beginBattleFlash(() => Game.startWildBattle(pick.key, Util.randRange(pick.min + boost, pick.max + boost), 'water'));
+      });
+    });
   },
 
   promptSurf(x, y) {

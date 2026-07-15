@@ -36,6 +36,14 @@ Think Gen-3 (Ruby/Sapphire/Emerald) box art quality at 64×64:
 - Still show the back: spine, dorsal markings, tail/wings toward the camera, back of the
   crest/hood. Bulkier read than the front (closer to camera).
 
+## PROCESS (user's explicit ask)
+Codex's pass made some look weird, so this redo must read as **professional-grade**.
+- **Start with just a FEW** (the 3 starter finals + Auroryx is a good first set), pour
+  intense focus into each one, screenshot, and **SHOW THE USER for sign-off BEFORE
+  doing the rest.** Do not batch all 100 blindly.
+- Quality over speed: it's fine to spend many iterations on a single sprite. Each
+  should look hand-crafted, not auto-generated.
+
 ## Workflow (per batch of 18)
 1. Rewrite the draw functions for your id range only.
 2. Screenshot & **look critically**:

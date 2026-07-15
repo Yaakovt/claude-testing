@@ -357,7 +357,103 @@ The 8 GYM BADGES (badge_0..badge_7) — small emblem, ~14px, distinct color/shap
   badge_6: Glacier (Ice, Yrsa) — a snowflake, cyan
   badge_7: Storm (Dragon, Signe) — a lightning wing, violet
 
-## 6) MANIFEST
+## 6) ITEM ICONS — 16×16, transparent
+One small icon per item, shown in the bag, shop, and party screens. Keep them
+crisp and readable at 16px. Group by kind (balls look like capture orbs, potions
+like bottles, berries/charms for held items, gems for stones, discs for TMs, etc.).
+`items/<id>.png` for each id below:
+
+| id (filename) | name | kind | look |
+|---|---|---|---|
+| `fieldorb` | Fieldorb | ball | capture orb (red top / white bottom, tinted) |
+| `greatorb` | Greatorb | ball | capture orb (red top / white bottom, tinted) |
+| `ultraorb` | Ultraorb | ball | capture orb (red top / white bottom, tinted) |
+| `meshorb` | Meshorb | ball | capture orb (red top / white bottom, tinted) |
+| `gloomorb` | Gloomorb | ball | capture orb (red top / white bottom, tinted) |
+| `rushorb` | Rushorb | ball | capture orb (red top / white bottom, tinted) |
+| `denorb` | Denorb | ball | capture orb (red top / white bottom, tinted) |
+| `primeorb` | Primeorb | ball | capture orb (red top / white bottom, tinted) |
+| `potion` | Potion | medicine | bottle/potion |
+| `super_potion` | Super Potion | medicine | bottle/potion |
+| `hyper_potion` | Hyper Potion | medicine | bottle/potion |
+| `max_potion` | Max Potion | medicine | bottle/potion |
+| `antidote` | Antidote | medicine | bottle/potion |
+| `burn_salve` | Burn Salve | medicine | bottle/potion |
+| `ice_thaw` | Ice Thaw | medicine | bottle/potion |
+| `awakening` | Awakening | medicine | bottle/potion |
+| `paralyze_heal` | Paralyze Heal | medicine | bottle/potion |
+| `full_heal` | Full Heal | medicine | bottle/potion |
+| `revive` | Revive | medicine | bottle/potion |
+| `max_revive` | Max Revive | medicine | bottle/potion |
+| `ether` | Ether | medicine | bottle/potion |
+| `rare_candy` | Rare Candy | medicine | bottle/potion |
+| `repel` | Repel | misc | spray can / charm |
+| `super_repel` | Super Repel | misc | spray can / charm |
+| `escape_rope` | Escape Rope | misc | spray can / charm |
+| `x_attack` | X Attack | battle | stat vial |
+| `x_defense` | X Defense | battle | stat vial |
+| `x_special` | X Special | battle | stat vial |
+| `x_speed` | X Speed | battle | stat vial |
+| `verdant_stone` | Verdant Stone | stone | faceted gem |
+| `ember_stone` | Ember Stone | stone | faceted gem |
+| `tide_stone` | Tide Stone | stone | faceted gem |
+| `storm_stone` | Storm Stone | stone | faceted gem |
+| `aurora_stone` | Aurora Stone | stone | faceted gem |
+| `mendmoss` | Mendmoss | held | berry or charm |
+| `focus_charm` | Focus Charm | held | berry or charm |
+| `soothe_berry` | Soothe Berry | held | berry or charm |
+| `rally_berry` | Rally Berry | held | berry or charm |
+| `stillstone` | Stillstone | held | berry or charm |
+| `emberband` | Emberband | held | berry or charm |
+| `tideband` | Tideband | held | berry or charm |
+| `leafband` | Leafband | held | berry or charm |
+| `voltband` | Voltband | held | berry or charm |
+| `wyrmband` | Wyrmband | held | berry or charm |
+| `town_map` | Town Map | key | key/quest item |
+| `old_rod` | Old Rod | key | key/quest item |
+| `good_rod` | Good Rod | key | key/quest item |
+| `super_rod` | Super Rod | key | key/quest item |
+| `old_lamp` | Old Lamp | key | key/quest item |
+| `ferry_pass` | Ferry Pass | key | key/quest item |
+| `ionar_badge` | Ionar Badge | key | key/quest item |
+| `storm_charm` | Storm Charm | key | key/quest item |
+| `shrine_key` | Shrine Key | key | key/quest item |
+| `fin_fossil` | Fin Fossil | key | key/quest item |
+| `tusk_fossil` | Tusk Fossil | key | key/quest item |
+| `tm01` | TM01 Storm Bolt | tm | data disc (type-colored) |
+| `tm02` | TM02 Fire Lance | tm | data disc (type-colored) |
+| `tm03` | TM03 Glacier Ray | tm | data disc (type-colored) |
+| `tm04` | TM04 Mind Crush | tm | data disc (type-colored) |
+| `tm05` | TM05 Phantom Orb | tm | data disc (type-colored) |
+| `tm06` | TM06 Blightbrew | tm | data disc (type-colored) |
+| `tm07` | TM07 Earthshatter | tm | data disc (type-colored) |
+| `tm08` | TM08 Muscle Flex | tm | data disc (type-colored) |
+| `tm09` | TM09 Prism Flare | tm | data disc (type-colored) |
+| `tm10` | TM10 Sludge Blast | tm | data disc (type-colored) |
+| `tm11` | TM11 Sunblessing | tm | data disc (type-colored) |
+| `tm12` | TM12 Stormcall | tm | data disc (type-colored) |
+| `tm13` | TM13 Hailstorm | tm | data disc (type-colored) |
+| `tm14` | TM14 Duststorm | tm | data disc (type-colored) |
+| `tm15` | TM15 Rock Slide | tm | data disc (type-colored) |
+| `tm16` | TM16 Gale Blade | tm | data disc (type-colored) |
+| `tm17` | TM17 Protect | tm | data disc (type-colored) |
+| `tm18` | TM18 Wicked Scheme | tm | data disc (type-colored) |
+| `tm19` | TM19 Sap Surge | tm | data disc (type-colored) |
+| `tm20` | TM20 Chrome Cannon | tm | data disc (type-colored) |
+| `tm21` | TM21 Swift Stars | tm | data disc (type-colored) |
+| `tm22` | TM22 Wyrm Pulse | tm | data disc (type-colored) |
+| `tm23` | TM23 Dread Pulse | tm | data disc (type-colored) |
+| `tm24` | TM24 Verdant Orb | tm | data disc (type-colored) |
+| `tm25` | TM25 Body Slam | tm | data disc (type-colored) |
+| `hm01` | HM01 Cut | tm | data disc (type-colored) |
+| `hm02` | HM02 Fly | tm | data disc (type-colored) |
+| `hm03` | HM03 Surf | tm | data disc (type-colored) |
+| `hm04` | HM04 Strength | tm | data disc (type-colored) |
+| `hm05` | HM05 Flash | tm | data disc (type-colored) |
+| `hm06` | HM06 Rock Smash | tm | data disc (type-colored) |
+| `hm07` | HM07 Waterfall | tm | data disc (type-colored) |
+
+## 7) MANIFEST
 Write `assets/manifest.json` listing every PNG you delivered, e.g.:
 ```json
 { "files": ["pokemon/front/cindrel.png", "pokemon/back/cindrel.png",

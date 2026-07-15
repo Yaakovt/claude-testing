@@ -54,7 +54,9 @@ class Player {
         this.surfing = false;
       } else if (!destDef || !destDef.water) { AudioSys.sfx('bump'); return; }
     } else if (destDef && destDef.water) {
-      AudioSys.sfx('bump'); return; // need surf; handled by interact
+      // Walking into water: offer to Surf if able, else bump (A-button fishes).
+      if (Game.flags.hm_surf) { this.dir = dir; Overworld.promptSurf(nx, ny); return; }
+      AudioSys.sfx('bump'); return;
     }
     if (m.solidAt(nx, ny)) {
       // counter/sign facing feedback

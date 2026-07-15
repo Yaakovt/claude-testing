@@ -94,7 +94,7 @@ defineMap({
   warps: [back(4, 5)],
   npcs: [
     { x: 2, y: 1, sprite: 'clerk', dir: 'down', move: 'static', passable: false, script: 'mart',
-      stock: ['fieldorb', 'greatorb', 'potion', 'super_potion', 'antidote', 'paralyze_heal', 'awakening', 'repel'] },
+      stock: ['fieldorb', 'greatorb', 'ultraorb', 'meshorb', 'gloomorb', 'potion', 'super_potion', 'hyper_potion', 'antidote', 'paralyze_heal', 'awakening', 'full_heal', 'revive', 'repel', 'mendmoss', 'rally_berry', 'soothe_berry'] },
     { x: 6, y: 3, sprite: 'npc_woman', move: 'wander', script: 'mart_chat' },
   ],
 });

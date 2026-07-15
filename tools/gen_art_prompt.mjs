@@ -20,9 +20,9 @@ const ctx = { console, Math, JSON, Array, Object, window: {}, document: { create
 vm.createContext(ctx);
 let combined = '';
 for (const f of files) combined += '\n' + readFileSync(path.join(root, f), 'utf8') + '\n';
-combined += '\nthis.__X = { Dex, Tiles, Chars, TypeColors };\n';
+combined += '\nthis.__X = { Dex, Tiles, Chars, TypeColors, Items };\n';
 vm.runInContext(combined, ctx, { filename: 'combined' });
-const { Dex, Tiles, Chars } = ctx.__X;
+const { Dex, Tiles, Chars, Items } = ctx.__X;
 
 let md = '';
 const P = (s = '') => { md += s + '\n'; };
@@ -199,7 +199,24 @@ const badges = ['Steadfast (Normal, Astrid) — a shield/heart, grey-gold',
   'Storm (Dragon, Signe) — a lightning wing, violet'];
 badges.forEach((b, i) => P('  badge_' + i + ': ' + b));
 P();
-P('## 6) MANIFEST');
+// ---- Item icons ----
+P('## 6) ITEM ICONS — 16×16, transparent');
+P('One small icon per item, shown in the bag, shop, and party screens. Keep them');
+P('crisp and readable at 16px. Group by kind (balls look like capture orbs, potions');
+P('like bottles, berries/charms for held items, gems for stones, discs for TMs, etc.).');
+P('`items/<id>.png` for each id below:');
+P();
+P('| id (filename) | name | kind | look |');
+P('|---|---|---|---|');
+const kindLook = { ball: 'capture orb (red top / white bottom, tinted)', medicine: 'bottle/potion',
+  battle: 'stat vial', misc: 'spray can / charm', stone: 'faceted gem', tm: 'data disc (type-colored)',
+  key: 'key/quest item', held: 'berry or charm' };
+for (const id of Object.keys(ctx.__X.Items)) {
+  const it = ctx.__X.Items[id];
+  P(`| \`${id}\` | ${it.name} | ${it.kind} | ${kindLook[it.kind] || 'item'} |`);
+}
+P();
+P('## 7) MANIFEST');
 P('Write `assets/manifest.json` listing every PNG you delivered, e.g.:');
 P('```json');
 P('{ "files": ["pokemon/front/cindrel.png", "pokemon/back/cindrel.png",');

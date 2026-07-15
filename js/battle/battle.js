@@ -52,6 +52,7 @@ const Battle = {
     Battle.runAttempts = 0;
     Battle.result = null;
     Battle.caughtMon = null;
+    Battle.turnCount = 0;
     Battle.participants = new Set();
 
     const pmon = Game.party.find((m) => !m.fainted);
@@ -79,8 +80,11 @@ const Battle = {
 
   trainerMon(i) {
     const spec = Battle.trainer.party[i];
-    return new Mon(spec.key, spec.level, { moves: spec.moves, ot: Battle.trainer.name });
+    return new Mon(spec.key, spec.level, { moves: spec.moves, heldItem: spec.held, ot: Battle.trainer.name });
   },
+
+  heldOf(side) { return side.mon.heldItem && Items[side.mon.heldItem] ? Items[side.mon.heldItem] : {}; },
+  consumeHeld(side) { side.mon.heldItem = null; },
 
   entryAbilities() {
     for (const side of [Battle.pl, Battle.en]) {
@@ -447,6 +451,8 @@ const Battle = {
     if (uAb.pinch && uAb.pinch.type === move.type && user.mon.curHp <= user.mon.maxHp / 3) power *= 1.5;
     if (uAb.auroraHeart && (Battle.weather.kind === 'rain' || Battle.weather.kind === 'hail')) power *= 1.3;
     if (fx.hexBoost && (target.mon.status || target.confuse > 0)) power *= 2;
+    const uHeld = Battle.heldOf(user);
+    if (uHeld.typeBoost && uHeld.typeBoost.type === move.type) power *= uHeld.typeBoost.mult;
 
     // Weather modifiers
     if (Battle.weather.kind === 'rain') {
@@ -507,6 +513,16 @@ const Battle = {
       Battle.E('text', { msg: mon.name + ' endured the hit!' });
       return deal;
     }
+    // Focus Charm: survive a KO from full HP (consumed)
+    const held = Battle.heldOf(side);
+    if (held.focusCharm && mon.curHp === mon.maxHp && deal >= mon.curHp) {
+      deal = mon.curHp - 1;
+      mon.curHp = 1;
+      Battle.consumeHeld(side);
+      Battle.E('hp', { side: side.isPlayer ? 'pl' : 'en' });
+      Battle.E('text', { msg: mon.name + ' hung on using its ' + held.name + '!' });
+      return deal;
+    }
     mon.curHp -= deal;
     Battle.E('hp', { side: side.isPlayer ? 'pl' : 'en' });
     return deal;
@@ -546,11 +562,20 @@ const Battle = {
     };
     Battle.E('status', { side: side.isPlayer ? 'pl' : 'en', st: id });
     Battle.E('text', { msg: (cause ? cause + ': ' : '') + mon.name + msgs[id] });
+    // Soothe Berry: immediately cures the status it just took (consumed)
+    const held = Battle.heldOf(side);
+    if (held.cureBerry) {
+      mon.status = null;
+      Battle.consumeHeld(side);
+      Battle.E('statusClear', { side: side.isPlayer ? 'pl' : 'en' });
+      Battle.E('text', { msg: mon.name + ' ate its ' + held.name + ' and shook it off!' });
+    }
   },
 
   // ---------------------------------------------------------------- end of turn
   endOfTurn() {
     if (Battle.result) return;
+    Battle.turnCount++;
     // Weather
     if (Battle.weather.kind && Battle.weather.turns < 900) {
       Battle.weather.turns--;
@@ -602,6 +627,19 @@ const Battle = {
       if (ab.regen && mon.curHp < mon.maxHp && !mon.fainted) {
         mon.curHp = Math.min(mon.maxHp, mon.curHp + Math.max(1, Math.floor(mon.maxHp * ab.regen)));
         Battle.E('hp', { side: tag });
+      }
+      // Held items: Mendmoss (leftovers) and pinch berries
+      const held = Battle.heldOf(side);
+      if (held.leftovers && mon.curHp < mon.maxHp && !mon.fainted) {
+        mon.curHp = Math.min(mon.maxHp, mon.curHp + Math.max(1, Math.floor(mon.maxHp * held.leftovers)));
+        Battle.E('hp', { side: tag });
+        Battle.E('text', { msg: mon.name + ' restored a little HP with its ' + held.name + '!' });
+      }
+      if (held.pinchBerry && mon.curHp > 0 && mon.curHp <= mon.maxHp / 4 && !mon.fainted) {
+        mon.curHp = Math.min(mon.maxHp, mon.curHp + Math.floor(mon.maxHp * held.pinchBerry));
+        Battle.consumeHeld(side);
+        Battle.E('hp', { side: tag });
+        Battle.E('text', { msg: mon.name + ' ate its ' + held.name + ' and recovered!' });
       }
       // Screens tick
       if (side.screens.phys > 0) side.screens.phys--;
@@ -728,8 +766,12 @@ const Battle = {
     }
     const statusBonus = en.status === 'slp' || en.status === 'frz' ? 2
       : en.status ? 1.5 : 1;
+    // Dynamic ball multiplier (Meshorb/Gloomorb/Rushorb/Denorb) or flat ballMult.
+    const ballMult = ball.ballMod
+      ? ball.ballMod(en, { turn: Battle.turnCount, env: Battle.env, level: en.level })
+      : (ball.ballMult || 1);
     const a = Math.min(255, Math.floor(
-      ((3 * en.maxHp - 2 * en.curHp) * en.def.catchRate * ball.ballMult * statusBonus) / (3 * en.maxHp)
+      ((3 * en.maxHp - 2 * en.curHp) * en.def.catchRate * ballMult * statusBonus) / (3 * en.maxHp)
     ));
     let shakes = 0, caught = false;
     if (a >= 255) { shakes = 3; caught = true; }

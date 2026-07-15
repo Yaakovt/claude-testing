@@ -129,9 +129,10 @@ const Mart = {
         Font.draw(ctx, 'CANCEL', 22, y, { color: '#383838', shadow: '#d8d8c8' });
       } else {
         const id = list[gi];
-        Font.draw(ctx, Items[id].name, 22, y, { color: '#383838', shadow: '#d8d8c8' });
+        ctx.drawImage(ItemIcons.get(id), 20, y - 5, 12, 12);
+        Font.draw(ctx, Items[id].name, 36, y, { color: '#383838', shadow: '#d8d8c8' });
         const p = '$' + Items[id].price;
-        Font.draw(ctx, p, 148 - Font.width(p), y, { color: '#383838', shadow: '#d8d8c8' });
+        Font.draw(ctx, p, 150 - Font.width(p), y, { color: '#383838', shadow: '#d8d8c8' });
       }
       if (Mart.idx === gi) Font.draw(ctx, '▶', 12, y, { color: '#e83030', shadow: null });
     }

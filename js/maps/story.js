@@ -145,3 +145,29 @@ for (const name in chats) {
   const line = chats[name];
   Scripts.register(name, () => Textbox.say(line, Scripts.done));
 }
+
+// The Tidesend fisher gifts the Old Rod (so Water types are catchable).
+Scripts.register('ts_fisher', () => {
+  if (!Game.flags.gotOldRod) {
+    Textbox.say('FISHER: You\'ve the look of an angler! Here — take my spare OLD ROD. Face the water and give it a cast!', () => {
+      Game.flags.gotOldRod = true;
+      Scripts.giveItem('old_rod', 1, Scripts.done);
+    });
+  } else Textbox.say('FISHER: Cast a rod on the docks and who knows what bites. Bigger rods, bigger catches!', Scripts.done);
+});
+
+// A Team Ionar grunt at the harbor — beating them drops their prototype Primeorb (once).
+Scripts.register('ionar_tidesend', (npc) => {
+  if (Game.flags.beat_ionar_harbor) { Textbox.say('GRUNT: ...Just leave me alone. The boss will have my head for losing the prototype.', Scripts.done); return; }
+  Textbox.say('GRUNT: Hey! This crate\'s Team Ionar property! It\'s got our prototype capture coil — worth more than your whole team. Back OFF!', () => {
+    Music.play('battle_ionar');
+    Game.startTrainerBattle(Trainers.ionar_grunt2, () => {
+      Game.flags.beat_ionar_harbor = true;
+      Textbox.say('GRUNT: No! The prototype — it\'s rolling away! ...Ugh, keep it, just don\'t tell the boss!', () => {
+        Scripts.giveItem('primeorb', 1, () => {
+          Textbox.say('(The PRIMEORB hums with captured aurora-light. Team Ionar built only one. Use it wisely — it never fails.)', Scripts.done);
+        });
+      });
+    });
+  });
+});

@@ -5,6 +5,7 @@ const BagUI = {
   POCKETS: [
     { name: 'ITEMS', kinds: ['medicine', 'battle', 'misc'] },
     { name: 'BALLS', kinds: ['ball'] },
+    { name: 'HELD', kinds: ['held'] },
     { name: 'TM/HM', kinds: ['tm'] },
     { name: 'STONES', kinds: ['stone'] },
     { name: 'KEY', kinds: ['key'] },
@@ -14,7 +15,11 @@ const BagUI = {
     BagUI.mode = opts.mode || 'field';
     BagUI.onUse = opts.onUse || null;
     BagUI.onCancel = opts.onCancel || null;
-    BagUI.pocket = BagUI.mode === 'battle' ? 0 : 0;
+    BagUI.pocket = 0;
+    if (opts.startPocket) {
+      const i = BagUI.POCKETS.findIndex((p) => p.name === opts.startPocket);
+      if (i >= 0) BagUI.pocket = i;
+    }
     BagUI.idx = 0; BagUI.scroll = 0;
     BagUI.prevState = Game.state;
     Game.setState('bag');
@@ -69,6 +74,7 @@ const BagUI = {
     // field use
     if (item.kind === 'tm') { BagUI.teachFlow(id); return; }
     if (item.kind === 'stone') { BagUI.stoneFlow(id); return; }
+    if (item.kind === 'held') { BagUI.giveHeldFlow(id); return; }
     if (item.repel) { Game.repelSteps = item.repel; Game.removeItem(id); AudioSys.sfx('confirm'); Textbox.say('Used ' + item.name + '! Weak fakemon will keep away for a while.'); return; }
     if (item.heal || item.cure || item.revive || item.candy || item.pp) {
       PartyUI.open({ mode: 'use-item', forItem: id,
@@ -103,6 +109,19 @@ const BagUI = {
       onCancel: () => Game.setState('bag') });
   },
 
+  giveHeldFlow(id) {
+    PartyUI.open({ mode: 'use-item', forItem: id,
+      onPick: (ti) => {
+        const mon = Game.party[ti];
+        if (mon.heldItem) Game.give(mon.heldItem);   // return the old item to the bag
+        mon.heldItem = id;
+        Game.removeItem(id);
+        AudioSys.sfx('confirm');
+        Textbox.say(mon.name + ' is now holding the ' + Items[id].name + '!', () => Game.setState('bag'));
+      },
+      onCancel: () => Game.setState('bag') });
+  },
+
   stoneFlow(id) {
     PartyUI.open({ mode: 'use-item', forItem: id,
       onPick: (ti) => {
@@ -133,10 +152,11 @@ const BagUI = {
       const gi = BagUI.scroll + i;
       const y = 26 + i * 15;
       if (gi > items.length) break;
-      if (gi === items.length) { Font.draw(ctx, 'CLOSE BAG', 26, y, { color: '#383838', shadow: '#d8d8c8' }); }
+      if (gi === items.length) { Font.draw(ctx, 'CLOSE BAG', 30, y, { color: '#383838', shadow: '#d8d8c8' }); }
       else {
         const id = items[gi];
-        Font.draw(ctx, Items[id].name, 26, y, { color: '#383838', shadow: '#d8d8c8' });
+        ctx.drawImage(ItemIcons.get(id), 24, y - 5, 12, 12);
+        Font.draw(ctx, Items[id].name, 40, y, { color: '#383838', shadow: '#d8d8c8' });
         if (Items[id].kind !== 'key' && !Items[id].hm) {
           const q = '×' + Game.bag[id];
           Font.draw(ctx, q, 224 - Font.width(q), y, { color: '#383838', shadow: '#d8d8c8' });

@@ -1,6 +1,16 @@
 'use strict';
 /**
- * Item database. kind: 'ball' | 'medicine' | 'battle' | 'stone' | 'tm' | 'key' | 'misc'
+ * Item database.
+ * kind: 'ball' | 'medicine' | 'battle' | 'stone' | 'tm' | 'key' | 'misc' | 'held'
+ * Balls may define ballMod(mon, ctx) -> multiplier (ctx = {turn, env, level});
+ * otherwise the flat ballMult is used.
+ * Held items define held-effect fields consumed by the battle engine:
+ *   leftovers:1/16        heal each turn end
+ *   typeBoost:{type,mult} 1.2x power for that move type
+ *   focusCharm:true       survive a KO from full HP (consumed)
+ *   cureBerry:true        auto-cure any status (consumed)
+ *   pinchBerry:frac       restore frac of max HP when below 1/4 (consumed)
+ *   preventEvo:true       holder can't evolve
  */
 const Items = {};
 function I(id, name, kind, price, desc, o = {}) {
@@ -11,6 +21,16 @@ function I(id, name, kind, price, desc, o = {}) {
 I('fieldorb', 'Fieldorb', 'ball', 200, 'A standard orb for catching wild fakemon.', { ballMult: 1 });
 I('greatorb', 'Greatorb', 'ball', 600, 'A high-grade orb with a better catch rate.', { ballMult: 1.5 });
 I('ultraorb', 'Ultraorb', 'ball', 1200, 'A top-grade orb with a superb catch rate.', { ballMult: 2 });
+I('meshorb', 'Meshorb', 'ball', 1000, 'Catches Water- and Bug-type fakemon far more easily.',
+  { ballMult: 1, ballMod: (m) => (m.types.includes('Water') || m.types.includes('Bug')) ? 3.5 : 1 });
+I('gloomorb', 'Gloomorb', 'ball', 1000, 'Excels in the dark of caves and deep places.',
+  { ballMult: 1, ballMod: (m, c) => c.env === 'cave' ? 3.5 : 1 });
+I('rushorb', 'Rushorb', 'ball', 1000, 'Works wonderfully on the very first turn of a battle.',
+  { ballMult: 1, ballMod: (m, c) => c.turn === 0 ? 5 : 1 });
+I('denorb', 'Denorb', 'ball', 1000, 'The lower the wild fakemon\'s level, the better it works.',
+  { ballMult: 1, ballMod: (m) => Math.max(1, Math.min(4, (41 - m.level) / 10)) });
+I('primeorb', 'Primeorb', 'ball', 0, 'Team Ionar\'s stolen prototype. Its aurora-charged coil subdues ANY fakemon without fail. Only one exists.',
+  { ballMult: 255, unique: true });
 
 // ---- Medicine ----
 I('potion', 'Potion', 'medicine', 300, 'Restores 20 HP.', { heal: 20 });
@@ -46,9 +66,23 @@ I('tide_stone', 'Tide Stone', 'stone', 2100, 'A stone that weeps seawater. Evolv
 I('storm_stone', 'Storm Stone', 'stone', 2100, 'A stone crackling with static. Evolves some fakemon.');
 I('aurora_stone', 'Aurora Stone', 'stone', 2100, 'A stone that glows with shifting light. Evolves some fakemon.');
 
+// ---- Held items ----
+I('mendmoss', 'Mendmoss', 'held', 200, 'If held, the fakemon restores a little HP every turn.', { leftovers: 1 / 16 });
+I('focus_charm', 'Focus Charm', 'held', 200, 'If held and at full HP, the fakemon endures one KO hit with 1 HP.', { focusCharm: true });
+I('soothe_berry', 'Soothe Berry', 'held', 100, 'If held, cures any status problem once, then is used up.', { cureBerry: true });
+I('rally_berry', 'Rally Berry', 'held', 100, 'If held, restores 1/4 HP when HP drops low, then is used up.', { pinchBerry: 0.25 });
+I('stillstone', 'Stillstone', 'held', 300, 'A heavy stone that stops the holder from evolving.', { preventEvo: true });
+I('emberband', 'Emberband', 'held', 300, 'If held, boosts the power of the holder\'s Fire moves.', { typeBoost: { type: 'Fire', mult: 1.2 } });
+I('tideband', 'Tideband', 'held', 300, 'If held, boosts the power of the holder\'s Water moves.', { typeBoost: { type: 'Water', mult: 1.2 } });
+I('leafband', 'Leafband', 'held', 300, 'If held, boosts the power of the holder\'s Grass moves.', { typeBoost: { type: 'Grass', mult: 1.2 } });
+I('voltband', 'Voltband', 'held', 300, 'If held, boosts the power of the holder\'s Electric moves.', { typeBoost: { type: 'Electric', mult: 1.2 } });
+I('wyrmband', 'Wyrmband', 'held', 300, 'If held, boosts the power of the holder\'s Dragon moves.', { typeBoost: { type: 'Dragon', mult: 1.2 } });
+
 // ---- Key items ----
 I('town_map', 'Town Map', 'key', 0, 'A map of the Norvenna region.');
-I('old_rod', 'Old Rod', 'key', 0, 'A trusty fishing rod. Use it facing water.');
+I('old_rod', 'Old Rod', 'key', 0, 'A basic fishing rod. Face water and use it to fish.', { rod: 'old' });
+I('good_rod', 'Good Rod', 'key', 0, 'A decent fishing rod. Hooks better fakemon than the Old Rod.', { rod: 'good' });
+I('super_rod', 'Super Rod', 'key', 0, 'A superb fishing rod. Hooks the rarest fakemon of the deep.', { rod: 'super' });
 I('old_lamp', 'Old Lamp', 'key', 0, 'The lighthouse keeper\'s antique lamp.');
 I('ferry_pass', 'Ferry Pass', 'key', 0, 'Grants passage on the Tidesend ferry.');
 I('ionar_badge', 'Ionar Badge', 'key', 0, 'A stolen Team Ionar ID badge. Opens their depot.');

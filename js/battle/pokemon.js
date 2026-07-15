@@ -25,6 +25,7 @@ class Mon {
     this.friendship = 70;
     this.ball = opts.ball || 'fieldorb';
     this.ot = opts.ot || null;
+    this.heldItem = opts.heldItem || null;
 
     // Default moves: the last 4 level-up moves at this level.
     if (opts.moves) {
@@ -110,6 +111,7 @@ class Mon {
   evolveTarget(trigger) {
     const ev = this.def.evolve;
     if (!ev) return null;
+    if (this.heldItem === 'stillstone') return null;   // Stillstone blocks evolution
     const options = Array.isArray(ev) ? ev : [ev];
     for (const opt of options) {
       if (opt.level && trigger.level && this.level >= opt.level) return opt.to;
@@ -137,7 +139,7 @@ class Mon {
       key: this.key, level: this.level, nickname: this.nickname, ivs: this.ivs,
       evs: this.evs, nature: this.nature, gender: this.gender, exp: this.exp,
       status: this.status, curHp: this.curHp, friendship: this.friendship,
-      ball: this.ball, ot: this.ot,
+      ball: this.ball, ot: this.ot, heldItem: this.heldItem,
       moves: this.moves.map((m) => ({ id: m.id, pp: m.pp, maxPp: m.maxPp })),
     };
   }
@@ -146,6 +148,7 @@ class Mon {
     const m = new Mon(d.key, d.level, {
       ivs: d.ivs, evs: d.evs, nature: d.nature, gender: d.gender,
       moves: d.moves.map((x) => x.id), ball: d.ball, ot: d.ot, nickname: d.nickname,
+      heldItem: d.heldItem || null,
     });
     m.exp = d.exp;
     m.status = d.status;

@@ -48,10 +48,18 @@ const PartyUI = {
   },
 
   actionMenu(mon) {
-    Textbox.ask('What to do with ' + mon.name + '?', ['Summary', 'Switch', 'Cancel'], (pick) => {
+    const opts = ['Summary', mon.heldItem ? 'Take Item' : 'Give Item', 'Cancel'];
+    Textbox.ask('What to do with ' + mon.name + '?', opts, (pick) => {
       Game.setState('party');
-      if (pick === 0) SummaryUI.open(PartyUI.idx);
-      else if (pick === 1) PartyUI.swapStart = PartyUI.idx;
+      const label = opts[pick];
+      if (label === 'Summary') SummaryUI.open(PartyUI.idx);
+      else if (label === 'Give Item') {
+        BagUI.open({ mode: 'field', startPocket: 'HELD', onCancel: () => Game.setState('party') });
+      } else if (label === 'Take Item') {
+        const it = mon.heldItem; mon.heldItem = null; Game.give(it);
+        AudioSys.sfx('confirm');
+        Textbox.say('Took the ' + Items[it].name + ' from ' + mon.name + '.', () => Game.setState('party'));
+      }
     });
   },
 
@@ -84,6 +92,7 @@ const PartyUI = {
     ctx.fillRect(x + 23, y + 23, Math.floor(60 * frac), 3);
     Font.draw(ctx, mon.curHp + '/' + mon.maxHp, x + 22, y + 12 + 12, { color: '#303030', shadow: null, maxChars: 20 });
     if (mon.status) BattleUI.drawStatusTag(ctx, x + 88, y + 4, mon.status);
+    if (mon.heldItem) ctx.drawImage(ItemIcons.get(mon.heldItem), x + 98, y + 18, 12, 12);
     if (mon.fainted) { ctx.fillStyle = 'rgba(80,80,90,0.35)'; ctx.fillRect(x, y, 112, 32); }
   },
 };
@@ -120,7 +129,7 @@ const SummaryUI = {
       const rows = [
         ['Species', def.dex.species], ['OT', mon.ot || Game.playerName],
         ['Nature', mon.nature], ['Ability', abilityName(def.ability)],
-        ['Height', def.dex.h], ['Weight', def.dex.w],
+        ['Held', mon.heldItem ? Items[mon.heldItem].name : '—'], ['Height', def.dex.h],
       ];
       rows.forEach(([k, v], i) => {
         Font.draw(ctx, k, 90, 40 + i * 15, { color: '#585858', shadow: null });
