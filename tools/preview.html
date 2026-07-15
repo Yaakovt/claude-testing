@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dex sprite preview</title>
+<style>
+  body { background: #384868; font-family: monospace; color: #fff; }
+  .cell { display: inline-block; margin: 4px; text-align: center; background: #48587a; padding: 4px; border-radius: 4px; }
+  canvas { image-rendering: pixelated; display: block; margin: 0 auto; background: #90b8a8; }
+  .lbl { font-size: 11px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<script src="../js/core/util.js"></script>
+<script src="../js/core/pixel.js"></script>
+<script src="../js/data/species_core.js"></script>
+<script src="../js/data/dex/starters.js"></script>
+<script src="../js/data/dex/batch_a.js"></script>
+<script src="../js/data/dex/batch_b.js"></script>
+<script src="../js/data/dex/batch_c.js"></script>
+<script src="../js/data/dex/batch_d.js"></script>
+<script src="../js/data/dex/batch_e.js"></script>
+<script src="../js/data/dex/legends.js"></script>
+<script>
+  // Filter by dex id range with ?from=10&to=27
+  const q = new URLSearchParams(location.search);
+  const from = parseInt(q.get('from') || '1'), to = parseInt(q.get('to') || '999');
+  const grid = document.getElementById('grid');
+  for (const key of Dex.order) {
+    const def = Dex.byKey[key];
+    if (def.id < from || def.id > to) continue;
+    for (const side of ['front', 'back']) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      let src;
+      try { src = Dex.sprite(key, side); }
+      catch (e) { console.error(key, side, e.message); continue; }
+      const cv = document.createElement('canvas');
+      cv.width = 128; cv.height = 128;
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(src, 0, 0, 128, 128);
+      cell.appendChild(cv);
+      const lbl = document.createElement('div');
+      lbl.className = 'lbl';
+      lbl.textContent = '#' + def.id + ' ' + key + ' (' + side + ')';
+      cell.appendChild(lbl);
+      grid.appendChild(cell);
+    }
+  }
+  window.PREVIEW_READY = true;
+</script>
+</body>
+</html>
