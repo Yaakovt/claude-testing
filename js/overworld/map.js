@@ -150,7 +150,16 @@ const Overworld = {
     if (Game.flags.pendingWarp) {
       const w = Game.flags.pendingWarp; Game.flags.pendingWarp = null;
       AudioSys.sfx('door');
-      Overworld.beginTransition(() => Overworld.warpTo(w.to, w.tx, w.ty, w.dir || 'down'));
+      // Entering a building: remember where to come back out (handles shared interiors).
+      if (w.to !== '@back' && Maps[w.to] && Maps[w.to].indoor && !Overworld.map.indoor) {
+        Game.flags.returnWarp = { mapId: Overworld.map.id, x: Overworld.player.tx, y: Overworld.player.ty, dir: 'down' };
+      }
+      Overworld.beginTransition(() => {
+        if (w.to === '@back') {
+          const r = Game.flags.returnWarp || { mapId: 'frosthollow', x: 9, y: 16, dir: 'down' };
+          Overworld.warpTo(r.mapId, r.x, r.y, r.dir);
+        } else Overworld.warpTo(w.to, w.tx, w.ty, w.dir || 'down');
+      });
     }
   },
 

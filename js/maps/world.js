@@ -1,17 +1,16 @@
 'use strict';
 /**
- * Overworld maps: towns and routes. Authored with a shared character legend.
- * Building roofs are drawn on the ground layer; doors are warp tiles.
+ * Overworld maps: towns and routes.
  *
- * Legend chars (see LEG): grass, path, trees, water, buildings, etc.
- * Warps/signs/items/npcs are listed in each map's arrays.
+ * Towns are assembled with a small building-stamper so roofs, doors, mats, and
+ * the warps that use them are ALWAYS aligned (no hand-counted tile columns).
+ * Routes are authored as row strings (normalized to equal width on load).
  */
 const LEG = {
   ' ': 'grass', ',': 'tallgrass', '.': 'path', '_': 'sand',
   'T': 'tree', 'P': 'pine', 'Q': 'snowpine', 'R': 'rock', 'B': 'boulder', 'K': 'crackrock',
   'W': 'water', '=': 'waterfall', 'f': 'fence', 'F': 'flowers', 'H': 'cutbush', 'L': 'ledge',
   'x': 'snow', 'z': 'tallsnow', 'i': 'ice', 'G': 'gym_statue',
-  // building parts
   '1': 'roof_l', '2': 'roof_m', '3': 'roof_r',
   '4': 'roofb_l', '5': 'roofb_m', '6': 'roofb_r',
   '7': 'roofg_l', '8': 'roofg_m', '9': 'roofg_r',
@@ -19,64 +18,72 @@ const LEG = {
   'w': 'wall', 'o': 'window', 'd': 'door', 'm': 'mat',
   'C': 'center_sign', 'M': 'mart_sign', 's': 'sign',
 };
+const ROOFS = { red: '123', blue: '456', green: '789', purple: 'abc' };
 
-// ---------------------------------------------------------------- Frosthollow
-defineMap({
-  id: 'frosthollow', name: 'Frosthollow Village', music: 'town', battleEnv: 'snow',
-  legend: LEG,
-  ground: [
-    'QQQQQQQQQQQQQQQQQQQQ',
-    'QxxxxxxxxxxxxxxxxxxQ',
-    'Qxx777xxxxx111xxxxxQ',
-    'Qxx888xxxxx222xxxxxQ',
-    'Qxx8d8xxxxx2d2xxxxxQ',
-    'QxxxmxxxxxxxmxxxxxxQ',
-    'Qxxxxxxx...xxxxxxxxQ',
-    'QxxFxxxx.s.xxxxFxxxQ',
-    'Qxxxxxxx...xxxxxxxxQ',
-    'Qxx444xx...xx111xxxQ',
-    'Qxx555xx.C.xx222xxxQ',
-    'Qxx5d5xx...xx2d2xxxQ',
-    'Qxxxmxxx...xxxmxxxxQ',
-    'Qxxxxxxx...xxxxxxxxQ',
-    'Qxxzzxxx...xxxzzxxxQ',
-    'Qxxzzxxx...xxxzzxxxQ',
-    'QQQQQQQ.s.QQQQQQQQQQ',
-    'QQQQQQQ...QQQQQQQQQQ',
-  ],
-  warps: [
-    { x: 4, y: 4, to: 'aspen_lab', tx: 6, ty: 11, dir: 'up' },      // green roof = lab
-    { x: 11, y: 4, to: 'player_room', tx: 3, ty: 6, dir: 'up' },     // red roof = your home
-    { x: 4, y: 11, to: 'frost_house1', tx: 4, ty: 7, dir: 'up' },
-    { x: 12, y: 11, to: 'player_room', tx: 3, ty: 6, dir: 'up' },
-    { x: 8, y: 17, to: 'route1', tx: 10, ty: 1, dir: 'down', always: true },
-    { x: 9, y: 17, to: 'route1', tx: 10, ty: 1, dir: 'down', always: true },
-  ],
-  signs: [
-    { x: 8, y: 7, text: 'FROSTHOLLOW VILLAGE — "Where the aurora touches the snow."' },
-    { x: 8, y: 16, text: 'ROUTE 1 ahead — BIRCHWICK TOWN to the south.' },
-  ],
-  npcs: [
-    { x: 14, y: 8, sprite: 'npc_woman', move: 'look', script: 'fh_villager1' },
-    { x: 6, y: 14, sprite: 'npc_villager', move: 'wander', script: 'fh_villager2' },
-    { x: 13, y: 13, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'fh_oldman' },
-    { x: 3, y: 8, sprite: 'npc_villager', move: 'wander', script: 'fh_kid' },
-  ],
-  onEnter() { Overworld.showBanner(); },
-});
+/** Mutable grid helpers (arrays of char arrays). */
+function blankGrid(w, h, ch) { const g = []; for (let y = 0; y < h; y++) g.push(new Array(w).fill(ch)); return g; }
+function gput(g, x, y, ch) { if (g[y] && x >= 0 && x < g[y].length) g[y][x] = ch; }
+function gborder(g, ch) { const h = g.length, w = g[0].length; for (let x = 0; x < w; x++) { gput(g, x, 0, ch); gput(g, x, h - 1, ch); } for (let y = 0; y < h; y++) { gput(g, 0, y, ch); gput(g, w - 1, y, ch); } }
+function gRows(g) { return g.map((r) => r.join('')); }
+/**
+ * Stamp a 3-wide × 2-tall building with a centered door + mat below.
+ * Returns { doorX, doorY, matX, matY } for wiring warps.
+ */
+function building(g, x, y, roofKey, signCol) {
+  const r = ROOFS[roofKey];
+  for (let ry = 0; ry < 2; ry++) { gput(g, x, y + ry, r[0]); gput(g, x + 1, y + ry, r[1]); gput(g, x + 2, y + ry, r[2]); }
+  if (signCol) gput(g, x + (signCol === 'C' ? 0 : 2), y, signCol); // shop emblem on a roof corner
+  gput(g, x + 1, y + 2, 'd');
+  gput(g, x + 1, y + 3, 'm');
+  return { doorX: x + 1, doorY: y + 2, matX: x + 1, matY: y + 3 };
+}
 
-// ---------------------------------------------------------------- Route 1
+// ============================================================ Frosthollow
+(() => {
+  const g = blankGrid(20, 18, 'x');            // snowy ground
+  gborder(g, 'Q');                              // snow-pines around the edge
+  const lab = building(g, 3, 2, 'green');        // Professor Aspen's lab
+  const home = building(g, 12, 2, 'red');        // player's home
+  const h1 = building(g, 3, 9, 'blue');          // neighbor house
+  // central path
+  for (let y = 6; y <= 17; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
+  gput(g, 8, 7, 's'); gput(g, 7, 12, 'F'); gput(g, 13, 12, 'F');
+  gput(g, 9, 16, '.'); gput(g, 10, 16, '.'); gput(g, 9, 17, '.'); gput(g, 10, 17, '.');
+
+  defineMap({
+    id: 'frosthollow', name: 'Frosthollow Village', music: 'town', battleEnv: 'snow',
+    legend: LEG, ground: gRows(g),
+    warps: [
+      { x: lab.doorX, y: lab.doorY, to: 'aspen_lab', tx: 5, ty: 7, dir: 'up' },
+      { x: home.doorX, y: home.doorY, to: 'player_room', tx: 3, ty: 4, dir: 'up' },
+      { x: h1.doorX, y: h1.doorY, to: 'frost_house1', tx: 3, ty: 3, dir: 'up' },
+      { x: 9, y: 17, to: 'route1', tx: 9, ty: 1, dir: 'down', always: true },
+      { x: 10, y: 17, to: 'route1', tx: 10, ty: 1, dir: 'down', always: true },
+    ],
+    signs: [{ x: 8, y: 7, text: 'FROSTHOLLOW VILLAGE — "Where the aurora touches the snow."' }],
+    npcs: [
+      { x: 14, y: 8, sprite: 'npc_woman', move: 'look', script: 'fh_villager1' },
+      { x: 7, y: 14, sprite: 'npc_villager', move: 'wander', script: 'fh_villager2' },
+      { x: 13, y: 14, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'fh_oldman' },
+      { x: 6, y: 6, sprite: 'npc_villager', move: 'wander', script: 'fh_kid' },
+    ],
+    onEnter() { Overworld.showBanner(); },
+    _doors: { lab, home, h1 },
+  });
+})();
+
+// ============================================================ Route 1
 defineMap({
   id: 'route1', name: 'Route 1', music: 'route', battleEnv: 'grass',
   legend: LEG,
   ground: [
-    'TTTTTTTTTTTTTTTTTTTT',
-    'Txxxxxxxxx..xxxxxxxT',
-    'Txx,,,xxxx..xxx,,,xT',
-    'Txx,,,xxxx..xxx,,,xT',
-    'Txxxxxxs..s..xxxxxxT',
-    'TxxxFxx..P.P.xxFxxxT',
-    'Txxxxxx..xx..xxxxxxT',
+    'TTTTTTTTT..TTTTTTTTT',
+    'Txxxxxxxx..xxxxxxxxT',
+    'Txx,,,xxx..xxx,,,xxT',
+    'Txx,,,xxx..xxx,,,xxT',
+    'Txxxxxxs..s.xxxxxxxT',
+    'TxxxFxxx..P.xxFxxxxT',
+    'Txxxxxxx..xx.xxxxxxT',
     'Txx,,,,.,,,,.xx,,,xT',
     'Txx,,,,.,,,,.xx,,,xT',
     'TxxxxxL.LxxL.LxxxxxT',
@@ -84,18 +91,18 @@ defineMap({
     'Txx,,,xx..P.xx,,,xxT',
     'Txx,,,xx....xx,,,xxT',
     'Txxxxxxx....xxxxxxxT',
-    'Txxxxxxx....xxxxxxxT',
-    'TTTTTTTx....xTTTTTTT',
+    'Txxxxxxxx..xxxxxxxxT',
+    'TTTTTTTTT..TTTTTTTTT',
   ],
   warps: [
-    { x: 10, y: 0, to: 'frosthollow', tx: 8, ty: 16, dir: 'up', always: true },
-    { x: 11, y: 0, to: 'frosthollow', tx: 9, ty: 16, dir: 'up', always: true },
-    { x: 8, y: 15, to: 'birchwick', tx: 10, ty: 1, dir: 'down', always: true },
-    { x: 9, y: 15, to: 'birchwick', tx: 10, ty: 1, dir: 'down', always: true },
+    { x: 9, y: 0, to: 'frosthollow', tx: 9, ty: 16, dir: 'up', always: true },
+    { x: 10, y: 0, to: 'frosthollow', tx: 10, ty: 16, dir: 'up', always: true },
+    { x: 9, y: 15, to: 'birchwick', tx: 9, ty: 1, dir: 'down', always: true },
+    { x: 10, y: 15, to: 'birchwick', tx: 10, ty: 1, dir: 'down', always: true },
   ],
   signs: [
     { x: 6, y: 4, text: 'ROUTE 1. Tall grass ahead — wild fakemon live there!' },
-    { x: 10, y: 4, text: 'Catch a partner to explore the tall grass safely.' },
+    { x: 9, y: 4, text: 'Catch a partner to explore the tall grass safely.' },
   ],
   items: [
     { x: 3, y: 2, item: 'potion', flag: 'r1_potion' },
@@ -103,76 +110,70 @@ defineMap({
   ],
   npcs: [
     { x: 5, y: 7, sprite: 'npc_ranger', dir: 'right', trainer: 'youngster_finn', sight: 3, script: 'trainer_after' },
-    { x: 13, y: 12, sprite: 'npc_villager', move: 'wander', script: 'r1_catcher' },
+    { x: 14, y: 12, sprite: 'npc_villager', move: 'wander', script: 'r1_catcher' },
   ],
   encounters: { rate: 14, grass: [
-    { key: 'sprigfawn', min: 3, max: 5, weight: 3 },
-    { key: 'puffinch', min: 3, max: 5, weight: 3 },
-    { key: 'nibbit', min: 2, max: 4, weight: 3 },
-    { key: 'larvel', min: 2, max: 4, weight: 2 },
+    { key: 'sprigfawn', min: 3, max: 5, weight: 3 }, { key: 'puffinch', min: 3, max: 5, weight: 3 },
+    { key: 'nibbit', min: 2, max: 4, weight: 3 }, { key: 'larvel', min: 2, max: 4, weight: 2 },
     { key: 'sparkit', min: 4, max: 5, weight: 1 },
   ] },
   onEnter() { Overworld.showBanner(); },
 });
 
-// ---------------------------------------------------------------- Birchwick Town
-defineMap({
-  id: 'birchwick', name: 'Birchwick Town', music: 'town', battleEnv: 'grass',
-  legend: LEG,
-  ground: [
-    'TTTTTTTTTTTTTTTTTTTT',
-    'Txxxxxxxxx..xxxxxxxT',
-    'Txx111xxxx..xxxCCxxT',
-    'Txx222xxxx..xx444xxT',
-    'Txx2d2xxFx..xx5d5xxT',
-    'Txxxmxxxxx..xxxmxxxT',
-    'Txxxxxxx....xxxxxxxT',
-    'Tx........s.........T',
-    'Tx.xxxxxxx..xxxMMx.xT',
-    'Tx.xaaaxx..xxx888x.xT',
-    'Tx.xabax..s..x888x..T',
-    'Tx.xadaxxGGxxxxmxxx.T',
-    'Tx.xxmxxxGGxxxxxxxx.T',
-    'Tx.....xx..xx......xT',
-    'TxxFxxxxx..xxxxFxxxxT',
-    'TTTTTTTTx..xTTTTTTTT',
-  ],
-  warps: [
-    { x: 4, y: 4, to: 'birchwick_house', tx: 4, ty: 7, dir: 'up' },
-    { x: 15, y: 4, to: 'center', tx: 5, ty: 8, dir: 'up' },       // Pokecenter (C)
-    { x: 15, y: 10, to: 'mart', tx: 4, ty: 8, dir: 'up' },         // Pokemart (M)
-    { x: 5, y: 11, to: 'birchwick_gym', tx: 5, ty: 12, dir: 'up' }, // purple roof = gym
-    { x: 10, y: 0, to: 'route1', tx: 8, ty: 14, dir: 'up', always: true },
-    { x: 11, y: 0, to: 'route1', tx: 9, ty: 14, dir: 'up', always: true },
-    { x: 8, y: 15, to: 'route2', tx: 8, ty: 1, dir: 'down', always: true },
-    { x: 9, y: 15, to: 'route2', tx: 8, ty: 1, dir: 'down', always: true },
-  ],
-  signs: [
-    { x: 10, y: 7, text: 'BIRCHWICK TOWN — "The lumber town where journeys begin."' },
-    { x: 10, y: 10, text: 'BIRCHWICK GYM — Leader ASTRID. The Normal-type wall!' },
-  ],
-  npcs: [
-    { x: 13, y: 6, sprite: 'npc_villager', move: 'wander', script: 'bw_villager1' },
-    { x: 6, y: 13, sprite: 'npc_woman', move: 'wander', script: 'bw_villager2' },
-    { x: 16, y: 13, sprite: 'npc_hiker', move: 'look', script: 'bw_hiker' },
-    { x: 3, y: 9, sprite: 'npc_oldman', dir: 'right', move: 'static', script: 'bw_oldman' },
-    { x: 11, y: 13, sprite: 'npc_villager', move: 'wander', script: 'bw_kid' },
-  ],
-  onEnter() { Overworld.showBanner(); if (!Game.flags.tut_center) Game.flags.tut_center = true; },
-});
+// ============================================================ Birchwick Town
+(() => {
+  const g = blankGrid(20, 16, ' ');
+  gborder(g, 'T');
+  const house = building(g, 3, 2, 'red');
+  const center = building(g, 13, 2, 'blue', 'C');
+  const gym = building(g, 3, 10, 'purple');
+  const mart = building(g, 13, 9, 'red', 'M');
+  // paths
+  for (let y = 1; y <= 14; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
+  for (let x = 2; x <= 17; x++) gput(g, x, 7, '.');
+  gput(g, 8, 7, 's'); gput(g, 6, 12, 'G'); gput(g, 7, 12, 'G');
+  gput(g, 5, 5, 'F'); gput(g, 15, 13, 'F');
 
-// ---------------------------------------------------------------- Route 2 (stub -> gym2 area)
+  defineMap({
+    id: 'birchwick', name: 'Birchwick Town', music: 'town', battleEnv: 'grass',
+    legend: LEG, ground: gRows(g),
+    warps: [
+      { x: house.doorX, y: house.doorY, to: 'birchwick_house', tx: 3, ty: 3, dir: 'up' },
+      { x: center.doorX, y: center.doorY, to: 'center', tx: 5, ty: 5, dir: 'up' },
+      { x: mart.doorX, y: mart.doorY, to: 'mart', tx: 4, ty: 4, dir: 'up' },
+      { x: gym.doorX, y: gym.doorY, to: 'birchwick_gym', tx: 5, ty: 7, dir: 'up' },
+      { x: 9, y: 0, to: 'route1', tx: 9, ty: 14, dir: 'up', always: true },
+      { x: 10, y: 0, to: 'route1', tx: 10, ty: 14, dir: 'up', always: true },
+      { x: 9, y: 15, to: 'route2', tx: 9, ty: 1, dir: 'down', always: true },
+      { x: 10, y: 15, to: 'route2', tx: 10, ty: 1, dir: 'down', always: true },
+    ],
+    signs: [
+      { x: 8, y: 7, text: 'BIRCHWICK TOWN — "The lumber town where journeys begin."' },
+    ],
+    npcs: [
+      { x: 13, y: 6, sprite: 'npc_villager', move: 'wander', script: 'bw_villager1' },
+      { x: 6, y: 13, sprite: 'npc_woman', move: 'wander', script: 'bw_villager2' },
+      { x: 16, y: 6, sprite: 'npc_hiker', move: 'look', script: 'bw_hiker' },
+      { x: 2, y: 5, sprite: 'npc_oldman', dir: 'right', move: 'static', script: 'bw_oldman' },
+      { x: 11, y: 12, sprite: 'npc_villager', move: 'wander', script: 'bw_kid' },
+    ],
+    onEnter() { Overworld.showBanner(); },
+    _doors: { house, center, gym, mart },
+  });
+})();
+
+// ============================================================ Route 2
 defineMap({
   id: 'route2', name: 'Route 2', music: 'route', battleEnv: 'grass',
   legend: LEG,
   ground: [
-    'TTTTTTTx..xTTTTTTTTT',
-    'Txxxxxxx..xxxxxxxxxT',
-    'Txx,,,xx..xx,,,,,xxT',
-    'Txx,,,xx..xx,,,,,xxT',
-    'TxxxxHxx..xxxxxxxxxT',
+    'TTTTTTTTT..TTTTTTTTT',
+    'Txxxxxxxx..xxxxxxxxT',
+    'Txx,,,xxx..xx,,,,,xT',
+    'Txx,,,xxx..xx,,,,,xT',
+    'TxxxxHxxx..xxxxxxxxT',
     'Txx....s..s.....xxxT',
-    'Txx.xx....xx.xx.xxxT',
+    'Txx.xxx...xx.xx.xxxT',
     'Txx.xx,,,,xx.xx.xxxT',
     'Txx.xx,,,,xx.xx.xxxT',
     'Txx.......s.....xxxT',
@@ -181,22 +182,23 @@ defineMap({
     'Txx,,,xxx..xxxWWWWxT',
     'TxxxxxxLx..xLxxxxxxT',
     'Txxxxxxxx..xxxxxxxxT',
-    'TTTTTTTTx..xTTTTTTTT',
+    'TTTTTTTTT..TTTTTTTTT',
   ],
   warps: [
-    { x: 8, y: 0, to: 'birchwick', tx: 8, ty: 14, dir: 'up', always: true },
     { x: 9, y: 0, to: 'birchwick', tx: 9, ty: 14, dir: 'up', always: true },
-    { x: 8, y: 15, to: 'mossmere', tx: 9, ty: 1, dir: 'down', always: true },
-    { x: 9, y: 15, to: 'mossmere', tx: 10, ty: 1, dir: 'down', always: true },
+    { x: 10, y: 0, to: 'birchwick', tx: 10, ty: 14, dir: 'up', always: true },
+    { x: 9, y: 15, to: 'mossmere', tx: 9, ty: 1, dir: 'down', always: true },
+    { x: 10, y: 15, to: 'mossmere', tx: 10, ty: 1, dir: 'down', always: true },
+    { x: 3, y: 6, to: 'whisperwood_cave', tx: 1, ty: 1, dir: 'up' },
   ],
   signs: [
     { x: 6, y: 5, text: 'ROUTE 2 — MOSSMERE TOWN to the south.' },
-    { x: 9, y: 5, text: 'A cuttable bush blocks a shortcut. You\'ll need CUT.' },
+    { x: 9, y: 5, text: 'A cuttable bush blocks a shortcut. You need CUT.' },
     { x: 9, y: 9, text: 'Deep water to the east. SURF would cross it.' },
   ],
   items: [
-    { x: 3, y: 6, item: 'super_potion', flag: 'r2_spotion' },
-    { x: 15, y: 4, item: 'ember_stone', flag: 'r2_stone' },
+    { x: 15, y: 4, item: 'super_potion', flag: 'r2_spotion' },
+    { x: 3, y: 8, item: 'ember_stone', flag: 'r2_stone' },
   ],
   npcs: [
     { x: 12, y: 7, sprite: 'npc_hiker', dir: 'left', trainer: 'hiker_greta', sight: 3, script: 'trainer_after' },
@@ -204,12 +206,45 @@ defineMap({
     { x: 14, y: 8, sprite: 'npc_villager', move: 'wander', script: 'r2_hint' },
   ],
   encounters: { rate: 16, grass: [
-    { key: 'mossbuck', min: 8, max: 11, weight: 2 },
-    { key: 'pineling', min: 7, max: 10, weight: 3 },
-    { key: 'galewing', min: 8, max: 10, weight: 2 },
-    { key: 'sporeling', min: 7, max: 9, weight: 2 },
-    { key: 'scrappup', min: 8, max: 10, weight: 2 },
-    { key: 'cairnling', min: 7, max: 9, weight: 1 },
+    { key: 'mossbuck', min: 8, max: 11, weight: 2 }, { key: 'pineling', min: 7, max: 10, weight: 3 },
+    { key: 'galewing', min: 8, max: 10, weight: 2 }, { key: 'sporeling', min: 7, max: 9, weight: 2 },
+    { key: 'scrappup', min: 8, max: 10, weight: 2 }, { key: 'cairnling', min: 7, max: 9, weight: 1 },
   ] },
   onEnter() { Overworld.showBanner(); },
 });
+
+// ============================================================ Mossmere Town (Gym 2)
+(() => {
+  const g = blankGrid(20, 16, ' ');
+  gborder(g, 'T');
+  const center = building(g, 3, 2, 'blue', 'C');
+  const mart = building(g, 13, 2, 'red', 'M');
+  const gym = building(g, 8, 9, 'purple');
+  for (let y = 1; y <= 14; y++) { gput(g, 9, y, '.'); gput(g, 10, y, '.'); }
+  for (let x = 2; x <= 17; x++) gput(g, x, 7, '.');
+  // mossy wetland flavor
+  for (const [x, y] of [[3, 12], [4, 13], [15, 12], [16, 11], [5, 5], [14, 13]]) gput(g, x, y, 'F');
+  gput(g, 3, 11, 'W'); gput(g, 4, 11, 'W'); gput(g, 16, 13, 'W');
+  gput(g, 8, 7, 's');
+
+  defineMap({
+    id: 'mossmere', name: 'Mossmere Town', music: 'town', battleEnv: 'grass',
+    legend: LEG, ground: gRows(g),
+    warps: [
+      { x: center.doorX, y: center.doorY, to: 'center', tx: 5, ty: 5, dir: 'up' },
+      { x: mart.doorX, y: mart.doorY, to: 'mart', tx: 4, ty: 4, dir: 'up' },
+      { x: gym.doorX, y: gym.doorY, to: 'mossmere_gym', tx: 5, ty: 8, dir: 'up' },
+      { x: 9, y: 0, to: 'route2', tx: 9, ty: 14, dir: 'up', always: true },
+      { x: 10, y: 0, to: 'route2', tx: 10, ty: 14, dir: 'up', always: true },
+    ],
+    signs: [{ x: 8, y: 7, text: 'MOSSMERE TOWN — "The forest remembers every footstep."' }],
+    npcs: [
+      { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'mm_villager1' },
+      { x: 14, y: 8, sprite: 'npc_villager', move: 'wander', script: 'mm_villager2' },
+      { x: 11, y: 13, sprite: 'npc_ranger', move: 'look', script: 'mm_ranger' },
+      { x: 4, y: 6, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'mm_oldman' },
+    ],
+    onEnter() { Overworld.showBanner(); },
+    _doors: { center, mart, gym },
+  });
+})();

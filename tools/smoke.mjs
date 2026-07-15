@@ -59,11 +59,17 @@ await press('ArrowDown', 4, 130);
 await press('KeyZ', 3, 150);   // dismiss room intro dialogue
 await shot('05_walk.png');
 
-// Give a starter if none, then force a wild battle from overworld (no textbox)
-await page.evaluate(() => {
-  if (Game.party.length === 0) { Game.party.push(new Mon('cindrel', 8)); Game.flags.starter = 'cindrel'; }
-});
-// make sure no textbox is blocking
+// --- Mandatory starter gift: warp to lab, run the professor script, pick one ---
+await page.evaluate(() => Overworld.warpTo('aspen_lab', 5, 6, 'up'));
+await page.waitForTimeout(200);
+await page.evaluate(() => Scripts.run('aspen_starter'));
+await page.waitForTimeout(200);
+await press('KeyZ', 30, 130);  // advance intro, pick option 0 (Trollsprout), confirm Yes, finish
+const afterStarter = await page.evaluate(() => ({ party: Game.party.length, starter: Game.flags.starter, first: Game.party[0] && Game.party[0].name }));
+console.log('starter:', JSON.stringify(afterStarter));
+await shot('05b_starter.png');
+
+// force a wild battle from overworld (no textbox)
 await driveTo('overworld', 'KeyZ', 6);
 await page.evaluate(() => Game.startWildBattle('sprigfawn', 4, 'grass'));
 await page.waitForTimeout(500);

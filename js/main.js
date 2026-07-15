@@ -182,6 +182,7 @@ const Game = {
 
   // ---------------------------------------------------------------- battles
   startWildBattle(key, level, env) {
+    if (!Game.partyAlive()) return;   // no healthy fakemon — cannot battle
     const mon = new Mon(key, level);
     Game.registerDex(key, 'seen');
     Game.setState('battle');

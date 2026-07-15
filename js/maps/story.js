@@ -71,6 +71,23 @@ Scripts.register('gym_astrid', () => {
   });
 });
 
+// ---- Gym 2: Eirik (Grass) ----
+Scripts.register('gym_eirik', () => {
+  if (Game.badges[1]) { Textbox.say('EIRIK: The forest is proud of you. Head on — TIDESEND HARBOR and its Water gym await.', Scripts.done); return; }
+  if (!Game.badges[0]) { Textbox.say('EIRIK: The roots only open to those who\'ve earned the Steadfast Badge. Come back then.', Scripts.done); return; }
+  Textbox.say('EIRIK: I am EIRIK, the Rooted Will. Mossmere\'s forest chose me — let\'s see if it whispers your name too!', () => {
+    Music.play('battle_gym');
+    Game.startTrainerBattle(Trainers.eirik, () => {
+      Scripts.giveBadge(1, 'Verdant', () => {
+        Game.flags.hm_rock_smash = true;
+        Scripts.giveItem('tm19', 1, () => {   // TM19 Sap Surge
+          Textbox.say('EIRIK: The Verdant Badge lets fakemon up to Lv 30 obey you, and you can now use ROCK SMASH. Beware — Team Ionar was seen near the harbor.', Scripts.done);
+        });
+      });
+    });
+  });
+});
+
 // ---- Team Ionar first appearance (Route 2 grunt, optional trigger) ----
 Scripts.register('ionar_grunt_r2', (npc) => {
   Textbox.say('GRUNT: Team Ionar is "borrowing" the aurora\'s energy. You didn\'t see anything, kid — unless you want a battle!', () => {
@@ -98,6 +115,10 @@ const chats = {
   mart_chat: 'Greatorbs cost more but catch better. Worth it for a tough fakemon!',
   house_mom: 'Oh, be careful out there! Come home any time to rest. ...Well, if this were your house.',
   house_oldman: 'Evolution! Some fakemon change with levels, some with stones, some with friendship. Marvelous!',
+  mm_villager1: 'MOSSMERE grows over old ruins. Sometimes the moss glows at night — no one knows why.',
+  mm_villager2: 'Leader EIRIK never loses on his home turf. Bring a Fire or Flying type, maybe!',
+  mm_ranger: 'South of here is TIDESEND HARBOR. You\'ll need SURF to go much further, though.',
+  mm_oldman: 'Team Ionar bought up the old aurora-observatory in Lumenveil. For "research," they say. Ha!',
 };
 for (const name in chats) {
   const line = chats[name];
