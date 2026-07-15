@@ -81,8 +81,12 @@ const PokedexUI = {
     Font.draw(ctx, 'HT ' + def.dex.h, 90, 40, { color: '#585858', shadow: null });
     Font.draw(ctx, 'WT ' + def.dex.w, 160, 40, { color: '#585858', shadow: null });
     def.types.forEach((t, i) => { ctx.fillStyle = TypeColors[t]; ctx.fillRect(90 + i * 44, 52, 42, 11); Font.draw(ctx, t.toUpperCase(), 93 + i * 44, 54, { color: '#fff', shadow: null }); });
+    // ability + evolution
+    Font.draw(ctx, 'ABILITY  ' + abilityName(def.ability), 90, 68, { color: '#585858', shadow: null });
+    Font.draw(ctx, 'EVOLUTION', 90, 80, { color: '#c85838', shadow: null });
+    UIKit.wrapText(ctx, Dex.evoText(def.key), 90, 90, 144, { color: '#383838', shadow: null });
     // entry
-    UIKit.panel(ctx, 6, 104, 228, 52);
-    UIKit.wrapText(ctx, def.dex.entry, 12, 110, 216, { color: '#383838', shadow: null });
+    UIKit.panel(ctx, 6, 116, 228, 40);
+    UIKit.wrapText(ctx, def.dex.entry, 12, 122, 216, { color: '#383838', shadow: null });
   },
 };

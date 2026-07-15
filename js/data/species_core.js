@@ -49,6 +49,44 @@ const Dex = {
     return cv;
   },
 
+  /** One trigger option -> short phrase, e.g. "Lv 16", "Aurora Stone", "Friendship". */
+  evoHow(opt) {
+    if (opt.level) return 'Lv ' + opt.level;
+    if (opt.stone) return (typeof Items !== 'undefined' && Items[opt.stone] ? Items[opt.stone].name : opt.stone);
+    if (opt.friendship) return 'Friendship';
+    return '???';
+  },
+
+  /** Human-readable evolution line for the Pokedex. */
+  evoText(key) {
+    const d = Dex.byKey[key];
+    if (!d) return '';
+    // Forward evolution(s) — compact arrow form so split evos fit two lines
+    if (d.evolve) {
+      const opts = Array.isArray(d.evolve) ? d.evolve : [d.evolve];
+      const parts = opts.map((o) => (Dex.byKey[o.to] ? Dex.byKey[o.to].name : o.to) + ' (' + Dex.evoHow(o) + ')');
+      return '→ ' + parts.join('  or  ');
+    }
+    // Otherwise note the pre-evolution, if any
+    const pre = Dex.preEvo(key);
+    if (pre) return 'Evolved form of ' + Dex.byKey[pre].name + '.';
+    return 'Does not evolve.';
+  },
+
+  /** Find the species that evolves into `key`, if any. */
+  preEvo(key) {
+    if (Dex._preCache === undefined) {
+      Dex._preCache = {};
+      for (const k of Dex.order) {
+        const d = Dex.byKey[k];
+        if (!d.evolve) continue;
+        const opts = Array.isArray(d.evolve) ? d.evolve : [d.evolve];
+        for (const o of opts) Dex._preCache[o.to] = k;
+      }
+    }
+    return Dex._preCache[key] || null;
+  },
+
   /** Tiny 16x16 party icon: the front sprite scaled down. */
   icon(key) {
     const ck = key + ':icon';
