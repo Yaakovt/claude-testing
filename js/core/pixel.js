@@ -283,6 +283,60 @@ class PixelSurface {
     }
   }
 
+  /**
+   * Weld pass: reattach floating parts. Finds disconnected islands and, when
+   * an island sits within `maxGap` pixels of the main body, draws a short
+   * bridge in the island's own color. Distant specks (embers, sparkles) are
+   * left alone. Fixes "parts not connected to the body" across the whole dex.
+   */
+  weld(maxGap = 3) {
+    for (let pass = 0; pass < 4; pass++) {
+      const idx = (x, y) => y * this.w + x;
+      const label = new Int32Array(this.w * this.h).fill(-1);
+      const sizes = [];
+      // label islands
+      for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) {
+        const i = idx(x, y);
+        if (!this.data[i] || label[i] !== -1) continue;
+        const id = sizes.length; let size = 0;
+        const q = [i]; label[i] = id;
+        while (q.length) {
+          const j = q.pop(); size++;
+          const jx = j % this.w, jy = (j / this.w) | 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const nx = jx + dx, ny = jy + dy;
+            if (nx < 0 || ny < 0 || nx >= this.w || ny >= this.h) continue;
+            const k = idx(nx, ny);
+            if (this.data[k] && label[k] === -1) { label[k] = id; q.push(k); }
+          }
+        }
+        sizes.push(size);
+      }
+      if (sizes.length <= 1) return;
+      let main = 0;
+      for (let i = 1; i < sizes.length; i++) if (sizes[i] > sizes[main]) main = i;
+      // bridge each stray island to the nearest non-self pixel if close enough
+      let welded = false;
+      for (let id = 0; id < sizes.length; id++) {
+        if (id === main) continue;
+        let best = null;
+        for (let y = 0; y < this.h && (!best || best.d > 1); y++) for (let x = 0; x < this.w; x++) {
+          if (label[idx(x, y)] !== id) continue;
+          for (let dy = -maxGap; dy <= maxGap; dy++) for (let dx = -maxGap; dx <= maxGap; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= this.w || ny >= this.h) continue;
+            const l2 = label[idx(nx, ny)];
+            if (l2 === -1 || l2 === id) continue;
+            const d = Math.max(Math.abs(dx), Math.abs(dy));
+            if (!best || d < best.d) best = { d, x, y, nx, ny };
+          }
+        }
+        if (best) { this.line(best.x, best.y, best.nx, best.ny, this.data[idx(best.x, best.y)]); welded = true; }
+      }
+      if (!welded) return;   // any remaining islands are intentional floaters
+    }
+  }
+
   /** Render to a fresh canvas. */
   toCanvas() {
     const cv = document.createElement('canvas');

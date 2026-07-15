@@ -43,6 +43,7 @@ const Dex = {
     const s = new PixelSurface(64, 64);
     if (side === 'front') def.draw(s);
     else def.drawBack(s);
+    s.weld(3);                              // reattach floating parts
     if (def.outlineColor) s.outline(def.outlineColor);
     else s.outlineSel();                    // hue-keyed selective outline
     s.innerEdge(0.10);
@@ -63,6 +64,7 @@ const Dex = {
     const aura = (Megas[key] && Megas[key].color) || '#a8f0d8';
     const s = new PixelSurface(64, 64);
     if (side === 'front') def.draw(s); else def.drawBack(s);
+    s.weld(3);
     // brighten & saturate the whole silhouette
     for (let i = 0; i < s.data.length; i++) {
       if (s.data[i]) s.data[i] = Px.shift(s.data[i], 0, 0.10, 0.06);
