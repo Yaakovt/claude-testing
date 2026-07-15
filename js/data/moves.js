@@ -393,3 +393,15 @@ M('starlight_heal', 'Starlight Heal', 'Fairy', 'status', 0, null, 10, { fx: { he
 // ============================== ELECTRIC (signature) ==============================
 M('stormheart_ray', 'Stormheart Ray', 'Electric', 'spec', 100, 100, 10, { fx: { status: { id: 'par', pct: 20 } }, contact: false,
   anim: { fx: 'beam', col: ['#f8e858', '#58e8b8', '#fff'], n: 1 }, desc: 'A ray from the storm\'s own heart. May paralyze.' });
+
+// ============================== SIGNATURE (starters, pseudo, twilight) ==============================
+M('gaias_wrath', "Gaia's Wrath", 'Grass', 'phys', 120, 90, 5, { fx: { statSelf: { stat: 'spe', stages: -1 } }, contact: true,
+  anim: { fx: 'quake', col: ['#5da24e', '#8a6a44', '#e8dfc0'], n: 10 }, desc: "Jotunwald's signature: erupts the taiga itself. Lowers the user's Speed." });
+M('wyrmflare', 'Wyrmflare', 'Fire', 'spec', 110, 100, 10, { fx: { status: { id: 'brn', pct: 30 } }, contact: false,
+  anim: { fx: 'burst', col: ['#f06a30', '#f8c840', '#fff'], n: 12 }, desc: "Fafnirn's signature: a dragon's furnace-breath. May burn." });
+M('abyss_maw', 'Abyss Maw', 'Dark', 'phys', 110, 100, 10, { fx: { statFoe: { stat: 'def', stages: -1, pct: 30 } }, contact: true,
+  anim: { fx: 'bite', col: ['#3a4a6a', '#7088b8', '#fff'], n: 8 }, desc: "Krakelott's signature: jaws from the lightless deep. May lower Defense." });
+M('tectonic_roar', 'Tectonic Roar', 'Ground', 'phys', 120, 95, 5, { fx: { statFoe: { stat: 'spe', stages: -1, pct: 100 } }, contact: false,
+  anim: { fx: 'quake', col: ['#b06838', '#e0a860', '#fff'], n: 12 }, desc: "Magnadrake's signature: splits the bedrock. Always lowers the foe's Speed." });
+M('twilight_requiem', 'Twilight Requiem', 'Psychic', 'spec', 120, 90, 5, { fx: { status: { id: 'confuse', pct: 30 } }, contact: false,
+  anim: { fx: 'burst', col: ['#f2a0c0', '#b79cf2', '#fbf4c8'], n: 14 }, desc: "Vesperyx's signature: the hush between day and night. May confuse." });

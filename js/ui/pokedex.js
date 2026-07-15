@@ -82,7 +82,8 @@ const PokedexUI = {
     Font.draw(ctx, 'WT ' + def.dex.w, 160, 40, { color: '#585858', shadow: null });
     def.types.forEach((t, i) => { ctx.fillStyle = TypeColors[t]; ctx.fillRect(90 + i * 44, 52, 42, 11); Font.draw(ctx, t.toUpperCase(), 93 + i * 44, 54, { color: '#fff', shadow: null }); });
     // ability + evolution
-    Font.draw(ctx, 'ABILITY  ' + abilityName(def.ability), 90, 68, { color: '#585858', shadow: null });
+    const abilList = (def.abilities && def.abilities.length ? def.abilities : [def.ability]).map(abilityName).join(' / ');
+    Font.draw(ctx, 'ABILITY  ' + abilList, 90, 68, { color: '#585858', shadow: null });
     Font.draw(ctx, 'EVOLUTION', 90, 80, { color: '#c85838', shadow: null });
     UIKit.wrapText(ctx, Dex.evoText(def.key), 90, 90, 144, { color: '#383838', shadow: null });
     // entry

@@ -26,6 +26,10 @@ class Mon {
     this.ball = opts.ball || 'fieldorb';
     this.ot = opts.ot || null;
     this.heldItem = opts.heldItem || null;
+    // Ability: some species have two possible abilities; one is chosen at random
+    // on creation and kept for the mon's life (persisted in the save).
+    const abils = (def.abilities && def.abilities.length) ? def.abilities : [def.ability];
+    this.ability = (opts.ability && abils.includes(opts.ability)) ? opts.ability : Util.pick(abils);
     this.mega = false;   // transient in-battle Mega state (not saved)
 
     // Default moves: the last 4 level-up moves at this level.
@@ -145,7 +149,7 @@ class Mon {
       key: this.key, level: this.level, nickname: this.nickname, ivs: this.ivs,
       evs: this.evs, nature: this.nature, gender: this.gender, exp: this.exp,
       status: this.status, curHp: this.curHp, friendship: this.friendship,
-      ball: this.ball, ot: this.ot, heldItem: this.heldItem,
+      ball: this.ball, ot: this.ot, heldItem: this.heldItem, ability: this.ability,
       moves: this.moves.map((m) => ({ id: m.id, pp: m.pp, maxPp: m.maxPp })),
     };
   }
@@ -154,7 +158,7 @@ class Mon {
     const m = new Mon(d.key, d.level, {
       ivs: d.ivs, evs: d.evs, nature: d.nature, gender: d.gender,
       moves: d.moves.map((x) => x.id), ball: d.ball, ot: d.ot, nickname: d.nickname,
-      heldItem: d.heldItem || null,
+      heldItem: d.heldItem || null, ability: d.ability || null,
     });
     m.exp = d.exp;
     m.status = d.status;

@@ -38,7 +38,7 @@ const Battle = {
     };
   },
 
-  ability(side) { return Abilities[side.mon.def.ability] || {}; },
+  ability(side) { return Abilities[side.mon.ability] || Abilities[side.mon.def.ability] || {}; },
 
   start(opts) {
     Battle.active = true;

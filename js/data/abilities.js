@@ -66,6 +66,27 @@ const Abilities = {
   iron_frame:     { name: 'Iron Frame', desc: 'Takes no recoil damage.', hardBody: true },
   slippery:       { name: 'Slippery', desc: 'Can always flee wild battles.', escapeArtist: true },
   aurora_heart:   { name: 'Aurora Heart', desc: 'The storm\'s heart: immune to paralysis, powers up in rain and hail.', statusImmune: ['par'], auroraHeart: true },
+
+  // ---- Second wave of abilities (combinations of the wired effects above) ----
+  prism_body:     { name: 'Prism Body', desc: 'Halves Psychic and Fairy damage.', halve: ['Psychic', 'Fairy'] },
+  heatproof:      { name: 'Heatproof', desc: 'Halves Fire damage and cannot be burned.', halve: ['Fire'], statusImmune: ['brn'] },
+  mystic_scales:  { name: 'Mystic Scales', desc: 'Halves Dragon and Fairy damage.', halve: ['Dragon', 'Fairy'] },
+  stormrider:     { name: 'Stormrider', desc: 'Floats above Ground moves and doubles Speed in rain.', levitate: true, weatherSpeed: 'rain' },
+  venom_coat:     { name: 'Venom Coat', desc: 'Contact may poison; cannot be poisoned.', contact: { status: 'psn', pct: 30 }, statusImmune: ['psn'] },
+  frost_touch:    { name: 'Frost Touch', desc: 'Contact may freeze the attacker.', contact: { status: 'frz', pct: 20 } },
+  sharp_vision:   { name: 'Sharp Vision', desc: 'Boosts accuracy and lands crits more easily.', accBoost: 1.3, critBoost: 1 },
+  ironclad:       { name: 'Ironclad', desc: 'Survives a KO at full HP and takes no recoil.', sturdy: true, hardBody: true },
+  fae_eater:      { name: 'Fae Eater', desc: 'Absorbs Fairy moves to heal.', absorb: { type: 'Fairy', heal: 0.25 } },
+  permafrost:     { name: 'Permafrost', desc: 'Halves Fire damage and cannot be frozen.', halve: ['Fire'], statusImmune: ['frz'] },
+  sand_rush:      { name: 'Sand Rush', desc: 'Doubles Speed in a sandstorm.', weatherSpeed: 'sandstorm' },
+  gale_force:     { name: 'Gale Force', desc: 'Powers up Flying moves in a pinch.', pinch: { type: 'Flying' } },
+
+  // ---- Signature abilities (one species each) ----
+  titanroot:      { name: 'Titanroot', desc: 'Jotunwald\'s roots: powers up Grass moves in a pinch and mend HP each turn.', pinch: { type: 'Grass' }, regen: 1 / 16 },
+  wyrmfire:       { name: 'Wyrmfire', desc: 'Fafnirn\'s blaze: powers up Fire moves in a pinch; Attack rises after a KO.', pinch: { type: 'Fire' }, moxie: { stat: 'atk' } },
+  deepcurrent:    { name: 'Deepcurrent', desc: 'Krakelott\'s depths: absorbs Water to heal; Sp. Atk rises after a KO.', absorb: { type: 'Water', heal: 0.25 }, moxie: { stat: 'spa' } },
+  magma_core:     { name: 'Magma Core', desc: 'Magnadrake\'s molten heart: halves Fire, cannot be burned, and rages in a pinch.', halve: ['Fire'], statusImmune: ['brn'], pinch: { type: 'Dragon' } },
+  dusk_aegis:     { name: 'Dusk Aegis', desc: 'Vesperyx\'s twilight ward: halves Dark and Ghost, immune to confusion, mends HP each turn.', halve: ['Dark', 'Ghost'], statusImmune: ['confuse'], regen: 1 / 16 },
 };
 
 function abilityName(id) { return Abilities[id] ? Abilities[id].name : '???'; }

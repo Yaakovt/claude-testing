@@ -128,7 +128,7 @@ const SummaryUI = {
       Font.draw(ctx, 'INFO', 90, 26, { color: '#c85838', shadow: null });
       const rows = [
         ['Species', def.dex.species], ['OT', mon.ot || Game.playerName],
-        ['Nature', mon.nature], ['Ability', abilityName(def.ability)],
+        ['Nature', mon.nature], ['Ability', abilityName(mon.ability || def.ability)],
         ['Held', mon.heldItem ? Items[mon.heldItem].name : '—'], ['Height', def.dex.h],
       ];
       rows.forEach(([k, v], i) => {
