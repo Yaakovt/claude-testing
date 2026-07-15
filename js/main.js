@@ -190,6 +190,7 @@ const Game = {
       kind: 'wild', mon, env: env || Overworld.battleEnv(),
       onEnd: (result) => {
         Game.setState('overworld');
+        if (key === 'auroryx' && (result === 'caught' || result === 'win')) Game.flags.caughtAuroryx = true;
         if (result === 'lose') Game.whiteout();
         else Game.checkEvolutions({ level: true }, () => {});
         Music.play(Overworld.currentMusic());

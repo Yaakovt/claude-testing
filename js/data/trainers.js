@@ -61,6 +61,46 @@ T('eirik', {
   party: [{ key: 'conifurze', level: 16 }, { key: 'sporeling', level: 16 }, { key: 'myceloom', level: 18 }],
 });
 
+// ---- Gym 4: Brandt (Fire) ----
+T('brandt', {
+  name: 'Brandt', cls: 'Leader', reward: 3600, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'Emberfall\'s springs run hot, and so does my spirit! I\'m BRANDT. Don\'t get burned!',
+  loss: 'Ha! You blaze brighter than I do. The Ember Badge is yours.',
+  party: [{ key: 'sulfimer', level: 26 }, { key: 'cindercrag', level: 27 }, { key: 'geysmog', level: 29, held: 'emberband' }],
+});
+// ---- Gym 5: Sylja (Psychic) ----
+T('sylja', {
+  name: 'Sylja', cls: 'Leader', reward: 4200, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'The aurora speaks to those who listen. I am SYLJA. Let me read your mind... and your moves.',
+  loss: 'Your will is louder than your doubt. Take the Lumen Badge.',
+  party: [{ key: 'mystrix', level: 30 }, { key: 'runelith', level: 31 }, { key: 'seidkona', level: 33, held: 'mendmoss' }],
+});
+// ---- Gym 6: Torvald (Steel) ----
+T('torvald', {
+  name: 'Torvald', cls: 'Leader', reward: 4800, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'Irondeep forges the sturdiest fakemon in Norvenna. I am TORVALD. Let\'s test your temper!',
+  loss: 'Well struck. You\'ve earned the Iron Badge, and my respect.',
+  party: [{ key: 'ingotaur', level: 34 }, { key: 'drillvole', level: 35 }, { key: 'loadstork', level: 37, held: 'rally_berry' }],
+});
+// ---- Gym 7: Yrsa (Ice) ----
+T('yrsa', {
+  name: 'Yrsa', cls: 'Leader', reward: 5400, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'The glacier does not forgive the unprepared. I am YRSA. Show me your warmth won\'t fail you.',
+  loss: 'You did not freeze. The Glacier Badge is yours.',
+  party: [{ key: 'emperoyal', level: 38 }, { key: 'shiverfin', level: 39 }, { key: 'walrust', level: 40 }, { key: 'frystdrake', level: 41, held: 'mendmoss' }],
+});
+// ---- Gym 8: Signe (Dragon) ----
+T('signe', {
+  name: 'Signe', cls: 'Leader', reward: 6400, music: 'battle_gym', ai: 'smart', leader: true,
+  intro: 'You\'ve climbed to the foot of the Sky Spire. I am SIGNE, last leader before the League. Draconic fury — meet it!',
+  loss: 'Magnificent! The Storm Badge is yours. The Aurora Plateau awaits — and so does your destiny.',
+  party: [{ key: 'fjorddrake', level: 42 }, { key: 'wyrmskim', level: 43 }, { key: 'jarnwyrm', level: 44 }, { key: 'fimbulwyrm', level: 45, held: 'wyrmband' }],
+});
+
+// ---- Scaled gym-trainee helpers (reused across gyms) ----
+T('trainee_mid', { name: 'Trainee', cls: 'Gym Trainee', reward: 600, ai: 'smart', intro: 'The Leader taught me well!', loss: 'Go on ahead!', party: [{ key: 'brockle', level: 24 }, { key: 'scrappup', level: 25 }] });
+T('trainee_high', { name: 'Veteran', cls: 'Gym Veteran', reward: 1200, ai: 'smart', intro: 'Few make it this far. Prove you belong!', loss: 'The Leader is just ahead.', party: [{ key: 'gulomaul', level: 38 }, { key: 'boulderam', level: 39 }] });
+
 // ---- Team Ionar ----
 T('ionar_grunt1', {
   name: 'Ionar Grunt', cls: 'Team Ionar', reward: 500, music: 'battle_ionar', ai: 'smart',

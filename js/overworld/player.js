@@ -58,13 +58,15 @@ class Player {
       if (Game.flags.hm_surf) { this.dir = dir; Overworld.promptSurf(nx, ny); return; }
       AudioSys.sfx('bump'); return;
     }
-    if (m.solidAt(nx, ny)) {
-      // counter/sign facing feedback
+    // An exit/door warp on the destination tile is always steppable, even if the
+    // tile itself is "solid" (e.g. a path gap through a tree/rock border row).
+    const warp = m.warpAt(nx, ny);
+    const isExit = warp && (warp.always || (destDef && (destDef.door || destDef.stairs)));
+    if (m.solidAt(nx, ny) && !isExit) {
       AudioSys.sfx('bump');
       return;
     }
     // warp tiles trigger on step
-    const warp = m.warpAt(nx, ny);
     if (warp && (destDef && (destDef.door || destDef.stairs || warp.always))) {
       Game.flags.pendingWarp = warp;
     }

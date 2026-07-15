@@ -105,12 +105,111 @@ Scripts.register('gym_runa', () => {
   });
 });
 
+// ---- Gyms 4-8 (shared helper) ----
+function gymBattle(badgeIdx, prevIdx, leaderKey, badgeName, hmFlag, hmMoveName, tmId, afterMsg) {
+  return () => {
+    if (Game.badges[badgeIdx]) { Textbox.say(Trainers[leaderKey].name + ': ' + afterMsg, Scripts.done); return; }
+    if (prevIdx >= 0 && !Game.badges[prevIdx]) { Textbox.say(Trainers[leaderKey].name + ': Come back once you\'ve earned the previous badge.', Scripts.done); return; }
+    Textbox.say(Trainers[leaderKey].intro, () => {
+      Music.play('battle_gym');
+      Game.startTrainerBattle(Trainers[leaderKey], () => {
+        Scripts.giveBadge(badgeIdx, badgeName, () => {
+          const finish = () => {
+            if (tmId) Scripts.giveItem(tmId, 1, Scripts.done); else Scripts.done();
+          };
+          if (hmFlag) { Game.flags[hmFlag] = true; Textbox.say('You can now use ' + hmMoveName + ' in the field!', finish); }
+          else finish();
+        });
+      });
+    });
+  };
+}
+Scripts.register('gym_brandt', gymBattle(3, 2, 'brandt', 'Ember', 'hm_strength', 'STRENGTH', 'tm04', 'Stay fiery out there!'));
+Scripts.register('gym_sylja', gymBattle(4, 3, 'sylja', 'Lumen', 'hm_flash', 'FLASH', 'tm05', 'The aurora watches over you.'));
+Scripts.register('gym_torvald', gymBattle(5, 4, 'torvald', 'Iron', 'hm_fly', 'FLY', 'tm20', 'Stand firm, always.'));
+Scripts.register('gym_yrsa', gymBattle(6, 5, 'yrsa', 'Glacier', 'hm_waterfall', 'WATERFALL', 'tm03', 'Keep your warmth close.'));
+Scripts.register('gym_signe', gymBattle(7, 6, 'signe', 'Storm', null, null, 'tm22', 'Go — the League is yours to claim.'));
+
 // ---- Team Ionar first appearance (Route 2 grunt, optional trigger) ----
 Scripts.register('ionar_grunt_r2', (npc) => {
   Textbox.say('GRUNT: Team Ionar is "borrowing" the aurora\'s energy. You didn\'t see anything, kid — unless you want a battle!', () => {
     Music.play('battle_ionar');
     Game.startTrainerBattle(Trainers.ionar_grunt1, () => {
       Textbox.say('GRUNT: Ugh! This isn\'t over. The boss will wake Auroryx with or without you!', Scripts.done);
+    });
+  });
+});
+
+// ---- Sky Spire climax: Magnus Voll, then Auroryx ----
+Scripts.register('spire_boss', () => {
+  if (Game.flags.caughtAuroryx || Game.flags.beat_ionar_boss) {
+    Textbox.say('(The summit altar is quiet now. The aurora drifts gently overhead.)', Scripts.done);
+    return;
+  }
+  Textbox.say(Trainers.ionar_boss.intro, () => {
+    Music.play('battle_ionar');
+    Game.startTrainerBattle(Trainers.ionar_boss, () => {
+      Game.flags.beat_ionar_boss = true;
+      Textbox.say([Trainers.ionar_boss.name + ': ' + Trainers.ionar_boss.loss,
+        'MAGNUS VOLL: The Storm-Heart rejects me... but it has already half-woken. AURORYX descends! It falls to YOU now!',
+        '(Magnus flees down the spire. Above the altar, the aurora gathers into a single, blazing shape.)'], () => {
+        Game.give('ultraorb', 10);
+        Textbox.say('(Prof. Aspen\'s voice crackles over your radio: "I gave you Ultraorbs — CATCH it, or Norvenna\'s sky will never be calm again!")', () => {
+          Game.registerDex('auroryx', 'seen');
+          Music.play('battle_champion');
+          Overworld.beginBattleFlash(() => {
+            Game.startWildBattle('auroryx', 50, 'aurora');
+            Game.flags.auroryxEncountered = true;
+          });
+        });
+      });
+    });
+  });
+});
+
+// ---- Elite Four + Champion ----
+function e4Battle(idx, trainerKey, nextHint) {
+  return () => {
+    if (Game.flags['beat_' + trainerKey]) { Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done); return; }
+    if (Game.badgeCount() < 8) { Textbox.say('An attendant stops you: "Only trainers with all EIGHT badges may challenge the League."', Scripts.done); return; }
+    if (idx > 0 && !Game.flags['beat_' + ['corvin', 'freyda', 'mara', 'liv'][idx - 1] ? null : true]) { /* order enforced below */ }
+    Textbox.say(Trainers[trainerKey].intro, () => {
+      Music.play('battle_elite');
+      Game.startTrainerBattle(Trainers[trainerKey], () => {
+        Game.flags['beat_' + trainerKey] = true;
+        Textbox.say(Trainers[trainerKey].name + ': ' + Trainers[trainerKey].loss + ' ' + nextHint, Scripts.done);
+      });
+    });
+  };
+}
+Scripts.register('e4_1', e4Battle(0, 'e4_corvin', 'Freyda waits ahead.'));
+Scripts.register('e4_2', () => {
+  if (!Game.flags.beat_e4_corvin) { Textbox.say('The path north is sealed until you defeat the first of the Elite Four.', Scripts.done); return; }
+  e4Battle(1, 'e4_freyda', 'Mara is next.')();
+});
+Scripts.register('e4_3', () => {
+  if (!Game.flags.beat_e4_freyda) { Textbox.say('Defeat Freyda before you pass.', Scripts.done); return; }
+  e4Battle(2, 'e4_mara', 'Only Liv remains before the Champion.')();
+});
+Scripts.register('e4_4', () => {
+  if (!Game.flags.beat_e4_mara) { Textbox.say('Defeat Mara before you pass.', Scripts.done); return; }
+  e4Battle(3, 'e4_liv', 'Beyond lies the Champion...')();
+});
+Scripts.register('champion', () => {
+  if (Game.flags.champion) { Textbox.say('SIGRID: The aurora is calm, and Norvenna has its Champion — you. Come challenge me any time!', Scripts.done); return; }
+  if (!Game.flags.beat_e4_liv) { Textbox.say('The Champion\'s hall is sealed until the Elite Four are defeated.', Scripts.done); return; }
+  Textbox.say(Trainers.champion_sigrid.intro, () => {
+    Music.play('battle_champion');
+    Game.startTrainerBattle(Trainers.champion_sigrid, () => {
+      Game.flags.champion = true;
+      Music.play('victory');
+      Textbox.say([Trainers.champion_sigrid.name + ': ' + Trainers.champion_sigrid.loss,
+        'SIGRID: From the ranger who walked Route 1 with you, to the Champion who bested me — what a journey. The aurora sleeps peacefully tonight, thanks to you.',
+        '★ ' + Game.playerName + ' became the CHAMPION of Norvenna! ★',
+        'Team Ionar is scattered, Auroryx is at peace, and eight badges shine on your card. Thank you for playing LEGENDS OF NORVENNA!'], () => {
+        Game.flags.gameComplete = true;
+        Scripts.done();
+      });
     });
   });
 });
@@ -140,6 +239,23 @@ const chats = {
   ts_sailor: 'Tidesend never sleeps. Ships in at dawn, ships out at dusk, and RUNA training in between.',
   ts_fisher: 'Cast a rod on the docks and who knows what bites. Bigger rods, bigger catches!',
   ts_villager: 'RUNA once out-swam a Fjorddrake, they say. Bring your sturdiest team!',
+  r4_hint: 'Found a GOOD ROD out here once. Better rod, rarer fish — check the springs!',
+  ef_villager1: 'Emberfall\'s hot springs never cool. Brandt trains in the hottest one!',
+  ef_villager2: 'Water and Ground moves cool Brandt\'s Fire types right down.',
+  ef_hiker: 'North of here, Route 5 glows under the aurora all the way to Lumenveil.',
+  lv_villager1: 'Team Ionar took over our observatory! They keep muttering about "waking the sky."',
+  lv_villager2: 'Sylja reads minds, they say. Dark and Ghost types cloud her sight, though.',
+  lv_grunt: 'Team Ionar\'s work is almost done! Soon the whole sky will be OURS to power! ...Now scram.',
+  id_villager1: 'Irondeep\'s fakemon are tough as the ore we mine. Fire and Fighting crack their shells.',
+  id_villager2: 'Torvald forged his own badge, you know. Steel through and through.',
+  fm_villager1: 'Frostmoor\'s got no gym — just a warm bed and a hot meal before the glacier road. Rest up!',
+  fm_villager2: 'Not every town needs a gym. Some just need to be home.',
+  fm_villager3: 'The Center here heals for free, same as anywhere. Take your time.',
+  gh_villager1: 'Yrsa\'s ice is no joke. Fire, Rock, and Steel moves will serve you well.',
+  gh_villager2: 'Past Glacierholm, Route 9 climbs to Stormcrest and the Sky Spire itself.',
+  sc_villager1: 'The Sky Spire pierces the aurora. Team Ionar climbed it to wake Auroryx — someone has to stop them!',
+  sc_villager2: 'Beat Signe for your eighth badge, then the Aurora Plateau opens to the east.',
+  sc_grunt: 'You again?! The boss is at the summit finishing the ritual. You\'ll NEVER reach him in time!',
 };
 for (const name in chats) {
   const line = chats[name];

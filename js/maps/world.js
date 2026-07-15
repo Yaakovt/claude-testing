@@ -309,6 +309,7 @@ defineMap({
   for (let y = 10; y <= 14; y++) for (let x = 8; x <= 17; x++) gput(g, x, y, 'W');
   for (let y = 9; y <= 12; y++) gput(g, 11, y, '.');   // a wooden dock jutting out
   gput(g, 8, 7, 's');
+  gput(g, 18, 7, '.'); gput(g, 19, 7, '.');            // east land exit to Route 4
 
   defineMap({
     id: 'tidesend', name: 'Tidesend Harbor', music: 'town', battleEnv: 'water',
@@ -319,8 +320,9 @@ defineMap({
       { x: gym.doorX, y: gym.doorY, to: 'tidesend_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 0, to: 'route3', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route3', tx: 10, ty: 14, dir: 'up', always: true },
+      { x: 19, y: 7, to: 'route4', tx: 1, ty: 7, dir: 'right', always: true },
     ],
-    signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water).' }],
+    signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water). Route 4 east.' }],
     npcs: [
       { x: 6, y: 5, sprite: 'npc_sailor', move: 'wander', script: 'ts_sailor' },
       { x: 13, y: 5, sprite: 'npc_fisher', dir: 'down', move: 'static', script: 'ts_fisher' },
