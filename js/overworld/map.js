@@ -120,10 +120,43 @@ const Overworld = {
     Overworld.player.dir = dir || Overworld.player.dir;
     Overworld.player.moving = false;
     Overworld.loadMap(mapId);
+    // No cycling indoors — auto-dismount when entering a building/cave.
+    if (Overworld.map && Overworld.map.indoor) Overworld.player.biking = false;
     Game.mapId = mapId;
   },
 
   followerBlocks() { return false; },
+
+  /** Toggle the Bike (used from the Bag). Faster overland movement. */
+  toggleBike() {
+    const p = Overworld.player;
+    if (!p) { Textbox.say('You can\'t ride right now.'); return; }
+    if (Overworld.map && Overworld.map.indoor) { Textbox.say('No cycling indoors!'); return; }
+    if (p.surfing) { Textbox.say('You can\'t cycle on the water!'); return; }
+    p.biking = !p.biking;
+    AudioSys.sfx('confirm');
+    Game.setState('overworld');
+    Textbox.say(p.biking ? 'You hopped on the BIKE! Zoom!' : 'You got off the BIKE.');
+  },
+
+  /** Aurora Compass: hint the player toward the next available legendary. */
+  auroraHint() {
+    let msg;
+    if (!Game.flags.beat_ionar_boss && !Game.flags.caughtAuroryx) {
+      msg = 'The needle strains NORTH — to the SKY SPIRE above Stormcrest. A great heart wakes there.';
+    } else if (Game.flags.champion && !(Game.flags.caughtUmbryx || Game.flags.beat_umbryx)) {
+      msg = 'On moonless nights the needle quivers toward the Sky Spire ALTAR. Something nocturnal stirs...';
+    } else if (Game.hasItem('ferry_pass') && !(Game.flags.caughtVesperyx || Game.flags.beatVesperyx)) {
+      msg = 'The needle drifts far SOUTH, out past the harbor — toward the DUSK ISLES.';
+    } else if (Game.flags.champion && !(Game.flags.caughtMagnadrake || Game.flags.beatMagnadrake)) {
+      msg = 'The needle sinks straight DOWN — toward the AURORA DEPTHS beneath the Sky Spire.';
+    } else {
+      msg = 'The needle spins freely. For now, the great hearts are at peace.';
+    }
+    AudioSys.sfx('confirm');
+    Game.setState('overworld');
+    Textbox.say(msg);
+  },
 
   update() {
     if (Overworld.transition) { Overworld.updateTransition(); return; }

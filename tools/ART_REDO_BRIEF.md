@@ -65,3 +65,23 @@ Codex's pass made some look weird, so this redo must read as **professional-grad
 - Megas: add optional `mega:{to, stone, base, types?}` data + a mega sprite pair per
   eligible final (starters finals, Auroryx, pseudo). Wire a Mega Evolve battle action.
   Left entirely for Fable since each needs a new sprite pair.
+
+## Animated sprites — MUST animate well (Fable)
+These are not single stills; each needs multiple frames that read cleanly at 240×160,
+integer-scaled. Prioritize smooth, characterful motion over detail.
+- **Player (walk):** M and F trainers, 4 facings, ≥2 (ideally 3-4) step frames each —
+  a proper walk cycle, not a two-frame shuffle. Arms/legs and hair/scarf should move.
+- **Player (BIKE):** NEW. M and F on the folding bike, 4 facings, ≥2 pedaling frames each.
+  Spinning wheels, leaning into turns, a faster cadence than the walk. Currently a
+  placeholder (two spinning wheels drawn under the trainer in js/overworld/player.js) —
+  replace with real cycling sprites. Bike doubles move speed, so the animation must sell
+  "fast."
+- **Fishing (rod):** the cast → wait → bite → reel beat. Rod arc, line, splash ring, and
+  a bob/tug on the bite. Old/Good/Super rods can share the animation.
+- **Surf:** the trainer riding a mount/board over water, 4 facings, bob frames + a wake.
+- **Water tiles:** looping shimmer/wave animation (2-4 frames) for sea, ponds, waterfalls.
+- **Tall grass / snow rustle:** the step-into rustle puff, and idle sway.
+- **Battle sprites:** front idle bob and back-sprite (back sprites gaze up-and-right toward
+  the opponent, per earlier note). Cries already pair with a flash on entry.
+- **Evolution + Mega flashes, heal orbs, weather (rain/sun/hail/sandstorm):** keep them
+  lively. Any sprite that moves in-engine needs frames that look good in motion.

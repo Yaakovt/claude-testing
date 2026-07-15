@@ -684,8 +684,9 @@ const Battle = {
         if (Battle.kind === 'trainer') {
           Battle.E('text', { msg: 'You defeated ' + Battle.trainer.name + '!' });
           if (Battle.trainer.reward) {
-            Game.money += Battle.trainer.reward;
-            Battle.E('text', { msg: 'You got $' + Battle.trainer.reward + ' for winning!' });
+            const reward = Game.hasItem('amulet_coin') ? Battle.trainer.reward * 2 : Battle.trainer.reward;
+            Game.money += reward;
+            Battle.E('text', { msg: 'You got $' + reward + ' for winning!' });
           }
           if (Battle.trainer.loss) Battle.E('text', { msg: Battle.trainer.name + ': ' + Battle.trainer.loss });
         }
@@ -730,6 +731,19 @@ const Battle = {
         Battle.E('levelup', { name: mon.name, lv });
         Battle.E('hp', { side: mon === Battle.pl.mon ? 'pl' : 'none' });
         for (const mv of mon.movesAt(lv)) Battle.E('learn', { mon: Game.party.indexOf(mon), move: mv });
+      }
+    }
+    // Exp. Share: non-participants split a smaller share of the same EXP.
+    if (Game.flags.expShare) {
+      const share = Math.max(1, Math.floor(exp / 2 / Math.max(1, Game.party.length)));
+      for (const mon of Game.party) {
+        if (mon.fainted || parts.includes(mon) || mon.level >= 100) continue;
+        Battle.E('text', { msg: mon.name + ' got ' + share + ' EXP. Points via Exp. Share!' });
+        const ups = mon.gainExp(share);
+        for (const lv of ups) {
+          Battle.E('levelup', { name: mon.name, lv });
+          for (const mv of mon.movesAt(lv)) Battle.E('learn', { mon: Game.party.indexOf(mon), move: mv });
+        }
       }
     }
   },

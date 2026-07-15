@@ -12,6 +12,7 @@ class Player {
     this.frameToggle = 0;
     this.stepCount = 0;
     this.surfing = false;
+    this.biking = false;
     this.hopping = false;
     this.hopT = 0;
   }
@@ -84,7 +85,7 @@ class Player {
   }
 
   advance() {
-    this.moveT += this.surfing ? 3 : 2;
+    this.moveT += this.biking ? 4 : this.surfing ? 3 : 2;
     const dur = 16;
     const t = Math.min(1, this.moveT / dur);
     this.px = Util.lerp(this.startX, this.targetX, t);
@@ -120,6 +121,19 @@ class Player {
       ctx.beginPath(); ctx.ellipse(x + 8, y + 19, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
     }
     const frame = this.moving ? (Math.floor(this.moveT / 8) % 2) : 0;
+    // Bike placeholder: two wheels under the trainer until Fable draws the real
+    // cycling sprites. Wheel spokes spin while moving for a sense of speed.
+    if (this.biking && !this.surfing) {
+      ctx.fillStyle = '#303038';
+      const spin = (Game.frame >> 1) % 4;
+      for (const wx of [x + 3, x + 12]) {
+        ctx.beginPath(); ctx.arc(wx, y + 21, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#a0a0b0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(wx - 2 + spin * 0.5, y + 21); ctx.lineTo(wx + 2 - spin * 0.5, y + 21); ctx.stroke();
+      }
+      ctx.strokeStyle = '#c04040'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + 3, y + 21); ctx.lineTo(x + 12, y + 21); ctx.stroke();
+    }
     const spr = Chars.get(this.spriteId, this.dir, frame);
     ctx.drawImage(spr, x, y + hopOff);
   }

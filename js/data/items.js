@@ -81,6 +81,12 @@ I('wyrmband', 'Wyrmband', 'held', 300, 'If held, boosts the power of the holder\
 
 // ---- Key items ----
 I('town_map', 'Town Map', 'key', 0, 'A map of the Norvenna region.');
+I('bike', 'Bike', 'key', 0, 'A folding bicycle. Use it to hop on and cycle around twice as fast.', { field: 'bike' });
+I('exp_share', 'Exp. Share', 'key', 0, 'Toggle it on and your whole party shares in the EXP from every battle.', { field: 'expshare' });
+I('amulet_coin', 'Amulet Coin', 'key', 0, 'A coin of old Norvenna gold. While it is in your bag, you earn double prize money from trainers.', { field: 'coin' });
+I('saga_tome', 'Saga Tome', 'key', 0, 'A weathered book of Norvennan sagas. Use it to read the old tales.', { field: 'lore' });
+I('aurora_compass', 'Aurora Compass', 'key', 0, 'Its needle drifts toward the sky\'s great hearts. Use it for a hint toward a legendary.', { field: 'compass' });
+I('explorer_permit', 'Explorer Permit', 'key', 0, 'An official permit marking you as a sanctioned explorer of Norvenna\'s wild side-trails.');
 I('old_rod', 'Old Rod', 'key', 0, 'A basic fishing rod. Face water and use it to fish.', { rod: 'old' });
 I('good_rod', 'Good Rod', 'key', 0, 'A decent fishing rod. Hooks better fakemon than the Old Rod.', { rod: 'good' });
 I('super_rod', 'Super Rod', 'key', 0, 'A superb fishing rod. Hooks the rarest fakemon of the deep.', { rod: 'super' });

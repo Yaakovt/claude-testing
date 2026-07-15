@@ -86,7 +86,24 @@ const BagUI = {
         onCancel: () => Game.setState('bag') });
       return;
     }
-    if (item.kind === 'key') { Textbox.say(item.desc); return; }
+    if (item.kind === 'key') {
+      switch (item.field) {
+        case 'bike': Overworld.toggleBike(); return;
+        case 'expshare':
+          Game.flags.expShare = !Game.flags.expShare;
+          AudioSys.sfx('confirm');
+          Textbox.say('Turned Exp. Share ' + (Game.flags.expShare ? 'ON. Your whole party will share EXP!' : 'OFF.'));
+          return;
+        case 'coin': Textbox.say('The Amulet Coin gleams softly. While it is in your bag, trainer prize money is doubled.'); return;
+        case 'compass': Overworld.auroraHint(); return;
+        case 'lore':
+          Textbox.say(['SAGA TOME: "In the first winter, the sky split into three hearts —',
+            'AURORYX the day, UMBRYX the night, and VESPERYX the dusk between.',
+            'When the hearts are calm, the aurora sings; when they wake in wrath, the sky burns. Only one who calms all three may stand among them."']);
+          return;
+        default: Textbox.say(item.desc); return;
+      }
+    }
     Textbox.say('This item can\'t be used here.');
   },
 
