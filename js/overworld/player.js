@@ -18,7 +18,6 @@ class Player {
   }
 
   get spriteId() {
-    if (this.surfing) return null;
     return Game.gender === 'F' ? 'player_f' : 'player_m';
   }
 
@@ -113,26 +112,66 @@ class Player {
     let y = Math.round(this.py - camY) - 6; // sprite taller than tile
     let hopOff = 0;
     if (this.moving && this.hopping) hopOff = -Math.sin(Math.min(1, this.moveT / 16) * Math.PI) * 8;
-    // surf platform
+    // surf platform: a bobbing wave mount with a foam wake
     if (this.surfing) {
-      ctx.fillStyle = '#3f7fd8';
-      ctx.beginPath(); ctx.ellipse(x + 8, y + 20, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#7fb8f0';
-      ctx.beginPath(); ctx.ellipse(x + 8, y + 19, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+      const bob = Math.round(Math.sin(Game.frame / 12) * 1.2);
+      hopOff += bob;
+      // wake foam behind the mount (little arcs that flicker)
+      ctx.fillStyle = 'rgba(232,248,255,0.75)';
+      const wob = (Game.frame >> 3) % 2;
+      ctx.fillRect(x - 1, y + 19 + bob + wob, 2, 1);
+      ctx.fillRect(x + 15, y + 20 + bob - wob, 2, 1);
+      ctx.fillRect(x + 3, y + 23 + bob, 3, 1);
+      ctx.fillRect(x + 10, y + 23 + bob - wob, 3, 1);
+      // mount body: dark rim, blue shell, sun-lit crown
+      ctx.fillStyle = '#2c5ca8';
+      ctx.beginPath(); ctx.ellipse(x + 8, y + 20 + bob, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#4890d8';
+      ctx.beginPath(); ctx.ellipse(x + 8, y + 19 + bob, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#8cc8f0';
+      ctx.beginPath(); ctx.ellipse(x + 7, y + 18 + bob, 5, 1.6, 0, 0, Math.PI * 2); ctx.fill();
     }
-    const frame = this.moving ? (Math.floor(this.moveT / 8) % 2) : 0;
-    // Bike placeholder: two wheels under the trainer until Fable draws the real
-    // cycling sprites. Wheel spokes spin while moving for a sense of speed.
+    // Gen-3 stride: step frame on the first half of the tile, settle on the
+    // second half, alternating which foot leads each tile (frameToggle).
+    const stepFrame = this.frameToggle ? 1 : 2;
+    const frame = this.moving && (Math.floor(this.moveT / 8) % 2 === 0) ? stepFrame : 0;
+    // Bike: side-profile frame with spinning spokes; compact when facing up/down.
+    // The rider sits 3px higher so the wheels and frame read underneath.
     if (this.biking && !this.surfing) {
-      ctx.fillStyle = '#303038';
-      const spin = (Game.frame >> 1) % 4;
-      for (const wx of [x + 3, x + 12]) {
+      hopOff -= 3;
+      const side = this.dir === 'left' || this.dir === 'right';
+      const spin = this.moving ? (Game.frame >> 1) % 2 : 0;
+      const wheels = side ? [x + 3, x + 13] : [x + 8];
+      for (const wx of wheels) {
+        ctx.fillStyle = '#282830';
         ctx.beginPath(); ctx.arc(wx, y + 21, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#a0a0b0'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(wx - 2 + spin * 0.5, y + 21); ctx.lineTo(wx + 2 - spin * 0.5, y + 21); ctx.stroke();
+        ctx.fillStyle = '#484858';
+        ctx.beginPath(); ctx.arc(wx, y + 21, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#b8b8c8'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (spin) { ctx.moveTo(wx - 2, y + 21); ctx.lineTo(wx + 2, y + 21); ctx.moveTo(wx, y + 19); ctx.lineTo(wx, y + 23); }
+        else { ctx.moveTo(wx - 1.5, y + 19.5); ctx.lineTo(wx + 1.5, y + 22.5); ctx.moveTo(wx + 1.5, y + 19.5); ctx.lineTo(wx - 1.5, y + 22.5); }
+        ctx.stroke();
+        ctx.fillStyle = '#d8d8e0'; ctx.fillRect(wx, y + 21, 1, 1);   // hub
       }
-      ctx.strokeStyle = '#c04040'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(x + 3, y + 21); ctx.lineTo(x + 12, y + 21); ctx.stroke();
+      if (side) {
+        // diamond frame + seat + handlebar (flips with facing)
+        const fwd = this.dir === 'right' ? 1 : -1;
+        const rear = fwd > 0 ? x + 3 : x + 13, front = fwd > 0 ? x + 13 : x + 3;
+        ctx.strokeStyle = '#c04040'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(rear, y + 21); ctx.lineTo(rear + fwd * 4, y + 17);          // seat tube
+        ctx.lineTo(front - fwd * 1, y + 17); ctx.lineTo(front, y + 21);        // down tube to front hub
+        ctx.moveTo(rear + fwd * 4, y + 17); ctx.lineTo(front - fwd * 2, y + 21); // chainstay diagonal
+        ctx.stroke();
+        ctx.fillStyle = '#303038';
+        ctx.fillRect(rear + fwd * 3 - 1, y + 15, 3, 1);                        // seat
+        ctx.fillRect(front - fwd * 1 - 1, y + 14, 2, 3);                       // handlebar stem
+      } else {
+        ctx.strokeStyle = '#c04040'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(x + 8, y + 21); ctx.lineTo(x + 8, y + 17); ctx.stroke();
+        ctx.fillStyle = '#303038'; ctx.fillRect(x + 5, y + 15, 7, 1);          // handlebar seen head-on
+      }
     }
     const spr = Chars.get(this.spriteId, this.dir, frame);
     ctx.drawImage(spr, x, y + hopOff);

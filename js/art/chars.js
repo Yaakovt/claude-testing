@@ -1,10 +1,11 @@
 'use strict';
 /**
  * Overworld character sprites: 16x22 walkers with 4 facing directions and a
- * 2-frame walk cycle (legs alternate). Built through the pixel toolkit so the
- * player (male/female) and NPCs share a consistent chibi Gen-3 style.
+ * 3-frame Gen-3 walk cycle (stand / left-foot step / right-foot step). Built
+ * through the pixel toolkit so the player (male/female) and NPCs share a
+ * consistent chibi Gen-3 style.
  *
- * Chars.get(id, dir, frame) -> canvas. dir: 'down'|'up'|'left'|'right', frame 0/1.
+ * Chars.get(id, dir, frame) -> canvas. dir: 'down'|'up'|'left'|'right', frame 0/1/2.
  */
 const Chars = (() => {
   const cache = {};
@@ -18,8 +19,10 @@ const Chars = (() => {
     const bot = Px.ramp(pal.bottom);
     const shoe = Px.ramp(pal.shoe);
     const acc = pal.accent ? Px.ramp(pal.accent) : top;
-    const step = frame === 1 ? 1 : 0;
-    const bob = step;                    // whole body bobs 1px on the off-step
+    // 3-frame Gen-3 cycle: 0 = standing, 1 = left/near foot forward,
+    // 2 = right/far foot forward. Walking alternates 1,0,2,0,...
+    const step = frame ? 1 : 0;
+    const bob = step;                    // whole body dips 1px on step frames
     const back = dir === 'up';
     const side = dir === 'left' || dir === 'right';
     const flip = dir === 'left';
@@ -30,19 +33,29 @@ const Chars = (() => {
     // ---- legs & shoes (proper stride) ----
     const ly = 16 - bob;
     if (side) {
-      if (step) {   // legs scissored mid-stride
+      if (frame === 1) {          // near leg kicks forward, far leg trails
         s.rect(4, ly, 3, 4, bot.d); s.rect(4, ly + 4, 3, 2, shoe.d);       // trailing leg
         s.rect(8, ly, 3, 3, bot.b); s.rect(9, ly + 3, 3, 2, shoe.b);       // leading leg kicks
         s.set(11, ly + 4, shoe.l);
-      } else {      // standing pass
+      } else if (frame === 2) {   // opposite scissor: far leg swings ahead
+        s.rect(9, ly, 3, 4, bot.b); s.rect(9, ly + 4, 3, 2, shoe.b);       // now-trailing near leg
+        s.rect(5, ly, 3, 3, bot.d); s.rect(4, ly + 3, 3, 2, shoe.d);       // far leg reaches
+        s.set(4, ly + 4, shoe.l);
+      } else {                    // standing pass
         s.rect(6, ly, 3, 4, bot.b); s.rect(6, ly + 4, 3, 2, shoe.b);
         s.rect(8, ly + 1, 3, 3, bot.d); s.rect(8, ly + 4, 3, 2, shoe.d);
       }
-    } else {
-      s.rect(5, ly + (step ? 1 : 0), 3, 5 - step, bot.b);
-      s.rect(9, ly + (step ? 0 : 1), 3, 5 - (step ? 0 : 1), bot.d);
-      s.rect(5, ly + 5 - (step ? -1 + 1 : 0), 3, 2, shoe.b);
-      s.rect(9, ly + 5, 3, 2, shoe.d);
+    } else if (frame === 1) {     // left foot lifts and steps
+      s.rect(5, ly + 1, 3, 3, bot.b); s.rect(5, ly + 4, 3, 2, shoe.b);     // lifted left
+      s.rect(9, ly, 3, 5, bot.d); s.rect(9, ly + 5, 3, 2, shoe.d);         // planted right
+      s.set(6, ly + 5, shoe.l); s.set(10, ly + 6, shoe.l);
+    } else if (frame === 2) {     // right foot lifts and steps
+      s.rect(5, ly, 3, 5, bot.b); s.rect(5, ly + 5, 3, 2, shoe.b);         // planted left
+      s.rect(9, ly + 1, 3, 3, bot.d); s.rect(9, ly + 4, 3, 2, shoe.d);     // lifted right
+      s.set(6, ly + 6, shoe.l); s.set(10, ly + 5, shoe.l);
+    } else {                      // standing: both planted
+      s.rect(5, ly, 3, 5, bot.b); s.rect(9, ly, 3, 5, bot.d);
+      s.rect(5, ly + 5, 3, 2, shoe.b); s.rect(9, ly + 5, 3, 2, shoe.d);
       s.set(6, ly + 6, shoe.l); s.set(10, ly + 6, shoe.l);   // toe caps
     }
 
@@ -63,11 +76,12 @@ const Chars = (() => {
 
     // ---- arms: swing opposite to the legs ----
     if (side) {
-      const swing = step ? 2 : -1;                 // forward / back
+      const swing = frame === 1 ? 2 : frame === 2 ? -2 : 0;   // fwd / back / rest
       s.rect(7 + swing, ty + 1, 2, 4, top.d);
       s.set(7 + swing, ty + 5, skin.b);            // hand
     } else {
-      const lsw = step ? 1 : 0, rsw = step ? 0 : 1;
+      // opposite arm rises with each stepping foot; both rest when standing
+      const lsw = frame === 2 ? 1 : 0, rsw = frame === 1 ? 1 : 0;
       s.rect(3, ty + 1 + lsw, 2, 4, top.d);
       s.rect(11, ty + 1 + rsw, 2, 4, top.d);
       s.set(3, ty + 5 + lsw, skin.b); s.set(12, ty + 5 + rsw, skin.b);
@@ -75,6 +89,7 @@ const Chars = (() => {
 
     // ---- head ----
     const hy = 6 - bob;
+    const sway = frame === 1 ? 1 : 0;              // hair swings with the stride
     s.fillEllipse(8, hy, 5, 5, skin.b);
     s.set(4, hy + 2, skin.d); s.set(12, hy + 2, skin.d);   // cheek shading
 
@@ -85,8 +100,8 @@ const Chars = (() => {
       s.fillEllipse(8, hy + 2, 5, 3, hair.d);      // under-layer
       s.line(4, hy - 2, 7, hy - 3, hair.l);        // sheen band
       if (pal.longHair) {                           // falling back-hair sways
-        s.rect(4, hy + 3, 3, 6 + step, hair.b); s.rect(9, hy + 3, 3, 7 - step, hair.b);
-        s.rect(4, hy + 8 + step, 3, 1, hair.d); s.rect(9, hy + 9 - step, 3, 1, hair.d);
+        s.rect(4, hy + 3, 3, 6 + sway, hair.b); s.rect(9, hy + 3, 3, 7 - sway, hair.b);
+        s.rect(4, hy + 8 + sway, 3, 1, hair.d); s.rect(9, hy + 9 - sway, 3, 1, hair.d);
       }
     } else if (side) {
       s.fillEllipse(8, hy - 2, 5, 3, hair.b);
@@ -94,7 +109,7 @@ const Chars = (() => {
       s.set(9, hy - 1, hair.b); s.set(10, hy - 1, hair.d);
       s.line(4, hy - 3, 7, hy - 3, hair.l);
       s.set(3, hy + 1, hair.d);                    // sideburn
-      if (pal.longHair) { s.rect(3, hy + 1, 3, 6 + step, hair.b); s.set(4, hy + 7 + step, hair.d); }
+      if (pal.longHair) { s.rect(3, hy + 1, 3, 6 + sway, hair.b); s.set(4, hy + 7 + sway, hair.d); }
       // profile: eye + nose nub + mouth
       s.set(10, hy, '#1a1418');
       s.set(13, hy + 1, skin.d);                   // nose
@@ -106,8 +121,8 @@ const Chars = (() => {
       s.set(4, hy, hair.b); s.set(7, hy - 1, hair.d); s.set(11, hy, hair.b);
       s.line(4, hy - 3, 7, hy - 4, hair.l);        // sheen
       if (pal.longHair) {
-        s.rect(2, hy, 2, 7 + step, hair.b); s.rect(12, hy, 2, 8 - step, hair.b);
-        s.set(2, hy + 6 + step, hair.d); s.set(13, hy + 7 - step, hair.d);
+        s.rect(2, hy, 2, 7 + sway, hair.b); s.rect(12, hy, 2, 8 - sway, hair.b);
+        s.set(2, hy + 6 + sway, hair.d); s.set(13, hy + 7 - sway, hair.d);
       }
       // face: eyes with lash line, mouth
       s.set(6, hy, '#1a1418'); s.set(10, hy, '#1a1418');

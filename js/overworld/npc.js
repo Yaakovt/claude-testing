@@ -16,6 +16,7 @@ class NPC {
     this.trainer = def.trainer || null; // trainer id for LOS battles
     this.sight = def.sight || 0;        // tiles of line-of-sight
     this.moving = false;
+    this.stepToggle = 0;
     this.timer = Util.rand(120);
   }
 
@@ -83,6 +84,7 @@ class NPC {
     this.tx = nx; this.ty = ny;
     this.targetX = nx * 16; this.targetY = ny * 16;
     this.moving = true; this.moveT = 0;
+    this.stepToggle ^= 1;
   }
   advance() {
     this.moveT += 2;
@@ -107,7 +109,10 @@ class NPC {
       ctx.drawImage(spr, x + 8 - S / 2, y + 16 - S + bob, S, S);
       return;
     }
-    const frame = this.moving ? (Math.floor(this.moveT / 8) % 2) : 0;
+    // step frame on the first half of the tile, settle on the second half,
+    // alternating the leading foot each tile — same stride as the player
+    const stepFrame = this.stepToggle ? 1 : 2;
+    const frame = this.moving && (Math.floor(this.moveT / 8) % 2 === 0) ? stepFrame : 0;
     ctx.drawImage(Chars.get(this.spriteId, this.dir, frame), x, y);
     // trainer "!" when about to battle
     if (this.trainer && !this.beaten && this.exclaim > 0) {

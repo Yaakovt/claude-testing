@@ -179,7 +179,7 @@ const Overworld = {
     // an encounter table — on any open cave floor (no grass tiles underground).
     const caveWild = m.indoor && m.encounters && m.encounters.grass && d && !d.solid && !d.water;
     if (d && (d.grass || caveWild)) {
-      if (d.grass) Overworld.stepFx = 6;
+      if (d.grass) { Overworld.stepFx = 14; Overworld.stepFxX = x; Overworld.stepFxY = y; }
       if (Game.repelSteps > 0) Game.repelSteps--;
       Overworld.tryEncounter();
     }
@@ -360,6 +360,21 @@ const Overworld = {
     const sprites = [Overworld.player, ...m.npcs];
     sprites.sort((a, b) => (a.py) - (b.py));
     for (const sp of sprites) sp.draw(ctx, cx, cy);
+    // grass rustle: leaf specks kicked out of the tile just stepped into
+    if (Overworld.stepFx > 0) {
+      Overworld.stepFx--;
+      const t = 1 - Overworld.stepFx / 14;
+      const gx = Overworld.stepFxX * 16 - cx, gy = Overworld.stepFxY * 16 - cy;
+      const spread = Math.round(2 + t * 5), rise = Math.round(t * 4);
+      ctx.globalAlpha = 1 - t * 0.8;
+      ctx.fillStyle = t < 0.5 ? '#4e8a44' : '#7cb860';
+      ctx.fillRect(gx + 7 - spread, gy + 12 - rise, 2, 2);
+      ctx.fillRect(gx + 7 + spread, gy + 12 - rise, 2, 2);
+      ctx.fillStyle = '#9ccc80';
+      ctx.fillRect(gx + 7 - spread + 1, gy + 15 - (rise >> 1), 2, 1);
+      ctx.fillRect(gx + 7 + spread - 1, gy + 15 - (rise >> 1), 2, 1);
+      ctx.globalAlpha = 1;
+    }
     // over layer (tree tops, roofs above player)
     if (m.over) {
       for (let y = y0 - 1; y <= y0 + 11; y++) {

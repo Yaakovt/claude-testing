@@ -57,14 +57,18 @@ const Tiles = (() => {
   });
 
   T('flowers', {
-    anim: 2,
+    anim: 4,
     draw(s, ph) {
       grassBase(s);
       const cols = ['#f8d048', '#f88888'];
-      const sway = ph % 2;
+      // 4-beat sway: lean left, center, lean right, center — like a breeze
+      const lean = [-1, 0, 1, 0][ph % 4];
       for (const [x, y, c] of [[3, 3, 0], [11, 5, 1], [5, 11, 1], [12, 12, 0]]) {
-        s.set(x, y + sway, cols[c]); s.set(x + 1, y + sway, '#fff');
-        s.set(x, y + 1 + sway, '#fff'); s.set(x + 1, y + 1 + sway, cols[c]);
+        s.set(x + 1, y + 2, DARKG.d);                      // stem stays rooted
+        const fx = x + lean;
+        s.set(fx, y, cols[c]); s.set(fx + 1, y, '#fff');
+        s.set(fx, y + 1, '#fff'); s.set(fx + 1, y + 1, cols[c]);
+        if (ph % 4 === 1) s.set(fx + 1, y - 1, '#fff8d8'); // glint on the upbeat
       }
     },
   });
@@ -140,13 +144,26 @@ const Tiles = (() => {
   });
 
   T('waterfall', {
-    solid: true, fall: true, anim: 2,
+    solid: true, fall: true, anim: 4,
     draw(s, ph) {
-      s.rect(0, 0, 16, 16, WATER.b);
+      // sheeting columns of water with falling white streaks + churning foam base
+      s.rect(0, 0, 16, 16, WATER.d);
+      for (let x = 0; x < 16; x++) {
+        const col = (x * 5) % 3;
+        s.line(x, 0, x, 16, col === 0 ? WATER.b : col === 1 ? WATER.l : '#a8d8f8');
+      }
+      // streaks race downward with the phase (two per column pair)
       for (let x = 0; x < 16; x += 2) {
-        const y = (x * 3 + ph * 8) % 16;
-        s.line(x, 0, x, 16, x % 4 ? WATER.l : '#a8d8f8');
-        s.set(x, y, '#e8f8ff');
+        const y1 = (x * 3 + ph * 4) % 16;
+        const y2 = (x * 7 + ph * 4 + 8) % 16;
+        s.set(x, y1, '#e8f8ff'); s.line(x, y1 + 1, x, Math.min(15, y1 + 2), '#c8ecff');
+        s.set(x + 1, y2, '#e8f8ff');
+      }
+      // foam churns along the bottom rows
+      for (let x = 0; x < 16; x++) {
+        const bub = (x * 11 + ph * 3) % 4;
+        if (bub < 2) s.set(x, 14 + (bub % 2), '#f0fcff');
+        s.set(x, 13, ((x + ph) % 3) ? '#c8ecff' : WATER.h);
       }
     },
   });
@@ -295,14 +312,21 @@ const Tiles = (() => {
   });
 
   T('crystal', {
-    solid: true, anim: 2,
+    solid: true, anim: 4,
     draw(s, ph) {
       s.rect(0, 0, 16, 16, CAVE.b);
-      const glow = ph % 2 ? '#a8e8f8' : '#78c8e8';
+      // slow breathing pulse: dim -> bright -> peak -> bright
+      const beat = [0, 1, 2, 1][ph % 4];
+      const glow = ['#68b8d8', '#8cd8f0', '#b8f0ff'][beat];
+      // aura halo around the spire at the pulse's peak
+      if (beat === 2) { s.fillEllipse(8, 8, 7, 7, '#3a5a78'); }
       s.tri(5, 13, 8, 2, 11, 13, glow);
-      s.line(8, 2, 8, 12, '#e8fcff');
-      s.tri(2, 14, 4, 8, 6, 14, '#68b0d8');
-      s.tri(10, 14, 13, 7, 15, 14, '#68b0d8');
+      s.line(8, 2, 8, 12, beat === 2 ? '#ffffff' : '#e8fcff');
+      s.tri(2, 14, 4, 8, 6, 14, beat ? '#68b0d8' : '#5898c0');
+      s.tri(10, 14, 13, 7, 15, 14, beat ? '#68b0d8' : '#5898c0');
+      // drifting sparkle motes
+      const m1 = [[3, 4], [12, 3], [13, 10], [2, 9]][ph % 4];
+      s.set(m1[0], m1[1], '#e8fcff');
     },
   });
 
@@ -487,13 +511,15 @@ const Tiles = (() => {
   });
 
   T('pc', {
-    solid: true, pc: true, anim: 2,
+    solid: true, pc: true, anim: 4,
     draw(s, ph) {
       s.rect(2, 8, 12, 7, '#a8a8b0');
       s.rect(3, 2, 10, 8, '#484858');
       s.rect(4, 3, 8, 6, ph % 2 ? '#68d8a8' : '#58b890');
+      s.line(4, 3 + (ph % 4), 11, 3 + (ph % 4), '#88f0c0');   // scanline rolls down
       s.set(5, 4, '#a8f8d8');
       s.rect(6, 12, 4, 2, '#888890');
+      s.set(12, 13, ph % 4 === 3 ? '#58d048' : '#2a5a2a');    // power LED blink
     },
   });
 
@@ -520,14 +546,18 @@ const Tiles = (() => {
   });
 
   T('healer', {
-    solid: true, healer: true, anim: 2,
+    solid: true, healer: true, anim: 4,
     draw(s, ph) {
       s.rect(1, 6, 14, 9, '#d8d0c0');
       s.rect(2, 7, 12, 7, '#e8e0d0');
+      // lights chase left-to-right, then all rest on the 4th beat
       for (let i = 0; i < 3; i++) {
-        s.fillCircle(4 + i * 4, 9, 1.5, ph % 2 && i === 1 ? '#f8e048' : '#c05848');
+        const on = ph % 4 === i;
+        s.fillCircle(4 + i * 4, 9, 1.5, on ? '#f8e048' : '#c05848');
+        if (on) s.set(4 + i * 4, 8, '#fff8c0');
       }
       s.rect(3, 12, 10, 2, '#a8a098');
+      s.set(4 + (ph % 4) * 2, 13, '#c8c0b0');   // tray shimmer
     },
   });
 
