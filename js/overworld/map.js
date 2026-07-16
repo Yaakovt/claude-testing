@@ -274,13 +274,17 @@ const Overworld = {
     const name = { old: 'Old Rod', good: 'Good Rod', super: 'Super Rod' }[rod];
     const hook = { old: 45, good: 65, super: 85 }[rod];
     const boost = { old: 0, good: 2, super: 5 }[rod];
+    const p = Overworld.player;
+    p.fishing = { x, y, rod };            // draw the rod + line toward the water tile
+    const stop = () => { p.fishing = null; };
     AudioSys.sfx('confirm');
     Textbox.say('You cast the ' + name + ' into the water...', () => {
-      if (!Util.chance(hook)) { Textbox.say('...Not even a nibble.'); return; }
+      if (!Util.chance(hook)) { Textbox.say('...Not even a nibble.', stop); return; }
       const table = fishTable(Overworld.map.id);
       const pick = Overworld.rollEncounter(table);
-      if (!pick) { Textbox.say('...Not even a nibble.'); return; }
+      if (!pick) { Textbox.say('...Not even a nibble.', stop); return; }
       Textbox.say('Oh! A bite!', () => {
+        stop();
         Music.play('battle_wild');
         Overworld.beginBattleFlash(() => Game.startWildBattle(pick.key, Util.randRange(pick.min + boost, pick.max + boost), 'water'));
       });

@@ -175,5 +175,27 @@ class Player {
     }
     const spr = Chars.get(this.spriteId, this.dir, frame);
     ctx.drawImage(spr, x, y + hopOff);
+
+    // Fishing: a rod held out toward the water tile, line dropping to a bobber.
+    if (this.fishing) {
+      const [fx, fy] = DIRV[this.dir];
+      // hands roughly at the trainer's front; rod tip reaches out over the water
+      const hx = x + 8 + fx * 4, hy = y + 12 + (fy > 0 ? 2 : -1);
+      const tipX = x + 8 + fx * 15, tipY = y + 10 + fy * 12;
+      ctx.strokeStyle = '#7a4a26'; ctx.lineWidth = 2;                 // rod pole
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(tipX, tipY); ctx.stroke();
+      ctx.strokeStyle = '#d8b048'; ctx.lineWidth = 1;                 // gold rod tip
+      ctx.beginPath(); ctx.moveTo((hx + tipX) / 2, (hy + tipY) / 2); ctx.lineTo(tipX, tipY); ctx.stroke();
+      // line + bobber dropping onto the water tile in front
+      const bobT = Math.sin(Game.frame / 12) * 1.5;
+      const bx = this.fishing.x * 16 - camX + 8, by = this.fishing.y * 16 - camY + 8 + bobT;
+      ctx.strokeStyle = 'rgba(230,240,255,0.8)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(bx, by); ctx.stroke();
+      ctx.fillStyle = '#e83828'; ctx.fillRect(bx - 1, by - 1, 2, 1);  // red bobber top
+      ctx.fillStyle = '#f8f8f8'; ctx.fillRect(bx - 1, by, 2, 1);      // white bobber bottom
+      // ripple ring around the bobber
+      ctx.strokeStyle = 'rgba(200,232,255,0.5)';
+      ctx.beginPath(); ctx.ellipse(bx, by + 1, 4 + (Game.frame >> 3) % 3, 2, 0, 0, Math.PI * 2); ctx.stroke();
+    }
   }
 }

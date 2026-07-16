@@ -105,9 +105,84 @@ const ItemIcons = (() => {
     s.tri(2, 6, 2, 10, 5, 8, r.d); s.tri(14, 6, 14, 10, 11, 8, r.d); // wrapper
   }
 
+  // ---- distinct pictures for the individual key items (so they aren't all keys) ----
+  const KEY_ICONS = {
+    town_map(s) {
+      s.fillPoly([[2, 3], [14, 2], [14, 13], [2, 14]], '#e8dcc0');       // folded parchment
+      s.line(6, 2, 6, 13, '#c8b890'); s.line(10, 3, 10, 14, '#c8b890');  // fold creases
+      s.line(3, 8, 13, 7, '#8fb85a'); s.line(4, 5, 9, 11, '#c88848');    // route + river
+      s.set(11, 6, '#e05038'); s.set(5, 10, '#4878c8');                  // map pins
+      s.line(2, 3, 14, 2, '#fff');
+    },
+    bike(s) {
+      s.fillCircle(5, 11, 3, '#303038'); s.fillCircle(11, 11, 3, '#303038');
+      s.fillCircle(5, 11, 1, '#889'); s.fillCircle(11, 11, 1, '#889');
+      s.line(5, 11, 8, 6, '#e04838'); s.line(11, 11, 8, 6, '#e04838'); s.line(5, 11, 11, 11, '#e04838');
+      s.line(8, 6, 10, 5, '#303038'); s.rect(4, 5, 3, 1, '#303038');     // seat + bars
+    },
+    exp_share(s) {
+      s.fillEllipse(8, 8, 4, 5, '#e8c040'); s.fillEllipse(8, 8, 2, 3, '#f8e890');
+      s.line(8, 3, 8, 1, '#c8a850'); s.set(8, 1, '#e8c040');             // loop
+      s.set(7, 6, '#a86818'); s.line(6, 9, 10, 9, '#a86818');            // stylized "E"
+      s.line(6, 7, 9, 7, '#a86818'); s.line(6, 7, 6, 11, '#a86818'); s.line(6, 11, 9, 11, '#a86818');
+    },
+    amulet_coin(s) {
+      s.fillCircle(8, 8, 6, '#c8981f'); s.fillCircle(8, 8, 5, '#f0c838');
+      s.fillCircle(8, 8, 3, '#e8b820'); s.set(6, 5, '#fff4b0');          // shine
+      s.set(8, 8, '#a87818'); s.line(6, 8, 10, 8, '#a87818');
+    },
+    saga_tome(s) {
+      s.rect(3, 2, 11, 12, '#7a4038'); s.rect(3, 2, 2, 12, '#5a2c28');   // cover + spine
+      s.rect(5, 3, 8, 10, '#e8dcc0'); s.line(5, 6, 12, 6, '#c8b890');    // pages
+      s.line(5, 9, 12, 9, '#c8b890'); s.set(9, 4, '#c85038');            // rune
+    },
+    aurora_compass(s) {
+      s.fillCircle(8, 8, 6, '#c8ccd8'); s.fillCircle(8, 8, 5, '#2c3350');
+      s.tri(8, 3, 6, 9, 10, 9, '#e85038'); s.tri(8, 13, 6, 8, 10, 8, '#e8e8f0'); // needle N/S
+      s.set(8, 8, '#f8f8f8'); s.set(8, 2, '#8de0c0');                    // N mark (aurora tint)
+    },
+    explorer_permit(s) {
+      s.rect(3, 2, 10, 12, '#f0e8d8'); s.line(3, 2, 3, 13, '#c8b890');   // document
+      s.line(5, 5, 11, 5, '#4878c8'); s.line(5, 7, 11, 7, '#a0a0a8'); s.line(5, 9, 9, 9, '#a0a0a8');
+      s.fillCircle(11, 11, 2, '#e05038'); s.set(11, 11, '#f8c0b0');      // wax seal
+    },
+    old_lamp(s) {
+      s.fillEllipse(8, 11, 5, 3, '#c8a038'); s.fillEllipse(8, 10, 4, 2, '#e8c860');
+      s.rect(12, 8, 3, 2, '#c8a038'); s.tri(2, 9, 5, 8, 5, 10, '#c8a038'); // spout + handle
+      s.rect(7, 6, 2, 2, '#e8c860'); s.set(8, 4, '#f8d048'); s.set(8, 3, '#f89030'); // flame
+    },
+    ferry_pass(s) {
+      s.rect(2, 4, 12, 8, '#68b0e0'); s.rect(2, 4, 12, 8, '#68b0e0');
+      s.rect(3, 5, 10, 6, '#bfe4f8'); s.line(9, 4, 9, 12, '#68b0e0');    // ticket + stub
+      s.set(5, 7, '#2c6a9a'); s.line(4, 9, 7, 9, '#2c6a9a'); s.fillCircle(11, 8, 1, '#e8c040');
+    },
+    ionar_badge(s) {
+      s.fillPoly([[8, 2], [13, 6], [11, 13], [5, 13], [3, 6]], '#2c3a4c'); // shield
+      s.fillPoly([[8, 4], [11, 7], [9, 12], [6, 12], [5, 7]], '#3f6f92');
+      s.fillPoly([[9, 5], [6, 9], [8, 9], [7, 12], [11, 7], [9, 7]], '#f8e038'); // gold bolt
+    },
+    storm_charm(s) {
+      s.fillPoly([[8, 2], [12, 8], [8, 14], [4, 8]], '#5a78c8');          // teardrop gem
+      s.fillPoly([[9, 4], [6, 9], [8, 9], [7, 12], [11, 6], [9, 6]], '#f8e038'); // bolt
+      s.set(6, 5, '#a8c0f0'); s.line(8, 1, 8, 2, '#c8a850');
+    },
+    shrine_key(s) { key(s); s.set(4, 4, '#f8f0c0'); s.set(13, 9, '#f8e048'); }, // fancier key
+    fin_fossil(s) {
+      s.fillEllipse(8, 9, 6, 5, '#a8a090'); s.fillEllipse(8, 9, 5, 4, '#c8c0ac');
+      s.fillPoly([[8, 3], [11, 9], [5, 9]], '#8a8272'); s.line(8, 4, 8, 8, '#6a6252'); // fin
+      s.set(6, 11, '#8a8272'); s.set(10, 11, '#8a8272');
+    },
+    tusk_fossil(s) {
+      s.fillEllipse(8, 9, 6, 5, '#a8a090'); s.fillEllipse(8, 9, 5, 4, '#c8c0ac');
+      s.stroke(5, 12, 11, 5, 1, Px.ramp('#e8e0cc'));                      // curved tusk
+      s.set(11, 5, '#fff'); s.line(6, 11, 9, 8, '#9a9280');
+    },
+  };
+
   function render(id) {
     const it = Items[id];
     const s = new PixelSurface(16, 16);
+    if (it && it.kind === 'key' && !it.rod && KEY_ICONS[id]) { KEY_ICONS[id](s); s.outline('#241c22'); return s.toCanvas(); }
     if (!it) { s.rect(4, 4, 8, 8, '#888'); }
     else if (it.kind === 'ball') ball(s, BALL_COL[id] || '#e04838');
     else if (it.kind === 'stone') gem(s, STONE_COL[id] || '#a0a0c0');

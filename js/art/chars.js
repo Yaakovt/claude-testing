@@ -301,8 +301,11 @@ const Chars = (() => {
   }
 
   const PALETTES = {
+    // The two player sprites read as clearly different characters: the boy is a
+    // capped red-jacket trainer in jeans; the girl wears a pink dress with a
+    // beret, auburn twin-tails, and boots.
     player_m: { skin: '#e8b088', hair: '#5a3a28', top: '#c84838', bottom: '#3858a8', shoe: '#e8e8e8', accent: '#f8f8f8', hat: '#e03828', hatBill: true },
-    player_f: { skin: '#e8b088', hair: '#8a5a38', top: '#e05888', bottom: '#4868b8', shoe: '#f0f0f0', accent: '#f8f8f8', hat: '#f06898', hatBill: true, longHair: true },
+    player_f: { skin: '#f0b890', hair: '#9a5a2e', top: '#e8609a', bottom: '#6a4a8a', shoe: '#e8b0c0', accent: '#fff0f6', dress: '#e470a4', hat: '#f06898', longHair: true, pony: '#9a5a2e' },
     prof: { skin: '#e0a878', hair: '#c8c8c8', top: '#f0f0f0', bottom: '#888890', shoe: '#585860', accent: '#d8d8e0' },
     rival_m: { skin: '#e8b088', hair: '#3868c8', top: '#48a868', bottom: '#38404a', shoe: '#d8d8d8', accent: '#f8f8f8' },
     rival_f: { skin: '#e8b088', hair: '#c85888', top: '#9868c8', bottom: '#e8e0d0', shoe: '#d8d8d8', longHair: true, accent: '#f8e8f8' },
