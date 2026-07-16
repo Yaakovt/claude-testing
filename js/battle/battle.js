@@ -156,8 +156,11 @@ const Battle = {
 
     const enemyMove = Battle.aiChoose();
     if (!playerMoves) {
-      // Enemy gets a free attack after switch/item.
-      if (!en.mon.fainted && !pl.mon.fainted) Battle.execMove(en, pl, enemyMove);
+      // Enemy gets a free attack after switch/item. Re-read Battle.pl — a switch
+      // reassigned it, and the stale `pl` still points at the mon we just
+      // recalled (so the enemy would hit the mon we switched OUT to safety).
+      const plNow = Battle.pl;
+      if (!en.mon.fainted && !plNow.mon.fainted) Battle.execMove(en, plNow, enemyMove);
       Battle.endOfTurn();
       return BattleUI.play();
     }
