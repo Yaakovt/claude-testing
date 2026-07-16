@@ -67,6 +67,7 @@ const Battle = {
     Battle.weather = { kind: wk, turns: wk ? 999 : 0 };
     Battle.runAttempts = 0;
     Battle.result = null;
+    Battle.pendingSwitch = false;
     Battle.caughtMon = null;
     Battle.turnCount = 0;
     Battle.participants = new Set();
@@ -76,6 +77,11 @@ const Battle = {
     let emon;
     if (opts.kind === 'trainer') {
       emon = Battle.trainerMon(0);
+      // The enemy side MUST exist before the first sendEnemy is queued: E()
+      // snapshots Battle.en.mon at queue time, and if it still points at the
+      // PREVIOUS battle's foe (finish() doesn't clear it), the intro shows last
+      // fight's species at its ending HP (0 if it fainted) — a one-battle shift.
+      Battle.en = Battle.makeSide(emon, false);
       // Skip the class prefix when it would repeat a word already in the name
       // ("Team Ionar" + "Ionar Grunt" -> just "Team Ionar Grunt" reads wrong).
       const cls = Battle.trainer.cls || '';
@@ -86,11 +92,11 @@ const Battle = {
       Battle.E('text', { msg: Battle.trainer.name + ' sent out ' + emon.name + '!' });
     } else {
       emon = opts.mon;
+      Battle.en = Battle.makeSide(emon, false);
       Battle.E('sendEnemy');
       Battle.E('text', { msg: 'Wild ' + emon.name + ' appeared!' });
       Battle.E('cry', { key: emon.key });
     }
-    Battle.en = Battle.makeSide(emon, false);
     Battle.E('sendPlayer');
     Battle.E('text', { msg: 'Go! ' + pmon.name + '!' });
     Battle.E('cry', { key: pmon.key });
@@ -177,7 +183,7 @@ const Battle = {
     else { first = en; firstMove = enemyMove; second = pl; secondMove = pMove; }
 
     Battle.execMove(first, second, firstMove);
-    if (!first.mon.fainted && !second.mon.fainted && !Battle.result) {
+    if (!first.mon.fainted && !second.mon.fainted && !Battle.result && !Battle.pendingSwitch) {
       Battle.execMove(second, first, secondMove);
     }
     Battle.endOfTurn();
@@ -608,7 +614,7 @@ const Battle = {
 
   // ---------------------------------------------------------------- end of turn
   endOfTurn() {
-    if (Battle.result) return;
+    if (Battle.result || Battle.pendingSwitch) return;
     Battle.turnCount++;
     // Weather
     if (Battle.weather.kind && Battle.weather.turns < 900) {
@@ -680,12 +686,18 @@ const Battle = {
       if (side.screens.spec > 0) side.screens.spec--;
     }
     Battle.checkFaints();
-    if (!Battle.result) Battle.E('menu');
+    // If an end-of-turn residual (poison, hail…) KO'd the player, a forceSwitch
+    // is pending — the menu returns on its own after the replacement is sent.
+    if (!Battle.result && !Battle.pendingSwitch) Battle.E('menu');
   },
 
   // ---------------------------------------------------------------- faints & exp
   checkFaints() {
-    if (Battle.result) return;
+    // pendingSwitch latches once the player's mon has fainted and a replacement
+    // is being requested. Without it, checkFaints (called from execMove AND from
+    // endOfTurn) sees the still-fainted mon twice and queues the faint +
+    // forceSwitch twice — the player is asked to pick a mon two times.
+    if (Battle.result || Battle.pendingSwitch) return;
     const pl = Battle.pl, en = Battle.en;
     if (en.mon.fainted) {
       Battle.E('cry', { key: en.mon.key });
@@ -730,6 +742,7 @@ const Battle = {
         Battle.E('text', { msg: 'You blacked out!' });
         Battle.E('end');
       } else {
+        Battle.pendingSwitch = true;   // block a second faint/forceSwitch this turn
         Battle.E('forceSwitch');
       }
     }
@@ -775,6 +788,7 @@ const Battle = {
 
   // ---------------------------------------------------------------- switching / items / run
   switchPlayer(idx, forced) {
+    Battle.pendingSwitch = false;   // the replacement has been chosen
     const mon = Game.party[idx];
     if (!forced) Battle.E('text', { msg: Battle.pl.mon.name + ', come back!' });
     Battle.E('recall', { side: 'pl' });
@@ -920,6 +934,9 @@ const Battle = {
     const cb = Battle.onEnd;
     Battle.onEnd = null;
     BattleUI.close();
+    // Drop the sides so a stale foe can never leak into the NEXT battle's
+    // intro snapshot (the ordering fix in start() also prevents this).
+    Battle.en = null; Battle.pl = null;
     if (cb) cb(Battle.result);
   },
 };

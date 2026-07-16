@@ -2,6 +2,7 @@
 /** Party screen (view/switch/use-item target) and the summary screen. */
 const PartyUI = {
   idx: 0, mode: 'field', onPick: null, onCancel: null, forItem: null, prevState: null,
+  swapFrom: null,   // slot chosen first when reordering the party
 
   open(opts) {
     PartyUI.mode = opts.mode || 'field';
@@ -9,6 +10,7 @@ const PartyUI = {
     PartyUI.onCancel = opts.onCancel || null;
     PartyUI.forItem = opts.forItem || null;
     PartyUI.idx = 0;
+    PartyUI.swapFrom = null;
     PartyUI.prevState = Game.state;
     Game.setState('party');
   },
@@ -21,6 +23,7 @@ const PartyUI = {
     if (Input.pressed.right && PartyUI.idx % 2 === 0 && PartyUI.idx + 1 < n) { PartyUI.idx++; AudioSys.sfx('select'); }
 
     if (Input.pressed.b) {
+      if (PartyUI.swapFrom !== null) { AudioSys.sfx('cancel'); PartyUI.swapFrom = null; return; } // cancel a pending reorder
       if (PartyUI.mode === 'battle-must') { AudioSys.sfx('cancel'); return; } // cannot cancel forced switch
       AudioSys.sfx('cancel');
       if (PartyUI.onCancel) PartyUI.onCancel();
@@ -28,6 +31,16 @@ const PartyUI = {
       return;
     }
     if (Input.pressed.a) {
+      // Reordering: the first slot is chosen, now the second slot swaps with it.
+      if (PartyUI.swapFrom !== null) {
+        AudioSys.sfx('confirm');
+        const a = PartyUI.swapFrom;
+        if (a !== PartyUI.idx) {
+          const t = Game.party[a]; Game.party[a] = Game.party[PartyUI.idx]; Game.party[PartyUI.idx] = t;
+        }
+        PartyUI.swapFrom = null;
+        return;
+      }
       const mon = Game.party[PartyUI.idx];
       if (PartyUI.mode === 'battle-switch' || PartyUI.mode === 'battle-must') {
         if (mon.fainted) { AudioSys.sfx('cancel'); Textbox.say(mon.name + ' has no energy left to battle!'); return; }
@@ -48,11 +61,14 @@ const PartyUI = {
   },
 
   actionMenu(mon) {
-    const opts = ['Summary', mon.heldItem ? 'Take Item' : 'Give Item', 'Cancel'];
+    const opts = ['Summary'];
+    if (Game.party.length > 1) opts.push('Switch');
+    opts.push(mon.heldItem ? 'Take Item' : 'Give Item', 'Cancel');
     Textbox.ask('What to do with ' + mon.name + '?', opts, (pick) => {
       Game.setState('party');
       const label = opts[pick];
       if (label === 'Summary') SummaryUI.open(PartyUI.idx);
+      else if (label === 'Switch') { PartyUI.swapFrom = PartyUI.idx; AudioSys.sfx('confirm'); }
       else if (label === 'Give Item') {
         BagUI.open({ mode: 'field', startPocket: 'HELD', onCancel: () => Game.setState('party') });
       } else if (label === 'Take Item') {
@@ -71,8 +87,13 @@ const PartyUI = {
     Game.party.forEach((mon, i) => {
       const x = (i % 2) * 116 + 6, y = 16 + Math.floor(i / 2) * 34;
       PartyUI.drawSlot(ctx, mon, x, y, i === PartyUI.idx);
+      if (i === PartyUI.swapFrom) {   // ringed marker on the mon being moved
+        ctx.strokeStyle = '#f85838'; ctx.lineWidth = 2;
+        ctx.strokeRect(x + 1, y + 1, 110, 30);
+      }
     });
-    Font.draw(ctx, 'A: Select   B: Back', 66, 150, { color: '#f8f8f8', shadow: '#182838' });
+    const hint = PartyUI.swapFrom !== null ? 'A: Swap here   B: Cancel' : 'A: Select   B: Back';
+    Font.draw(ctx, hint, 60, 150, { color: '#f8f8f8', shadow: '#182838' });
   },
 
   drawSlot(ctx, mon, x, y, sel) {

@@ -36,7 +36,16 @@ function carveExits(def) {
   const rows = def.ground.map((r) => r.split(''));
   const over = def.over ? def.over.map((r) => r.split('')) : null;
   const h = rows.length, w = rows[0].length;
-  const solidAt = (x, y) => rows[y] && SOLID.has(legend[rows[y][x]]);
+  const groundSolid = (x, y) => rows[y] && SOLID.has(legend[rows[y][x]]);
+  const overSolid = (x, y) => over && over[y] && SOLID.has(legend[over[y][x]]);
+  // Clear a tile down to walkable path on BOTH layers. A border tree is often
+  // drawn on the OVER layer above walkable grass, so clearing only the ground
+  // (the old behaviour) left the tree standing on a tile you can now walk
+  // through — "roads blocked by trees you can still go past".
+  const carve = (x, y) => {
+    if (groundSolid(x, y)) rows[y][x] = path;
+    if (overSolid(x, y) && over[y]) over[y][x] = ' ';
+  };
   for (const wp of def.warps) {
     const d = [wp.x, w - 1 - wp.x, wp.y, h - 1 - wp.y];   // dist to L,R,T,B edge
     const m = Math.min(...d);
@@ -44,7 +53,7 @@ function carveExits(def) {
     const [dx, dy] = m === d[0] ? [-1, 0] : m === d[1] ? [1, 0] : m === d[2] ? [0, -1] : [0, 1];
     let x = wp.x, y = wp.y;
     for (let s = 0; s <= m + 1 && x >= 0 && x < w && y >= 0 && y < h; s++, x += dx, y += dy) {
-      if (solidAt(x, y)) { rows[y][x] = path; if (over && over[y]) over[y][x] = ' '; }
+      carve(x, y);
     }
   }
   def.ground = rows.map((r) => r.join(''));
