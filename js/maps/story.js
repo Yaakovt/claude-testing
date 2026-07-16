@@ -21,11 +21,14 @@ Scripts.register('aspen_starter', () => {
       Scripts.giveMon(key, 5, () => {
         Textbox.say([
           'ASPEN: Excellent choice! ' + d.name + ' already likes you.',
-          'ASPEN: Take these, too — a POKEDEX to record the fakemon you meet, and some Fieldorbs to catch them.',
+          'ASPEN: Take these, too — a POKEDEX to record the fakemon you meet, 5 Fieldorbs to catch them, a Town Map, and 3 Potions for the road.',
           'ASPEN: Two young trainers set out today as well — my grandkid KAI, and a sharp one named VERA. You\'ll surely cross paths.',
           'ASPEN: Now — head south through Route 1 to BIRCHWICK TOWN and challenge Leader ASTRID. Your journey begins!',
         ], () => {
+          // The one and only starting kit (init() no longer grants anything).
           Game.give('fieldorb', 5);
+          Game.give('potion', 3);
+          Game.give('town_map', 1);
           Game.flags.gotStarter = true;
           Game.flags.hasDex = true;
           Scripts.done();

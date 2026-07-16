@@ -276,5 +276,15 @@ function resolveRivalParty(trainer, opts) {
       party.push({ key: preEvoStages(finals[i % finals.length], 2 - stage), level: baseLv - 1 - (i % 3) });
     }
   }
+  // Scale the whole rival team to the player's current level so fights track the
+  // player instead of fixed numbers (e.g. the first fight isn't Lv8 vs your Lv5).
+  // The rival stays a little ahead, more so in the later story battles.
+  if (typeof Game !== 'undefined' && Game.party && Game.party.length) {
+    const playerMax = Math.max(...Game.party.map((m) => m.level || 1));
+    const bonus = [1, 2, 3][stage] !== undefined ? [1, 2, 3][stage] : 2;
+    const origLead = party[0] ? party[0].level : playerMax;
+    const shift = (playerMax + bonus) - origLead;
+    if (shift !== 0) party.forEach((p) => { p.level = Math.max(2, (p.level || 1) + shift); });
+  }
   return { ...trainer, party };
 }

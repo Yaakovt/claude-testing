@@ -37,9 +37,9 @@ const Game = {
     Assets.boot();
     AudioSys.init();
     registerMusic();
-    Game.give('fieldorb', 5);
-    Game.give('potion', 3);
-    Game.give('town_map', 1);
+    // NOTE: no starting items here — init() runs on every page load, so granting
+    // items here stacked them on each reload AND doubled the professor's gift.
+    // The starting kit is handed out once by Professor Aspen (aspen_starter).
     Title.open();
     Game.state = 'title';
     requestAnimationFrame(Game.loop);
