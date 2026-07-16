@@ -1,4 +1,11 @@
 'use strict';
+/**
+ * Difficulty balance knobs. EXP_RATE multiplies all EXP gained; ENEMY_LEVEL_DROP
+ * is subtracted from every wild/trainer/gym foe's level (floored at 2). Tuned
+ * down from the original brutal curve so a steadily-leveled team can keep pace.
+ */
+const Balance = { EXP_RATE: 1.3, ENEMY_LEVEL_DROP: 2 };
+
 /** Core utilities shared across the engine. */
 const Util = {
   clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; },

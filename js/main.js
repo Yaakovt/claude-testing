@@ -190,7 +190,7 @@ const Game = {
   // ---------------------------------------------------------------- battles
   startWildBattle(key, level, env) {
     if (!Game.partyAlive()) return;   // no healthy fakemon — cannot battle
-    const mon = new Mon(key, level);
+    const mon = new Mon(key, Math.max(2, level - Balance.ENEMY_LEVEL_DROP));
     Game.registerDex(key, 'seen');
     Game.setState('battle');
     Battle.start({

@@ -107,7 +107,8 @@ const Battle = {
 
   trainerMon(i) {
     const spec = Battle.trainer.party[i];
-    return new Mon(spec.key, spec.level, { moves: spec.moves, heldItem: spec.held, ot: Battle.trainer.name });
+    const lv = Math.max(2, spec.level - Balance.ENEMY_LEVEL_DROP);
+    return new Mon(spec.key, lv, { moves: spec.moves, heldItem: spec.held, ot: Battle.trainer.name });
   },
 
   heldOf(side) { return side.mon.heldItem && Items[side.mon.heldItem] ? Items[side.mon.heldItem] : {}; },
@@ -751,7 +752,7 @@ const Battle = {
   awardExp() {
     const en = Battle.en.mon;
     const base = en.def.expYield;
-    let exp = Math.floor((base * en.level) / 7);
+    let exp = Math.floor((base * en.level) / 7 * Balance.EXP_RATE);
     if (Battle.kind === 'trainer') exp = Math.floor(exp * 1.5);
     const parts = [...Battle.participants].filter((m) => !m.fainted && m.level < 100);
     if (!parts.length) return;
