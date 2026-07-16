@@ -62,8 +62,11 @@ class Player {
     // tile itself is "solid" (e.g. a path gap through a tree/rock border row).
     const warp = m.warpAt(nx, ny);
     // Guarded warp: needs a flag first (e.g. can't leave the first town without
-    // a starter, or you'd hit tall grass with an empty party).
-    if (warp && warp.needFlag && !Game.flags[warp.needFlag]) {
+    // a starter, or you'd hit tall grass with an empty party). `needBadge: N`
+    // keeps a town's onward road shut until that gym's badge is earned, so the
+    // rival and gym leaders can't be skipped.
+    if (warp && ((warp.needFlag && !Game.flags[warp.needFlag]) ||
+                 (warp.needBadge !== undefined && !Game.badges[warp.needBadge]))) {
       AudioSys.sfx('bump');
       this.dir = dir;
       Textbox.say(warp.blockMsg || 'You can\'t go that way yet.');

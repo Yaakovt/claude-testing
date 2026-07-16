@@ -104,8 +104,8 @@ function rtn(t1, t2, s1, s2) {
       { x: gym.doorX, y: gym.doorY, to: 'emberfall_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 1, y: 7, to: 'route4', tx: 18, ty: 7, dir: 'left', always: true },
       { x: 1, y: 8, to: 'route4', tx: 18, ty: 8, dir: 'left', always: true },
-      { x: 9, y: 0, to: 'route5', tx: 9, ty: 10, dir: 'up', always: true },
-      { x: 10, y: 0, to: 'route5', tx: 10, ty: 10, dir: 'up', always: true },
+      { x: 9, y: 0, to: 'route5', tx: 9, ty: 10, dir: 'up', always: true, needBadge: 3, blockMsg: 'A guard stops you: "The mountain road north is closed until you\'ve bested Leader BRANDT."' },
+      { x: 10, y: 0, to: 'route5', tx: 10, ty: 10, dir: 'up', always: true, needBadge: 3, blockMsg: 'A guard stops you: "The mountain road north is closed until you\'ve bested Leader BRANDT."' },
     ],
     signs: [{ x: 8, y: 7, text: 'EMBERFALL CITY — "Where the earth keeps its hearth warm." Leader: BRANDT (Fire).' }],
     npcs: [
@@ -140,8 +140,8 @@ vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
       { x: gym.doorX, y: gym.doorY, to: 'lumenveil_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 15, to: 'route5', tx: 9, ty: 1, dir: 'down', always: true },
       { x: 10, y: 15, to: 'route5', tx: 10, ty: 1, dir: 'down', always: true },
-      { x: 9, y: 0, to: 'route6', tx: 9, ty: 10, dir: 'up', always: true },
-      { x: 10, y: 0, to: 'route6', tx: 10, ty: 10, dir: 'up', always: true },
+      { x: 9, y: 0, to: 'route6', tx: 9, ty: 10, dir: 'up', always: true, needBadge: 4, needFlag: 'beat_rival_mid', blockMsg: 'VERA leans on the north gate: "Rematch first! And you\'ll want Leader SYLJA\'s badge before the road opens anyway."' },
+      { x: 10, y: 0, to: 'route6', tx: 10, ty: 10, dir: 'up', always: true, needBadge: 4, needFlag: 'beat_rival_mid', blockMsg: 'VERA leans on the north gate: "Rematch first! And you\'ll want Leader SYLJA\'s badge before the road opens anyway."' },
     ],
     signs: [{ x: 8, y: 7, text: 'LUMENVEIL CITY — "Closest city to the aurora." Leader: SYLJA (Psychic). Team Ionar seized the observatory here...' }],
     npcs: [
@@ -178,8 +178,8 @@ vRoute('route6', 'Route 6', 'cave', 'irondeep', 9, 'lumenveil', 9, [
       { x: gym.doorX, y: gym.doorY, to: 'irondeep_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 15, to: 'route6', tx: 9, ty: 1, dir: 'down', always: true },
       { x: 10, y: 15, to: 'route6', tx: 10, ty: 1, dir: 'down', always: true },
-      { x: 9, y: 0, to: 'route7', tx: 9, ty: 10, dir: 'up', always: true },
-      { x: 10, y: 0, to: 'route7', tx: 10, ty: 10, dir: 'up', always: true },
+      { x: 9, y: 0, to: 'route7', tx: 9, ty: 10, dir: 'up', always: true, needBadge: 5, blockMsg: 'A guard stops you: "Deeper Irondeep is off-limits without Leader TORVALD\'s badge."' },
+      { x: 10, y: 0, to: 'route7', tx: 10, ty: 10, dir: 'up', always: true, needBadge: 5, blockMsg: 'A guard stops you: "Deeper Irondeep is off-limits without Leader TORVALD\'s badge."' },
     ],
     signs: [{ x: 8, y: 7, text: 'IRONDEEP CITY — "Forged in the roots of the mountains." Leader: TORVALD (Steel).' }],
     npcs: [
@@ -250,8 +250,8 @@ vRoute('route8', 'Route 8', 'snow', 'glacierholm', 9, 'frostmoor', 9, [
       { x: gym.doorX, y: gym.doorY, to: 'glacierholm_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 15, to: 'route8', tx: 9, ty: 1, dir: 'down', always: true },
       { x: 10, y: 15, to: 'route8', tx: 10, ty: 1, dir: 'down', always: true },
-      { x: 9, y: 0, to: 'route9', tx: 9, ty: 10, dir: 'up', always: true },
-      { x: 10, y: 0, to: 'route9', tx: 10, ty: 10, dir: 'up', always: true },
+      { x: 9, y: 0, to: 'route9', tx: 9, ty: 10, dir: 'up', always: true, needBadge: 6, blockMsg: 'A guard stops you: "The pass to Stormcrest opens for Leader YRSA\'s badge-holders only. Go earn it."' },
+      { x: 10, y: 0, to: 'route9', tx: 10, ty: 10, dir: 'up', always: true, needBadge: 6, blockMsg: 'A guard stops you: "The pass to Stormcrest opens for Leader YRSA\'s badge-holders only. Go earn it."' },
     ],
     signs: [{ x: 8, y: 7, text: 'GLACIERHOLM — "Built on ice that never melts." Leader: YRSA (Ice).' }],
     npcs: [
@@ -286,7 +286,7 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
       { x: 10, y: 0, to: 'sky_spire', tx: 8, ty: 14, dir: 'up', always: true },
       { x: 9, y: 15, to: 'route9', tx: 9, ty: 1, dir: 'down', always: true },
       { x: 10, y: 15, to: 'route9', tx: 10, ty: 1, dir: 'down', always: true },
-      { x: 19, y: 7, to: 'victory_road', tx: 2, ty: 14, dir: 'right', always: true },
+      { x: 19, y: 7, to: 'victory_road', tx: 2, ty: 14, dir: 'right', always: true, needBadge: 7, blockMsg: 'A League official bars the gate: "Victory Road admits eight-badge trainers only. Leader SIGNE\'s Storm Badge is the last one you need."' },
     ],
     signs: [
       { x: 8, y: 7, text: 'STORMCREST CITY — "At the foot of the Sky Spire." Leader: SIGNE (Dragon). Spire north, VICTORY ROAD east to the League.' },

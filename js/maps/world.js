@@ -99,8 +99,8 @@ defineMap({
   warps: [
     { x: 9, y: 0, to: 'frosthollow', tx: 9, ty: 16, dir: 'up', always: true },
     { x: 10, y: 0, to: 'frosthollow', tx: 10, ty: 16, dir: 'up', always: true },
-    { x: 9, y: 15, to: 'birchwick', tx: 9, ty: 1, dir: 'down', always: true },
-    { x: 10, y: 15, to: 'birchwick', tx: 10, ty: 1, dir: 'down', always: true },
+    { x: 9, y: 15, to: 'birchwick', tx: 9, ty: 1, dir: 'down', always: true, needFlag: 'beat_rival_early', blockMsg: 'VERA blocks the road south: "Leaving already? Not before you and I settle who\'s the better trainer! Come find me in the grass."' },
+    { x: 10, y: 15, to: 'birchwick', tx: 10, ty: 1, dir: 'down', always: true, needFlag: 'beat_rival_early', blockMsg: 'VERA blocks the road south: "Leaving already? Not before you and I settle who\'s the better trainer! Come find me in the grass."' },
   ],
   signs: [
     { x: 6, y: 4, text: 'ROUTE 1. Tall grass ahead — wild fakemon live there!' },
@@ -149,8 +149,8 @@ defineMap({
       { x: gym.doorX, y: gym.doorY, to: 'birchwick_gym', tx: 5, ty: 7, dir: 'up' },
       { x: 9, y: 0, to: 'route1', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route1', tx: 10, ty: 14, dir: 'up', always: true },
-      { x: 9, y: 15, to: 'route2', tx: 9, ty: 1, dir: 'down', always: true },
-      { x: 10, y: 15, to: 'route2', tx: 10, ty: 1, dir: 'down', always: true },
+      { x: 9, y: 15, to: 'route2', tx: 9, ty: 1, dir: 'down', always: true, needBadge: 0, blockMsg: 'A guard stops you: "Route 2 is gym-trainer territory — challenge Leader ASTRID and win her badge before you head out."' },
+      { x: 10, y: 15, to: 'route2', tx: 10, ty: 1, dir: 'down', always: true, needBadge: 0, blockMsg: 'A guard stops you: "Route 2 is gym-trainer territory — challenge Leader ASTRID and win her badge before you head out."' },
     ],
     signs: [
       { x: 8, y: 7, text: 'BIRCHWICK TOWN — "The lumber town where journeys begin."' },
@@ -244,8 +244,8 @@ defineMap({
       { x: gym.doorX, y: gym.doorY, to: 'mossmere_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 0, to: 'route2', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route2', tx: 10, ty: 14, dir: 'up', always: true },
-      { x: 9, y: 15, to: 'route3', tx: 9, ty: 1, dir: 'down', always: true },
-      { x: 10, y: 15, to: 'route3', tx: 10, ty: 1, dir: 'down', always: true },
+      { x: 9, y: 15, to: 'route3', tx: 9, ty: 1, dir: 'down', always: true, needBadge: 1, blockMsg: 'A guard stops you: "The coast road stays shut to trainers without Leader EIRIK\'s badge. Best go win it."' },
+      { x: 10, y: 15, to: 'route3', tx: 10, ty: 1, dir: 'down', always: true, needBadge: 1, blockMsg: 'A guard stops you: "The coast road stays shut to trainers without Leader EIRIK\'s badge. Best go win it."' },
     ],
     signs: [{ x: 8, y: 7, text: 'MOSSMERE TOWN — "The forest remembers every footstep." (Harbor to the south)' }],
     npcs: [
@@ -330,7 +330,7 @@ defineMap({
       { x: gym.doorX, y: gym.doorY, to: 'tidesend_gym', tx: 5, ty: 8, dir: 'up' },
       { x: 9, y: 0, to: 'route3', tx: 9, ty: 14, dir: 'up', always: true },
       { x: 10, y: 0, to: 'route3', tx: 10, ty: 14, dir: 'up', always: true },
-      { x: 19, y: 7, to: 'route4', tx: 1, ty: 7, dir: 'right', always: true },
+      { x: 19, y: 7, to: 'route4', tx: 1, ty: 7, dir: 'right', always: true, needBadge: 2, blockMsg: 'A dockhand waves you back: "Route 4 is for badge-holders. Beat Leader RUNA first, yeah?"' },
       { x: 14, y: 13, to: 'tempest_isle', tx: 8, ty: 12, dir: 'up', always: true },
     ],
     signs: [{ x: 8, y: 7, text: 'TIDESEND HARBOR — "Every tide brings a new story in." Gym Leader: RUNA (Water). Route 4 east; SURF south to the isle.' }],
