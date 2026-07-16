@@ -59,8 +59,8 @@ function building(g, x, y, roofKey, signCol) {
       { x: lab.doorX, y: lab.doorY, to: 'aspen_lab', tx: 5, ty: 7, dir: 'up' },
       { x: home.doorX, y: home.doorY, to: 'player_room', tx: 3, ty: 4, dir: 'up' },
       { x: h1.doorX, y: h1.doorY, to: 'frost_house1', tx: 3, ty: 3, dir: 'up' },
-      { x: 9, y: 17, to: 'route1', tx: 9, ty: 1, dir: 'down', always: true },
-      { x: 10, y: 17, to: 'route1', tx: 10, ty: 1, dir: 'down', always: true },
+      { x: 9, y: 17, to: 'route1', tx: 9, ty: 1, dir: 'down', always: true, needFlag: 'starter', blockMsg: 'A neighbor stops you: "Heading to Route 1? Not without a partner! Go see Professor Aspen in the lab first."' },
+      { x: 10, y: 17, to: 'route1', tx: 10, ty: 1, dir: 'down', always: true, needFlag: 'starter', blockMsg: 'A neighbor stops you: "Heading to Route 1? Not without a partner! Go see Professor Aspen in the lab first."' },
     ],
     signs: [{ x: 8, y: 7, text: 'FROSTHOLLOW VILLAGE — "Where the aurora touches the snow."' }],
     npcs: [

@@ -61,6 +61,14 @@ class Player {
     // An exit/door warp on the destination tile is always steppable, even if the
     // tile itself is "solid" (e.g. a path gap through a tree/rock border row).
     const warp = m.warpAt(nx, ny);
+    // Guarded warp: needs a flag first (e.g. can't leave the first town without
+    // a starter, or you'd hit tall grass with an empty party).
+    if (warp && warp.needFlag && !Game.flags[warp.needFlag]) {
+      AudioSys.sfx('bump');
+      this.dir = dir;
+      Textbox.say(warp.blockMsg || 'You can\'t go that way yet.');
+      return;
+    }
     const isExit = warp && (warp.always || (destDef && (destDef.door || destDef.stairs)));
     if (m.solidAt(nx, ny) && !isExit) {
       AudioSys.sfx('bump');
