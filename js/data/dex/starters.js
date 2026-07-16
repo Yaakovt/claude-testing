@@ -476,7 +476,7 @@
   });
 
   Dex.add({
-    id: 6, key: 'fafnirn', name: 'Fafnirn', types: ['Fire', 'Dragon'],
+    id: 6, key: 'fafnirn', name: 'Fafnirn', types: ['Fire'],
     base: { hp: 76, atk: 104, def: 71, spa: 110, spd: 80, spe: 89 },
     ability: 'kindled_heart', catchRate: 45, expYield: 240, growth: 'medslow', gender: 87.5,
     evolve: null,
@@ -485,7 +485,7 @@
       [46, 'primal_rage'], [52, 'inferno_burst'], [58, 'star_cataclysm']],
     tms: ['tm02', 'tm11', 'tm17', 'tm21', 'tm25', 'tm23', 'tm22', 'tm07'],
     dex: { species: 'Lindworm', h: '2.8m', w: '110.5kg',
-      entry: 'The old sagas tell of a serpent coiled on a hoard of embers. Its molten seams never cool, even in blizzards.' },
+      entry: 'The old sagas tell of a serpent coiled on a hoard of embers. Its molten seams never cool, even in blizzards — and the unwary still call it a dragon, though no true wyrm-blood runs in it.' },
     cry: { base: 240, sweep: 0.45, wave: 'sawtooth', dur: 0.75, vib: 10, grit: 0.4, sub: true },
     draw(s) {
       // coiled serpent body: big loop
