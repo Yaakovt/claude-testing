@@ -233,6 +233,8 @@ const BattleUI = {
         PartyUI.open({
           mode: 'battle-must',
           onPick: (idx) => {
+            Game.setState('battle');   // PartyUI set state to 'party'; return to the battle
+            BattleUI.mode = 'playing';
             Battle.switchPlayer(idx, true);
             BattleUI.play();
           },
@@ -554,10 +556,32 @@ const BattleUI = {
     Font.draw(ctx, 'Lv' + mon.level, 78, 10, { color: '#383838', shadow: '#d0d0c0' });
     BattleUI.drawHpBar(ctx, 26, 22, 72, BattleUI.hpShown.en);
     if (mon.status) BattleUI.drawStatusTag(ctx, 8, 20, mon.status);
+    // trainer's remaining team, shown as a row of balls beneath the box
+    if (Battle.kind === 'trainer' && Battle.trainer) {
+      const total = Battle.trainer.party.length;
+      const alive = total - Battle.trainerPartyIdx;   // current + not-yet-sent
+      BattleUI.drawTeamBalls(ctx, 8, 40, total, alive, 1);
+    }
+  },
+
+  /** A row of tiny Poke Balls: filled = still in the fight, dark = defeated. */
+  drawTeamBalls(ctx, x, y, total, alive, dir) {
+    for (let i = 0; i < total; i++) {
+      const bx = x + i * 8 * dir;
+      const ok = i < alive;
+      ctx.fillStyle = ok ? '#e04838' : '#5a5a64'; ctx.fillRect(bx, y, 5, 2);        // top
+      ctx.fillStyle = ok ? '#f0f0f0' : '#c0c0c8'; ctx.fillRect(bx, y + 3, 5, 2);    // bottom
+      ctx.fillStyle = '#202028'; ctx.fillRect(bx, y + 2, 5, 1);                      // band
+      ctx.fillStyle = ok ? '#f8e8b0' : '#808088'; ctx.fillRect(bx + 2, y + 2, 1, 1);// button
+    }
   },
 
   drawPlayerBox(ctx) {
     const mon = Battle.pl.mon;
+    // your team, as balls above the box (right-aligned so it doesn't clip)
+    const total = Game.party.length;
+    const alive = Game.party.filter((m) => !m.fainted).length;
+    BattleUI.drawTeamBalls(ctx, 228 - 5, 68, total, alive, -1);
     UIKit.miniPanel(ctx, 128, 74, 108, 36);
     Font.draw(ctx, mon.name, 134, 78, { color: '#383838', shadow: '#d0d0c0' });
     Font.draw(ctx, 'Lv' + mon.level, 206, 78, { color: '#383838', shadow: '#d0d0c0' });

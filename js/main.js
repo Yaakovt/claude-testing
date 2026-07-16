@@ -75,6 +75,7 @@ const Game = {
       case 'moveforget': MoveForget.update(); break;
       case 'relearn': MoveRelearn.update(); break;
       case 'starter': StarterSelect.update(); break;
+      case 'map': MapUI.update(); break;
     }
     if (Game.state !== 'title' && Game.state !== 'intro' && Game.state !== 'naming') Game.playtime++;
   },
@@ -99,6 +100,7 @@ const Game = {
       case 'moveforget': MoveForget.draw(ctx); break;
       case 'relearn': MoveRelearn.draw(ctx); break;
       case 'starter': StarterSelect.draw(ctx); break;
+      case 'map': MapUI.draw(ctx); break;
       default: Screen.clear('#000');
     }
     if (Textbox.active) Textbox.draw(ctx);

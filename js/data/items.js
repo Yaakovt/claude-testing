@@ -80,7 +80,7 @@ I('voltband', 'Voltband', 'held', 300, 'If held, boosts the power of the holder\
 I('wyrmband', 'Wyrmband', 'held', 300, 'If held, boosts the power of the holder\'s Dragon moves.', { typeBoost: { type: 'Dragon', mult: 1.2 } });
 
 // ---- Key items ----
-I('town_map', 'Town Map', 'key', 0, 'A map of the Norvenna region.');
+I('town_map', 'Town Map', 'key', 0, 'A map of the Norvenna region. Use it to see the towns and where you are.', { field: 'map' });
 I('bike', 'Bike', 'key', 0, 'A folding bicycle. Use it to hop on and cycle around twice as fast.', { field: 'bike' });
 I('exp_share', 'Exp. Share', 'key', 0, 'Toggle it on and your whole party shares in the EXP from every battle.', { field: 'expshare' });
 I('amulet_coin', 'Amulet Coin', 'key', 0, 'A coin of old Norvenna gold. While it is in your bag, you earn double prize money from trainers.', { field: 'coin' });

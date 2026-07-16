@@ -88,6 +88,7 @@ const BagUI = {
     }
     if (item.kind === 'key') {
       switch (item.field) {
+        case 'map': MapUI.open(); return;
         case 'bike': Overworld.toggleBike(); return;
         case 'expshare':
           Game.flags.expShare = !Game.flags.expShare;
@@ -156,12 +157,13 @@ const BagUI = {
 
   draw(ctx) {
     Screen.clear('#48a878');
-    // pocket tabs
+    // pocket tabs — evenly divide the 240px width so all 6 fit on screen
     ctx.fillStyle = '#387858'; ctx.fillRect(0, 0, 240, 14);
+    const tw = 240 / BagUI.POCKETS.length;   // 40px per tab
     BagUI.POCKETS.forEach((p, i) => {
-      const x = 6 + i * 47;
-      if (i === BagUI.pocket) { ctx.fillStyle = '#f0f0e0'; ctx.fillRect(x - 2, 1, 46, 12); }
-      Font.draw(ctx, p.name, x, 3, { color: i === BagUI.pocket ? '#383838' : '#c8e0d0', shadow: null });
+      const x = i * tw;
+      if (i === BagUI.pocket) { ctx.fillStyle = '#f0f0e0'; ctx.fillRect(x + 1, 1, tw - 2, 12); }
+      Font.draw(ctx, p.name, x + (tw - Font.width(p.name)) / 2, 3, { color: i === BagUI.pocket ? '#383838' : '#c8e0d0', shadow: null });
     });
     UIKit.panel(ctx, 4, 18, 232, 106);
     const items = BagUI.list();
