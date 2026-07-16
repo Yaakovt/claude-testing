@@ -356,11 +356,11 @@ const Overworld = {
     const cx = Math.round(Overworld.camX), cy = Math.round(Overworld.camY);
     const x0 = Math.floor(cx / 16), y0 = Math.floor(cy / 16);
     const phase = Game.frame >> 4;
-    // ground layer
+    // ground layer (variant picked per position so open areas don't lattice)
     for (let y = y0 - 1; y <= y0 + 11; y++) {
       for (let x = x0 - 1; x <= x0 + 16; x++) {
         const id = m.tileId('ground', x, y);
-        if (id) ctx.drawImage(Tiles.canvas(id, phase), x * 16 - cx, y * 16 - cy);
+        if (id) ctx.drawImage(Tiles.canvas(id, phase, (x * 7 + y * 13) & 0xffff), x * 16 - cx, y * 16 - cy);
       }
     }
     // item balls
@@ -398,7 +398,7 @@ const Overworld = {
       for (let y = y0 - 1; y <= y0 + 11; y++) {
         for (let x = x0 - 1; x <= x0 + 16; x++) {
           const id = m.tileId('over', x, y);
-          if (id) ctx.drawImage(Tiles.canvas(id, phase), x * 16 - cx, y * 16 - cy);
+          if (id) ctx.drawImage(Tiles.canvas(id, phase, (x * 7 + y * 13) & 0xffff), x * 16 - cx, y * 16 - cy);
         }
       }
     }
@@ -407,11 +407,24 @@ const Overworld = {
     if (m.indoor) Overworld.drawVignette(ctx);
   },
 
+  itemBallSprite: null,
   drawItemBall(ctx, x, y) {
-    ctx.fillStyle = '#e04838'; ctx.fillRect(x + 5, y + 6, 6, 3);
-    ctx.fillStyle = '#f0f0f0'; ctx.fillRect(x + 5, y + 9, 6, 3);
-    ctx.fillStyle = '#303038'; ctx.fillRect(x + 5, y + 8, 6, 1);
-    ctx.fillStyle = '#fff'; ctx.fillRect(x + 6, y + 7, 1, 1);
+    // proper grounded Poké Ball: shadow, domed red top, white base, band,
+    // button and a catchlight — rendered once and cached
+    if (!Overworld.itemBallSprite) {
+      const s = new PixelSurface(16, 16);
+      s.fillEllipse(8, 13, 5, 2, '#00000028');            // ground shadow
+      s.fillCircle(8, 9, 4.5, '#2a2028');                 // rim
+      s.fillEllipse(8, 7.5, 3.8, 3, '#e04838');           // red dome
+      s.fillEllipse(7, 6.5, 1.8, 1.2, '#f88878');         // dome light
+      s.fillEllipse(8, 11, 3.8, 2.2, '#e8e8e0');          // white base
+      s.rect(4, 9, 9, 1, '#2a2028');                      // band
+      s.fillCircle(8, 9, 1.3, '#f0f0e8');                 // button
+      s.set(8, 9, '#a8a8a0');
+      s.set(6, 5, '#ffffff');                             // catchlight
+      Overworld.itemBallSprite = s.toCanvas();
+    }
+    ctx.drawImage(Overworld.itemBallSprite, x, y);
   },
 
   bannerTimer: 0,

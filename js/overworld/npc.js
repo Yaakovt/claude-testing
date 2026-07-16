@@ -9,7 +9,11 @@ class NPC {
     this.tx = def.x; this.ty = def.y;
     this.px = def.x * 16; this.py = def.y * 16;
     this.dir = def.dir || 'down';
-    this.spriteId = def.sprite || 'npc_villager';
+    // Generic townsfolk sprites fan out into a varied cast, stable per spot
+    // (skipped for trainers/scripted cast so battle art always matches).
+    const baseSprite = def.sprite || 'npc_villager';
+    const seed = (def.x * 73856093) ^ (def.y * 19349663);
+    this.spriteId = (def.trainer || def.noVary) ? baseSprite : Chars.vary(baseSprite, seed);
     this.script = def.script || null;
     this.move = def.move || 'static';   // static | wander | look
     this.passable = def.passable || false;

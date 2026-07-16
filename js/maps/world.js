@@ -26,14 +26,16 @@ function gput(g, x, y, ch) { if (g[y] && x >= 0 && x < g[y].length) g[y][x] = ch
 function gborder(g, ch) { const h = g.length, w = g[0].length; for (let x = 0; x < w; x++) { gput(g, x, 0, ch); gput(g, x, h - 1, ch); } for (let y = 0; y < h; y++) { gput(g, 0, y, ch); gput(g, w - 1, y, ch); } }
 function gRows(g) { return g.map((r) => r.join('')); }
 /**
- * Stamp a 3-wide × 2-tall building with a centered door + mat below.
- * Returns { doorX, doorY, matX, matY } for wiring warps.
+ * Stamp a 3-wide building: 2 roof rows + a wall row (window, door, window),
+ * with a mat below the door. Returns { doorX, doorY, matX, matY }.
  */
 function building(g, x, y, roofKey, signCol) {
   const r = ROOFS[roofKey];
   for (let ry = 0; ry < 2; ry++) { gput(g, x, y + ry, r[0]); gput(g, x + 1, y + ry, r[1]); gput(g, x + 2, y + ry, r[2]); }
   if (signCol) gput(g, x + (signCol === 'C' ? 0 : 2), y, signCol); // shop emblem on a roof corner
+  gput(g, x, y + 2, 'o');                       // window . door . window
   gput(g, x + 1, y + 2, 'd');
+  gput(g, x + 2, y + 2, 'o');
   gput(g, x + 1, y + 3, 'm');
   return { doorX: x + 1, doorY: y + 2, matX: x + 1, matY: y + 3 };
 }

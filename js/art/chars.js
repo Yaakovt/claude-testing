@@ -59,6 +59,16 @@ const Chars = (() => {
       s.set(6, ly + 6, shoe.l); s.set(10, ly + 6, shoe.l);   // toe caps
     }
 
+    // ---- skirt/dress: flares over the hips, hem swings with the stride ----
+    if (pal.dress) {
+      const dr = Px.ramp(pal.dress === true ? pal.top : pal.dress);
+      const flare = step ? 1 : 0;
+      s.fillPoly([[4, ly - 1], [11, ly - 1], [13 + flare, ly + 3], [2 - flare, ly + 3]], dr.b);
+      s.line(2 - flare, ly + 3, 13 + flare, ly + 3, dr.d);   // hem shadow
+      s.line(4, ly - 1, 2 - flare, ly + 3, dr.l);            // lit fold
+      s.set(8, ly + 1, dr.d);                                // center pleat
+    }
+
     // ---- torso: jacket with collar, hem and side shade ----
     const ty = 10 - bob;
     s.rect(4, ty, 8, 7, top.b);
@@ -94,7 +104,20 @@ const Chars = (() => {
     s.set(4, hy + 2, skin.d); s.set(12, hy + 2, skin.d);   // cheek shading
 
     // ---- hair: layered cap + fringe + sheen ----
-    if (back) {
+    if (pal.bald) {
+      // balding pate: temple tufts + dome shine, face drawn as usual below
+      s.rect(3, hy - 1, 2, 3, hair.b); s.rect(11, hy - 1, 2, 3, hair.b);
+      if (back) s.rect(4, hy + 1, 8, 2, hair.d);           // low ring behind
+      s.set(7, hy - 4, skin.l); s.set(8, hy - 4, skin.h);  // shine
+      if (side) {
+        s.set(10, hy, '#1a1418');
+        s.set(13, hy + 1, skin.d); s.set(11, hy + 3, skin.d);
+      } else if (!back) {
+        s.set(6, hy, '#1a1418'); s.set(10, hy, '#1a1418');
+        s.set(6, hy + 1, skin.d); s.set(10, hy + 1, skin.d);
+        s.set(8, hy + 3, '#a06848');
+      }
+    } else if (back) {
       s.fillEllipse(8, hy - 1, 5, 4, hair.b);
       s.rect(3, hy - 1, 10, 4, hair.b);
       s.fillEllipse(8, hy + 2, 5, 3, hair.d);      // under-layer
@@ -128,6 +151,33 @@ const Chars = (() => {
       s.set(6, hy, '#1a1418'); s.set(10, hy, '#1a1418');
       s.set(6, hy + 1, skin.d); s.set(10, hy + 1, skin.d);
       s.set(8, hy + 3, '#a06848');
+    }
+
+    // ---- extra face/head features ----
+    if (pal.bun && !pal.bald) {
+      // tidy hair bun perched on top (granny / dancer styles)
+      s.fillEllipse(back || !side ? 8 : 5, hy - 5, 2, 2, hair.b);
+      s.set(back || !side ? 7 : 4, hy - 6, hair.l);
+    }
+    if (pal.glasses && !back) {
+      const gc = '#2a2430';
+      if (side) {
+        s.set(9, hy, gc); s.set(11, hy, gc); s.set(10, hy - 1, gc);
+        s.set(8, hy, gc);                              // temple arm
+      } else {
+        s.set(5, hy, gc); s.set(7, hy, gc); s.set(8, hy, gc);
+        s.set(9, hy, gc); s.set(11, hy, gc);
+        s.set(6, hy - 1, gc); s.set(10, hy - 1, gc);   // top rims
+      }
+    }
+    if (pal.beard && !back) {
+      const bd = Px.ramp(pal.beard === true ? pal.hair : pal.beard);
+      if (side) { s.rect(9, hy + 2, 4, 2, bd.b); s.set(10, hy + 4, bd.d); }
+      else {
+        s.rect(5, hy + 2, 7, 1, bd.b);
+        s.rect(6, hy + 3, 5, 2, bd.b); s.set(8, hy + 5, bd.d);
+        s.set(8, hy + 3, '#a06848');                   // mouth peeks through
+      }
     }
 
     // ---- hat: domed cap with band + bill ----
@@ -167,10 +217,44 @@ const Chars = (() => {
     clerk: { skin: '#e0a878', hair: '#4a4a52', top: '#4878c8', bottom: '#383840', shoe: '#282830', accent: '#f8f8f8' },
     gym_leader: { skin: '#e0a878', hair: '#c89838', top: '#8848c8', bottom: '#484858', shoe: '#d8b848', accent: '#f8d848' },
     champion: { skin: '#e0a878', hair: '#c8a038', top: '#487848', bottom: '#5a4632', shoe: '#8a6a44', hat: '#487848' },
+    // ---- variety cast ----
+    kid_boy: { skin: '#e8b088', hair: '#4a3222', top: '#f0c030', bottom: '#4878c8', shoe: '#c84838', hat: '#48a8d8', hatBill: true },
+    kid_girl: { skin: '#e8b088', hair: '#c87838', top: '#f08888', bottom: '#f8f0e0', shoe: '#e05888', longHair: true, dress: '#f08888' },
+    lass: { skin: '#e8b088', hair: '#e8b848', top: '#68b8e0', bottom: '#f8f8f0', shoe: '#4878c8', longHair: true, dress: '#68b8e0' },
+    beauty: { skin: '#e8b088', hair: '#a84828', top: '#e858a0', bottom: '#f0e0e8', shoe: '#c8a848', longHair: true, dress: '#e858a0' },
+    granny: { skin: '#d8a070', hair: '#d8d8d8', top: '#9878a8', bottom: '#786888', shoe: '#584848', bun: true, dress: '#9878a8', glasses: true },
+    gentleman: { skin: '#e0a878', hair: '#b8b8c0', top: '#384048', bottom: '#282e34', shoe: '#181c20', accent: '#c8a850', hat: '#282e34', beard: true },
+    scientist: { skin: '#e0a878', hair: '#584838', top: '#f0f0f0', bottom: '#485058', shoe: '#383e44', accent: '#a8b8c0', glasses: true },
+    blackbelt: { skin: '#d89868', hair: '#241c14', top: '#f0ead8', bottom: '#f0ead8', shoe: '#c8b898', accent: '#282828', hat: '#c83828' },
+    swimmer_m: { skin: '#d89058', hair: '#3858a8', top: '#d89058', bottom: '#3868c8', shoe: '#d89058' },
+    swimmer_f: { skin: '#e0a070', hair: '#c85838', top: '#e8486a', bottom: '#e0a070', shoe: '#e0a070', longHair: true },
+    skier: { skin: '#e8b088', hair: '#8a5a38', top: '#e86838', bottom: '#384858', shoe: '#282e34', accent: '#78d8e8', hat: '#f0f0f8' },
+    miner: { skin: '#d8a070', hair: '#584838', top: '#c8a848', bottom: '#6a5a48', shoe: '#4a3e32', accent: '#f8e048', hat: '#e8c838', beard: true },
+    punk: { skin: '#e0a878', hair: '#58c848', top: '#282830', bottom: '#7a2830', shoe: '#181c20', accent: '#c8c8d0' },
+    waitress: { skin: '#e8b088', hair: '#5a3a28', top: '#383e44', bottom: '#f0f0f0', shoe: '#282e34', accent: '#f0f0f0', dress: '#383e44', longHair: true },
+    camper: { skin: '#e0a878', hair: '#7a5238', top: '#488858', bottom: '#8a6a44', shoe: '#5a4632', hat: '#c8b848', hatBill: true, accent: '#e86838' },
+    baldman: { skin: '#e0a878', hair: '#787068', top: '#a86848', bottom: '#586068', shoe: '#3a3e44', bald: true },
+    monk: { skin: '#d8a070', hair: '#484038', top: '#c87838', bottom: '#a86028', shoe: '#6a4a2a', bald: true, beard: true },
+  };
+
+  /**
+   * Deterministic variety pools: generic map sprites fan out into a cast so
+   * towns don't repeat the same two villagers. Pick is stable per map spot.
+   */
+  const VARIETY = {
+    npc_villager: ['npc_villager', 'kid_boy', 'camper', 'scientist', 'baldman', 'punk', 'gentleman'],
+    npc_woman: ['npc_woman', 'kid_girl', 'lass', 'granny', 'beauty', 'waitress'],
+    npc_oldman: ['npc_oldman', 'gentleman', 'monk', 'baldman'],
   };
 
   return {
     palettes: PALETTES,
+    /** Stable per-spot pick from a generic sprite's variety pool. */
+    vary(id, seed) {
+      const pool = VARIETY[id];
+      if (!pool) return id;
+      return pool[(seed >>> 0) % pool.length];
+    },
     get(id, dir = 'down', frame = 0) {
       if (typeof Assets !== 'undefined') {
         const ov = Assets.get('chars/' + id + '_' + dir + '_' + frame);
