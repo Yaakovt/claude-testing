@@ -64,6 +64,13 @@ const Music = {
     Music.channels = [];
   },
 
+  // Re-anchor every channel to "now" after the AudioContext was suspended, so
+  // resuming doesn't schedule a burst of notes for all the time that passed.
+  resync() {
+    const t = AudioSys.now() + 0.1;
+    for (const ch of Music.channels) ch.nextTime = t;
+  },
+
   tick() {
     if (!AudioSys.ctx || !Music.current) return;
     const ahead = AudioSys.now() + 0.3;

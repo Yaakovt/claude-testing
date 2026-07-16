@@ -31,6 +31,22 @@ const AudioSys = {
     };
     window.addEventListener('keydown', unlock);
     window.addEventListener('mousedown', unlock);
+
+    // Silence audio when the game is hidden, backgrounded, or its panel/tab is
+    // closed — otherwise the music sequencer keeps scheduling notes on a live
+    // AudioContext and plays on after you've left. Suspending stops all output
+    // instantly and freezes the clock; on return we resume and re-anchor the
+    // music so it doesn't fire a catch-up burst of notes.
+    const hide = () => { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); };
+    const show = () => {
+      if (AudioSys.ctx && AudioSys.enabled && AudioSys.ctx.state === 'suspended') {
+        AudioSys.ctx.resume().then(() => Music.resync()).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', () => (document.hidden ? hide() : show()));
+    window.addEventListener('pagehide', hide);
+    window.addEventListener('blur', hide);
+    window.addEventListener('focus', show);
   },
 
   now() { return AudioSys.ctx ? AudioSys.ctx.currentTime : 0; },
