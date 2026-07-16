@@ -60,26 +60,34 @@ const Title = {
       }
       ctx.globalAlpha = 1;
     }
-    // Auroryx silhouette rising (fades in over first ~120 frames)
+    // --- mountain range on the horizon (drawn BEFORE the legendary so it sits
+    // clearly behind, not cutting across it). Lit lighter than the night sky,
+    // with aurora rim-light and snow caps so it actually reads as mountains. ---
+    const peaks = [[0, 132, 34, 104, 70, 132], [52, 132, 104, 92, 158, 132], [138, 132, 192, 100, 240, 132]];
+    // haze band at the base separates the range from the snowfield
+    ctx.fillStyle = 'rgba(120,150,190,0.22)'; ctx.fillRect(0, 118, 240, 16);
+    for (const [ax, ay, bx, by, cx2, cy] of peaks) {
+      ctx.fillStyle = '#39476e';                                  // lighter than sky -> visible
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cx2, cy); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#2b3557';                                  // shaded right face
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(cx2, cy); ctx.lineTo((bx + cx2) / 2, cy); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(89,230,184,0.55)'; ctx.lineWidth = 1; // aurora glow on the lit ridge
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      ctx.fillStyle = '#eaf0f8';                                  // snow cap
+      ctx.beginPath(); ctx.moveTo(bx - 6, by + 6); ctx.lineTo(bx, by); ctx.lineTo(bx + 6, by + 6); ctx.lineTo(bx, by + 4); ctx.closePath(); ctx.fill();
+    }
+
+    // Auroryx silhouette rising, IN FRONT of the range (fully visible)
     const rise = Util.clamp((Title.t - 30) / 90, 0, 1);
     if (rise > 0) {
-      ctx.globalAlpha = rise * 0.9;
+      ctx.globalAlpha = rise * 0.92;
       const spr = Dex.sprite('auroryx', 'front');
-      const y = Util.lerp(120, 74, rise);
+      const y = Util.lerp(116, 70, rise);
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spr, 88, y, 64, 64);
       ctx.globalAlpha = 1;
     }
-    // mountain range on the horizon, catching the aurora glow
-    ctx.fillStyle = '#20284a';
-    ctx.beginPath(); ctx.moveTo(0, 132); ctx.lineTo(34, 106); ctx.lineTo(70, 132); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(52, 132); ctx.lineTo(104, 96); ctx.lineTo(158, 132); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(140, 132); ctx.lineTo(192, 104); ctx.lineTo(240, 132); ctx.fill();
-    ctx.strokeStyle = 'rgba(89,230,184,0.5)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(92, 104); ctx.lineTo(104, 96); ctx.stroke();
-    ctx.fillStyle = '#e8ecf4';
-    ctx.beginPath(); ctx.moveTo(98, 100); ctx.lineTo(104, 96); ctx.lineTo(111, 101); ctx.lineTo(104, 103); ctx.fill();
-    // snowfield foreground
+    // snowfield foreground (covers the legendary's feet + mountain bases)
     ctx.fillStyle = '#e8f0f8'; ctx.fillRect(0, 132, 240, 28);
     ctx.fillStyle = '#d0e0ee';
     ctx.beginPath(); ctx.moveTo(0, 138); ctx.quadraticCurveTo(120, 128, 240, 140); ctx.lineTo(240, 160); ctx.lineTo(0, 160); ctx.fill();
