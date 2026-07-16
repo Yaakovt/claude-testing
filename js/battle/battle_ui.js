@@ -46,15 +46,23 @@ const BattleUI = {
   update() {
     if (!BattleUI.visible) return;
     BattleAnim.update();
-    // animate HP bars
-    for (const tag of ['pl', 'en']) {
-      const side = tag === 'pl' ? Battle.pl : Battle.en;
-      if (!side || !side.mon) continue;
-      const target = Util.clamp(side.mon.curHp / side.mon.maxHp, 0, 1);
-      const cur = BattleUI.hpShown[tag];
-      if (Math.abs(cur - target) > 0.002) {
-        BattleUI.hpShown[tag] += Util.clamp(target - cur, -0.02, 0.02);
-      } else BattleUI.hpShown[tag] = target;
+    // Animate the HP bars — but ONLY while an 'hp' event is playing (or when
+    // we're back at the menu). curHp is reduced the instant a move resolves, so
+    // if the bar eased every frame it would drain during the attack animation
+    // ("outcome before the visual"). Holding it until the hp event keeps the
+    // sequence readable: animation → hit flash → bar drains.
+    const evT = BattleUI.event && BattleUI.event.t;
+    const easeHp = BattleUI.mode !== 'playing' || evT === 'hp' || !BattleUI.event;
+    if (easeHp) {
+      for (const tag of ['pl', 'en']) {
+        const side = tag === 'pl' ? Battle.pl : Battle.en;
+        if (!side || !side.mon) continue;
+        const target = Util.clamp(side.mon.curHp / side.mon.maxHp, 0, 1);
+        const cur = BattleUI.hpShown[tag];
+        if (Math.abs(cur - target) > 0.002) {
+          BattleUI.hpShown[tag] += Util.clamp(target - cur, -0.02, 0.02);
+        } else BattleUI.hpShown[tag] = target;
+      }
     }
     if (BattleUI.flash.pl > 0) BattleUI.flash.pl--;
     if (BattleUI.flash.en > 0) BattleUI.flash.en--;
@@ -265,16 +273,19 @@ const BattleUI = {
         case 1:
           BagUI.open({
             mode: 'battle',
-            onUse: (itemId, target) => { BattleUI.mode = 'playing'; Battle.playerAction({ type: 'item', id: itemId, target }); },
-            onCancel: () => { BattleUI.mode = 'menu'; },
+            // Returning to the battle MUST restore Game.state — otherwise the
+            // game keeps running the bag (no throw animation, and you can
+            // re-throw balls forever, catching the wild mon again and again).
+            onUse: (itemId, target) => { Game.setState('battle'); BattleUI.mode = 'playing'; Battle.playerAction({ type: 'item', id: itemId, target }); },
+            onCancel: () => { Game.setState('battle'); BattleUI.mode = 'menu'; },
           });
           BattleUI.mode = 'submenu';
           break;
         case 2:
           PartyUI.open({
             mode: 'battle-switch',
-            onPick: (idx) => { BattleUI.mode = 'playing'; Battle.playerAction({ type: 'switch', idx }); },
-            onCancel: () => { BattleUI.mode = 'menu'; },
+            onPick: (idx) => { Game.setState('battle'); BattleUI.mode = 'playing'; Battle.playerAction({ type: 'switch', idx }); },
+            onCancel: () => { Game.setState('battle'); BattleUI.mode = 'menu'; },
           });
           BattleUI.mode = 'submenu';
           break;
