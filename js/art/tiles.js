@@ -386,6 +386,27 @@ const Tiles = (() => {
     },
   });
 
+  // Door-opening frames (event-driven overlay while entering a building —
+  // drawn above the player so they vanish into the doorway, GBA-style).
+  T('door_ajar', {
+    draw(s) {
+      s.rect(0, 0, 16, 16, WALLC.b);
+      s.rect(3, 2, 10, 14, TRUNK.d);            // frame
+      s.rect(4, 3, 8, 13, '#241a20');           // dark opening
+      s.rect(4, 3, 3, 13, WOOD.b);              // panel swung inward, edge-on
+      s.line(4, 3, 4, 15, WOOD.l);
+      s.line(6, 3, 6, 15, WOOD.d);
+    },
+  });
+  T('door_open', {
+    draw(s) {
+      s.rect(0, 0, 16, 16, WALLC.b);
+      s.rect(3, 2, 10, 14, TRUNK.d);
+      s.rect(4, 3, 8, 13, '#241a20');
+      s.set(5, 13, '#3a2c34'); s.set(10, 5, '#3a2c34');   // faint interior glints
+    },
+  });
+
   T('mat', { draw(s) { s.rect(0, 0, 16, 16, PATH.b); s.rect(2, 2, 12, 12, PATH.l); s.rect(4, 4, 8, 8, PATH.d); } });
 
   T('center_sign', {

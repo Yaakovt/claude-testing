@@ -81,6 +81,7 @@ const Overworld = {
   player: null,
   camX: 0, camY: 0,
   transition: null,       // {phase, ...} during warps
+  doorAnim: null,         // {x, y, t, go} while a door swings open
   stepFx: 0,
 
   boot() {
@@ -91,6 +92,7 @@ const Overworld = {
   loadMap(id, playMusic = true) {
     const def = Maps[id];
     if (!def) { console.error('no map ' + id); return; }
+    Overworld.doorAnim = null;
     Overworld.map = new Tilemap(def);
     Overworld.centerCamera();
     if (playMusic) Music.play(Overworld.currentMusic());
@@ -160,6 +162,13 @@ const Overworld = {
 
   update() {
     if (Overworld.transition) { Overworld.updateTransition(); return; }
+    if (Overworld.doorAnim && !Overworld.doorAnim.hold) {
+      const da = Overworld.doorAnim;
+      // after swinging open, hold the overlay through the fade-out so the
+      // player stays "inside" the doorway; loadMap clears it
+      if (++da.t >= 14) { da.hold = true; da.go(); }
+      return;
+    }
     if (Scripts.running) { Scripts.update(); return; }
     // Start menu
     if (Input.pressed.start) { AudioSys.sfx('confirm'); StartMenu.open(); return; }
@@ -190,12 +199,15 @@ const Overworld = {
       if (w.to !== '@back' && Maps[w.to] && Maps[w.to].indoor && !Overworld.map.indoor) {
         Game.flags.returnWarp = { mapId: Overworld.map.id, x: Overworld.player.tx, y: Overworld.player.ty, dir: 'down' };
       }
-      Overworld.beginTransition(() => {
+      const go = () => Overworld.beginTransition(() => {
         if (w.to === '@back') {
           const r = Game.flags.returnWarp || { mapId: 'frosthollow', x: 9, y: 16, dir: 'down' };
           Overworld.warpTo(r.mapId, r.x, r.y, r.dir);
         } else Overworld.warpTo(w.to, w.tx, w.ty, w.dir || 'down');
       });
+      // Doors swing open first; the overlay hides the player "stepping inside".
+      if (d && d.door) Overworld.doorAnim = { x, y, t: 0, go };
+      else go();
     }
   },
 
@@ -374,6 +386,12 @@ const Overworld = {
       ctx.fillRect(gx + 7 - spread + 1, gy + 15 - (rise >> 1), 2, 1);
       ctx.fillRect(gx + 7 + spread - 1, gy + 15 - (rise >> 1), 2, 1);
       ctx.globalAlpha = 1;
+    }
+    // door swings open over the player as they step inside
+    if (Overworld.doorAnim) {
+      const da = Overworld.doorAnim;
+      const id = da.t < 7 ? 'door_ajar' : 'door_open';
+      ctx.drawImage(Tiles.canvas(id, 0), da.x * 16 - cx, da.y * 16 - cy);
     }
     // over layer (tree tops, roofs above player)
     if (m.over) {
