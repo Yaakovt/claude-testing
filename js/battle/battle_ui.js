@@ -28,6 +28,11 @@ const BattleUI = {
     BattleUI.mode = 'playing';
     BattleUI.event = null;
     BattleUI.hpShown = { pl: Battle.pl.mon.curHp / Battle.pl.mon.maxHp, en: 1 };
+    BattleUI.hpTarget = { pl: BattleUI.hpShown.pl, en: 1 };
+    // The mon currently DISPLAYED per side. Driven by send events during replay
+    // so the sprite/box match the moment being animated, not the final state.
+    BattleUI.shownEn = Battle.en.mon;
+    BattleUI.shownPl = Battle.pl.mon;
     BattleUI.expShown = Battle.pl.mon.expPct();
     BattleUI.spriteState = { pl: { visible: false, y: 0, alpha: 1 }, en: { visible: false, y: 0, alpha: 1 } };
     BattleUI.trainerIntro = (Battle.kind === 'trainer');   // show foe trainer until first send
@@ -46,23 +51,16 @@ const BattleUI = {
   update() {
     if (!BattleUI.visible) return;
     BattleAnim.update();
-    // Animate the HP bars — but ONLY while an 'hp' event is playing (or when
-    // we're back at the menu). curHp is reduced the instant a move resolves, so
-    // if the bar eased every frame it would drain during the attack animation
-    // ("outcome before the visual"). Holding it until the hp event keeps the
-    // sequence readable: animation → hit flash → bar drains.
-    const evT = BattleUI.event && BattleUI.event.t;
-    const easeHp = BattleUI.mode !== 'playing' || evT === 'hp' || !BattleUI.event;
-    if (easeHp) {
-      for (const tag of ['pl', 'en']) {
-        const side = tag === 'pl' ? Battle.pl : Battle.en;
-        if (!side || !side.mon) continue;
-        const target = Util.clamp(side.mon.curHp / side.mon.maxHp, 0, 1);
-        const cur = BattleUI.hpShown[tag];
-        if (Math.abs(cur - target) > 0.002) {
-          BattleUI.hpShown[tag] += Util.clamp(target - cur, -0.02, 0.02);
-        } else BattleUI.hpShown[tag] = target;
-      }
+    // Ease each HP bar toward its snapshotted target. hpTarget only advances
+    // when an 'hp' event plays (or a mon is sent in), so the bar naturally holds
+    // during the attack animation and drains during the hp event — and it tracks
+    // the mon that was on screen at that moment, not the final state.
+    for (const tag of ['pl', 'en']) {
+      const target = BattleUI.hpTarget[tag];
+      const cur = BattleUI.hpShown[tag];
+      if (Math.abs(cur - target) > 0.002) {
+        BattleUI.hpShown[tag] += Util.clamp(target - cur, -0.02, 0.02);
+      } else BattleUI.hpShown[tag] = target;
     }
     if (BattleUI.flash.pl > 0) BattleUI.flash.pl--;
     if (BattleUI.flash.en > 0) BattleUI.flash.en--;
@@ -97,9 +95,8 @@ const BattleUI = {
       case 'hp': {
         const tag = ev.side;
         if (tag === 'none') { BattleUI.event = null; break; }
-        const side = tag === 'pl' ? Battle.pl : Battle.en;
-        const target = Util.clamp(side.mon.curHp / side.mon.maxHp, 0, 1);
-        if (Math.abs(BattleUI.hpShown[tag] - target) < 0.003) BattleUI.event = null;
+        // wait until the bar catches up to the snapshotted target
+        if (Math.abs(BattleUI.hpShown[tag] - BattleUI.hpTarget[tag]) < 0.003) BattleUI.event = null;
         break;
       }
       case 'expbar': {
@@ -152,6 +149,10 @@ const BattleUI = {
         AudioSys.sfx(ev.eff > 1 ? 'hit_super' : ev.eff < 1 ? 'hit_weak' : 'hit');
         break;
       }
+      case 'hp':
+        // set the snapshotted target the bar will drain/refill toward
+        if (ev.side !== 'none' && ev.frac !== undefined) BattleUI.hpTarget[ev.side] = ev.frac;
+        break;
       case 'cry': {
         AudioSys.cry(Dex.byKey[ev.key].cry);
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 22;
@@ -173,16 +174,18 @@ const BattleUI = {
       }
       case 'sendEnemy':
         BattleUI.trainerIntro = false;        // foe trainer throws its ball and steps back
+        if (ev.mon) BattleUI.shownEn = ev.mon;   // display THIS mon (snapshotted at send time)
         BattleUI.throwBall('en');
-        BattleUI.spriteState.en = { visible: true, y: -40, alpha: 1 };
-        BattleUI.hpShown.en = Battle.en ? Util.clamp(Battle.en.mon.curHp / Battle.en.mon.maxHp, 0, 1) : 1;
+        BattleUI.spriteState.en = { visible: true, y: -40, alpha: 1, fainting: false };
+        BattleUI.hpShown.en = BattleUI.hpTarget.en = (ev.frac !== undefined ? ev.frac : 1);
         AudioSys.sfx('ball_throw');
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 20;
         break;
       case 'sendPlayer':
+        if (ev.mon) BattleUI.shownPl = ev.mon;
         BattleUI.throwBall('pl');
-        BattleUI.spriteState.pl = { visible: true, y: -40, alpha: 1 };
-        BattleUI.hpShown.pl = Util.clamp(Battle.pl.mon.curHp / Battle.pl.mon.maxHp, 0, 1);
+        BattleUI.spriteState.pl = { visible: true, y: -40, alpha: 1, fainting: false };
+        BattleUI.hpShown.pl = BattleUI.hpTarget.pl = (ev.frac !== undefined ? ev.frac : 1);
         BattleUI.expShown = Battle.pl.mon.expPct();
         AudioSys.sfx('ball_throw');
         BattleUI.event = { t: 'wait' }; BattleUI.wait = 20;
@@ -448,7 +451,8 @@ const BattleUI = {
       if (enSt.fainting) { ey += 20; ctx.globalAlpha = 0.4; enSt.visible = enSt.doneFaint ? false : true; enSt.doneFaint = true; }
       if (anim && anim.geom.ux === g.tx) { ex += off.x; ey += off.y; }
       if (!(BattleUI.flash.en % 4 >= 2)) {
-        ctx.drawImage(Dex.sprite(Battle.en.mon.key, 'front', Battle.en.mon.mega), ex, ey);
+        const em = BattleUI.shownEn || Battle.en.mon;
+        ctx.drawImage(Dex.sprite(em.key, 'front', em.mega), ex, ey);
       }
       ctx.globalAlpha = 1;
     }
@@ -458,7 +462,8 @@ const BattleUI = {
       if (plSt.fainting) { py += 20; ctx.globalAlpha = 0.4; plSt.doneFaint = true; }
       if (anim && anim.geom.ux === g.ux) { px += off.x; py += off.y; }
       if (!(BattleUI.flash.pl % 4 >= 2)) {
-        ctx.drawImage(Dex.sprite(Battle.pl.mon.key, 'back', Battle.pl.mon.mega), px, py);
+        const pm = BattleUI.shownPl || Battle.pl.mon;
+        ctx.drawImage(Dex.sprite(pm.key, 'back', pm.mega), px, py);
       }
       ctx.globalAlpha = 1;
     }
@@ -550,7 +555,7 @@ const BattleUI = {
   },
 
   drawEnemyBox(ctx) {
-    const mon = Battle.en.mon;
+    const mon = BattleUI.shownEn || Battle.en.mon;
     UIKit.miniPanel(ctx, 4, 6, 104, 30);
     Font.draw(ctx, mon.name, 10, 10, { color: '#383838', shadow: '#d0d0c0' });
     Font.draw(ctx, 'Lv' + mon.level, 78, 10, { color: '#383838', shadow: '#d0d0c0' });
@@ -577,7 +582,7 @@ const BattleUI = {
   },
 
   drawPlayerBox(ctx) {
-    const mon = Battle.pl.mon;
+    const mon = BattleUI.shownPl || Battle.pl.mon;
     // your team, as balls above the box (right-aligned so it doesn't clip)
     const total = Game.party.length;
     const alive = Game.party.filter((m) => !m.fainted).length;
@@ -586,7 +591,8 @@ const BattleUI = {
     Font.draw(ctx, mon.name, 134, 78, { color: '#383838', shadow: '#d0d0c0' });
     Font.draw(ctx, 'Lv' + mon.level, 206, 78, { color: '#383838', shadow: '#d0d0c0' });
     BattleUI.drawHpBar(ctx, 152, 90, 76, BattleUI.hpShown.pl);
-    const hpTxt = Math.max(0, mon.curHp) + '/' + mon.maxHp;
+    // HP number tracks the animating bar (not the already-final live value)
+    const hpTxt = Math.round(BattleUI.hpShown.pl * mon.maxHp) + '/' + mon.maxHp;
     Font.draw(ctx, hpTxt, 228 - Font.width(hpTxt), 97, { color: '#383838', shadow: '#d0d0c0' });
     // EXP bar: sunken channel with a two-tone sky-blue fill
     ctx.fillStyle = '#4a4238';

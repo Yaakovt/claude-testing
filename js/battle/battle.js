@@ -25,7 +25,22 @@ const Battle = {
   caughtMon: null,
   expShare: false,
 
-  E(t, d = {}) { Battle.queue.push(Object.assign({ t }, d)); },
+  E(t, d = {}) {
+    const ev = Object.assign({ t }, d);
+    // Snapshot display values AT QUEUE TIME. The whole turn resolves
+    // synchronously before the visuals replay, so reading live state at
+    // playback shows the final result (wrong mon / wrong HP). Capturing here
+    // makes the replay match the moment each event happened.
+    if (t === 'hp') {
+      const s = ev.side === 'pl' ? Battle.pl : ev.side === 'en' ? Battle.en : null;
+      if (s && s.mon) ev.frac = Util.clamp(s.mon.curHp / s.mon.maxHp, 0, 1);
+    } else if (t === 'sendEnemy' && Battle.en && Battle.en.mon) {
+      ev.mon = Battle.en.mon; ev.frac = Util.clamp(Battle.en.mon.curHp / Battle.en.mon.maxHp, 0, 1);
+    } else if (t === 'sendPlayer' && Battle.pl && Battle.pl.mon) {
+      ev.mon = Battle.pl.mon; ev.frac = Util.clamp(Battle.pl.mon.curHp / Battle.pl.mon.maxHp, 0, 1);
+    }
+    Battle.queue.push(ev);
+  },
 
   makeSide(mon, isPlayer) {
     return {
