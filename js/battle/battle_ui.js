@@ -503,6 +503,17 @@ const BattleUI = {
         ctx.moveTo(x, y); ctx.lineTo(x - 2, y + 6);
       }
       ctx.stroke();
+    } else if (w === 'aurora') {
+      for (let b = 0; b < 3; b++) {
+        ctx.strokeStyle = ['rgba(89,230,184,0.35)', 'rgba(141,123,240,0.3)', 'rgba(240,139,216,0.3)'][b];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 0; x <= 240; x += 8) {
+          const y = 14 + b * 9 + Math.sin((x + f * 1.2 + b * 40) / 26) * 6;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
     } else if (w === 'sun') {
       ctx.fillStyle = 'rgba(255,230,140,0.16)';
       ctx.fillRect(0, 0, 240, 112);

@@ -65,7 +65,7 @@ const Abilities = {
   surging_soul:   { name: 'Surging Soul', desc: 'Sp. Atk rises after downing a foe.', moxie: { stat: 'spa' } },
   iron_frame:     { name: 'Iron Frame', desc: 'Takes no recoil damage.', hardBody: true },
   slippery:       { name: 'Slippery', desc: 'Can always flee wild battles.', escapeArtist: true },
-  aurora_heart:   { name: 'Aurora Heart', desc: 'The storm\'s heart: immune to paralysis, powers up in rain and hail.', statusImmune: ['par'], auroraHeart: true },
+  aurora_heart:   { name: 'Aurora Heart', desc: 'The storm\'s heart: summons the aurora, immune to paralysis, powers up in rain, hail and auroras.', statusImmune: ['par'], auroraHeart: true, entryWeather: 'aurora' },
 
   // ---- Second wave of abilities (combinations of the wired effects above) ----
   prism_body:     { name: 'Prism Body', desc: 'Halves Psychic and Fairy damage.', halve: ['Psychic', 'Fairy'] },

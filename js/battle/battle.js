@@ -48,7 +48,8 @@ const Battle = {
     Battle.trainerPartyIdx = 0;
     Battle.onEnd = opts.onEnd || null;
     Battle.queue = [];
-    Battle.weather = { kind: opts.weather || null, turns: opts.weather ? 999 : 0 };
+    const wk = opts.weather || (opts.env === 'aurora' ? 'aurora' : null);   // the Spire fights under the aurora
+    Battle.weather = { kind: wk, turns: wk ? 999 : 0 };
     Battle.runAttempts = 0;
     Battle.result = null;
     Battle.caughtMon = null;
@@ -401,7 +402,7 @@ const Battle = {
       else {
         Battle.weather = { kind: fx.weather, turns: 5 };
         Battle.E('weather', { kind: fx.weather });
-        const msgs = { rain: 'It started to rain!', sun: 'The sunlight turned harsh!', hail: 'It started to hail!', sandstorm: 'A sandstorm kicked up!' };
+        const msgs = { rain: 'It started to rain!', sun: 'The sunlight turned harsh!', hail: 'It started to hail!', sandstorm: 'A sandstorm kicked up!', aurora: 'The aurora unfurled across the sky!' };
         Battle.E('text', { msg: msgs[fx.weather] });
       }
     }
@@ -458,12 +459,13 @@ const Battle = {
     const uAb = Battle.ability(user);
     if (uAb.technician && power <= 60) power *= 1.5;
     if (uAb.pinch && uAb.pinch.type === move.type && user.mon.curHp <= user.mon.maxHp / 3) power *= 1.5;
-    if (uAb.auroraHeart && (Battle.weather.kind === 'rain' || Battle.weather.kind === 'hail')) power *= 1.3;
+    if (uAb.auroraHeart && ['rain', 'hail', 'aurora'].includes(Battle.weather.kind)) power *= 1.3;
     if (fx.hexBoost && (target.mon.status || target.confuse > 0)) power *= 2;
     const uHeld = Battle.heldOf(user);
     if (uHeld.typeBoost && uHeld.typeBoost.type === move.type) power *= uHeld.typeBoost.mult;
 
     // Weather modifiers
+    if (Battle.weather.kind === 'aurora' && (move.type === 'Dragon' || move.type === 'Electric')) power *= 1.3;
     if (Battle.weather.kind === 'rain') {
       if (move.type === 'Water') power *= 1.5;
       if (move.type === 'Fire') power *= 0.5;
@@ -589,7 +591,7 @@ const Battle = {
     if (Battle.weather.kind && Battle.weather.turns < 900) {
       Battle.weather.turns--;
       if (Battle.weather.turns <= 0) {
-        const msgs = { rain: 'The rain stopped.', sun: 'The sunlight faded.', hail: 'The hail stopped.', sandstorm: 'The sandstorm subsided.' };
+        const msgs = { rain: 'The rain stopped.', sun: 'The sunlight faded.', hail: 'The hail stopped.', sandstorm: 'The sandstorm subsided.', aurora: 'The aurora faded from the sky.' };
         Battle.E('text', { msg: msgs[Battle.weather.kind] });
         Battle.weather.kind = null;
         Battle.E('weather', { kind: null });
