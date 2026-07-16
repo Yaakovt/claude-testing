@@ -868,9 +868,10 @@ const Battle = {
     } else {
       const msgs = ['Oh no! It broke free!', 'Aww! It appeared to be caught!', 'Aargh! Almost had it!', 'Shoot! It was so close, too!'];
       Battle.E('text', { msg: msgs[shakes] });
-      // Enemy attacks after failed catch
-      Battle.execMove(Battle.en, Battle.pl, Battle.aiChoose());
-      Battle.endOfTurn();
+      // NOTE: the enemy's counterattack + endOfTurn are run by playerAction's
+      // post-item fallthrough (same as any other item). Running them here too
+      // made a failed throw take the enemy's turn TWICE (double attack, double
+      // menu, doubled residual damage).
     }
   },
 
