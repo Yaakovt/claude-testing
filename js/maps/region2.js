@@ -19,7 +19,7 @@ function gymInterior(id, name, leaderScript, helper) {
     ],
     warps: [back(5, 8)],
     npcs: [
-      { x: 5, y: 2, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: leaderScript },
+      { x: 5, y: 2, sprite: 'leader_' + leaderScript.replace('gym_', ''), dir: 'down', move: 'static', passable: false, script: leaderScript },
       { x: 2, y: 5, sprite: 'npc_villager', dir: 'right', trainer: helper, sight: 2, script: 'trainer_after' },
       { x: 8, y: 5, sprite: 'npc_villager', dir: 'left', trainer: helper, sight: 2, script: 'trainer_after' },
     ],
@@ -147,7 +147,7 @@ vRoute('route5', 'Route 5', 'grass', 'lumenveil', 9, 'emberfall', 9, [
     npcs: [
       { x: 6, y: 6, sprite: 'npc_woman', move: 'wander', script: 'lv_villager1' },
       { x: 13, y: 8, sprite: 'npc_oldman', move: 'static', dir: 'down', script: 'lv_villager2' },
-      { x: 11, y: 12, sprite: 'ionar_grunt', dir: 'down', move: 'wander', script: 'lv_grunt' },
+      { x: 11, y: 12, sprite: 'ionar_grunt_f', dir: 'down', move: 'wander', script: 'lv_grunt' },
       { x: 13, y: 5, sprite: 'rival_f', dir: 'down', move: 'static', script: 'rival_mid' },
     ],
     onEnter() { Overworld.showBanner(); },
@@ -314,7 +314,7 @@ vRoute('route9', 'Route 9', 'aurora', 'stormcrest', 9, 'glacierholm', 9, [
     signs: [{ x: 8, y: 1, script: 'summit_umbryx', text: 'The Sky Spire summit altar.' }],
     npcs: [
       { x: 8, y: 8, sprite: 'ionar_grunt', dir: 'down', trainer: 'ionar_grunt1', sight: 3, script: 'trainer_after' },
-      { x: 6, y: 3, sprite: 'ionar_grunt', dir: 'right', trainer: 'ionar_grunt2', sight: 2, script: 'trainer_after' },
+      { x: 6, y: 3, sprite: 'ionar_grunt_f', dir: 'right', trainer: 'ionar_grunt2', sight: 2, script: 'trainer_after' },
       { x: 8, y: 2, sprite: 'ionar_boss', dir: 'down', move: 'static', passable: false, script: 'spire_boss' },
     ],
     onEnter() { Overworld.showBanner(); if (!Game.flags.spireIntro) { Game.flags.spireIntro = true; Textbox.say('A storm-grey figure stands at the summit altar, the aurora writhing above him...'); } },
@@ -416,11 +416,11 @@ const VLEG = { ' ': 'cavefloor', 'w': 'cavewall', 'R': 'rock', 'B': 'boulder', '
     signs: [{ x: 7, y: 16, text: 'AURORA PLATEAU. Beyond wait the Elite Four and the Champion. Only eight-badge trainers may pass.' }],
     npcs: [
       { x: 8, y: 14, sprite: 'rival_f', dir: 'down', move: 'static', passable: false, script: 'rival_final' },
-      { x: 8, y: 12, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_1' },
-      { x: 8, y: 10, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_2' },
-      { x: 8, y: 7, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_3' },
-      { x: 8, y: 4, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'e4_4' },
-      { x: 8, y: 2, sprite: 'champion', dir: 'down', move: 'static', passable: false, script: 'champion' },
+      { x: 8, y: 12, sprite: 'e4_corvin', dir: 'down', move: 'static', passable: false, script: 'e4_1' },
+      { x: 8, y: 10, sprite: 'e4_freyda', dir: 'down', move: 'static', passable: false, script: 'e4_2' },
+      { x: 8, y: 7, sprite: 'e4_mara', dir: 'down', move: 'static', passable: false, script: 'e4_3' },
+      { x: 8, y: 4, sprite: 'e4_liv', dir: 'down', move: 'static', passable: false, script: 'e4_4' },
+      { x: 8, y: 2, sprite: 'champion_sigrid', dir: 'down', move: 'static', passable: false, script: 'champion' },
     ],
     onEnter() { Overworld.showBanner(); },
   });

@@ -338,7 +338,7 @@ defineMap({
       { x: 6, y: 5, sprite: 'npc_sailor', move: 'wander', script: 'ts_sailor' },
       { x: 13, y: 5, sprite: 'npc_fisher', dir: 'down', move: 'static', script: 'ts_fisher' },
       { x: 5, y: 6, sprite: 'npc_woman', move: 'wander', script: 'ts_villager' },
-      { x: 16, y: 6, sprite: 'ionar_grunt', dir: 'down', move: 'static', script: 'ionar_tidesend' },
+      { x: 16, y: 6, sprite: 'ionar_grunt_f', dir: 'down', move: 'static', script: 'ionar_tidesend' },
     ],
     onEnter() { Overworld.showBanner(); },
     _doors: { center, mart, gym },

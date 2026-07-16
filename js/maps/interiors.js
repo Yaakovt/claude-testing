@@ -117,7 +117,7 @@ defineMap({
   ],
   warps: [back(5, 9)],
   npcs: [
-    { x: 5, y: 2, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'gym_astrid' },
+    { x: 5, y: 2, sprite: 'leader_astrid', dir: 'down', move: 'static', passable: false, script: 'gym_astrid' },
     { x: 3, y: 4, sprite: 'npc_villager', dir: 'right', trainer: 'gym_helper1', sight: 2, script: 'trainer_after' },
     { x: 7, y: 4, sprite: 'npc_villager', dir: 'left', trainer: 'gym_helper2', sight: 2, script: 'trainer_after' },
   ],
@@ -142,7 +142,7 @@ defineMap({
   ],
   warps: [back(5, 9)],
   npcs: [
-    { x: 5, y: 2, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'gym_eirik' },
+    { x: 5, y: 2, sprite: 'leader_eirik', dir: 'down', move: 'static', passable: false, script: 'gym_eirik' },
     { x: 2, y: 6, sprite: 'npc_ranger', dir: 'right', trainer: 'gym_helper2', sight: 2, script: 'trainer_after' },
   ],
   signs: [{ x: 6, y: 8, text: 'MOSSMERE GYM — Leader: EIRIK. "The Rooted Will."' }],
@@ -166,7 +166,7 @@ defineMap({
   ],
   warps: [back(5, 9)],
   npcs: [
-    { x: 5, y: 2, sprite: 'gym_leader', dir: 'down', move: 'static', passable: false, script: 'gym_runa' },
+    { x: 5, y: 2, sprite: 'leader_runa', dir: 'down', move: 'static', passable: false, script: 'gym_runa' },
     { x: 2, y: 5, sprite: 'npc_sailor', dir: 'right', trainer: 'gym_helper1', sight: 2, script: 'trainer_after' },
     { x: 8, y: 5, sprite: 'npc_fisher', dir: 'left', trainer: 'gym_helper2', sight: 2, script: 'trainer_after' },
   ],
