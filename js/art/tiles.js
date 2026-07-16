@@ -408,7 +408,8 @@ const Tiles = (() => {
 
   // ---- cave ----
   T('cavefloor', {
-    draw(s) {
+    vary: 3,
+    draw(s, ph, vr = 0) {
       s.rect(0, 0, 16, 16, CAVE.b);
       // near-flat stony ground: sparse grit so big floors stay quiet
       s.set(vw(4, vr), 9, CAVE.d); s.set(vw(5, vr), 9, CAVE.d);
