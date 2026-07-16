@@ -132,16 +132,21 @@ const Font = (() => {
       const color = opts.color || '#404850';
       const shadow = opts.shadow === undefined ? '#c8c8b8' : opts.shadow;
       const n = opts.maxChars === undefined ? text.length : opts.maxChars;
+      // maxWidth: if the text would overrun the given pixel width, tighten the
+      // inter-letter gap (1 -> 0) so long names still fit their slot instead of
+      // spilling out of the box. As a last resort it hard-clips at maxWidth.
+      const gap = (opts.maxWidth && Font.width(text) > opts.maxWidth) ? 0 : 1;
       let cx = x;
       let i = 0;
       for (const ch of text) {
         if (i++ >= n) break;
+        if (opts.maxWidth && cx - x > opts.maxWidth) break;
         const g = glyphs[ch] || FALLBACK;
         if (ch !== ' ') {
           if (shadow) Font._blit(ctx, g, cx + 1, y + 1, shadow);
           Font._blit(ctx, g, cx, y, color);
         }
-        cx += g.w + 1;
+        cx += g.w + gap;
       }
       return cx - x;
     },

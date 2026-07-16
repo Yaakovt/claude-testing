@@ -557,7 +557,7 @@ const BattleUI = {
   drawEnemyBox(ctx) {
     const mon = BattleUI.shownEn || Battle.en.mon;
     UIKit.miniPanel(ctx, 4, 6, 104, 30);
-    Font.draw(ctx, mon.name, 10, 10, { color: '#383838', shadow: '#d0d0c0' });
+    Font.draw(ctx, mon.name, 10, 10, { color: '#383838', shadow: '#d0d0c0', maxWidth: 62 });
     Font.draw(ctx, 'Lv' + mon.level, 78, 10, { color: '#383838', shadow: '#d0d0c0' });
     BattleUI.drawHpBar(ctx, 26, 22, 72, BattleUI.hpShown.en);
     if (mon.status) BattleUI.drawStatusTag(ctx, 8, 20, mon.status);
@@ -588,7 +588,7 @@ const BattleUI = {
     const alive = Game.party.filter((m) => !m.fainted).length;
     BattleUI.drawTeamBalls(ctx, 228 - 5, 68, total, alive, -1);
     UIKit.miniPanel(ctx, 128, 74, 108, 36);
-    Font.draw(ctx, mon.name, 134, 78, { color: '#383838', shadow: '#d0d0c0' });
+    Font.draw(ctx, mon.name, 134, 78, { color: '#383838', shadow: '#d0d0c0', maxWidth: 66 });
     Font.draw(ctx, 'Lv' + mon.level, 206, 78, { color: '#383838', shadow: '#d0d0c0' });
     BattleUI.drawHpBar(ctx, 152, 90, 76, BattleUI.hpShown.pl);
     // HP number tracks the animating bar (not the already-final live value)
@@ -695,7 +695,7 @@ const BattleUI = {
     moves.forEach((slot, i) => {
       const x = 14 + (i & 1) * 82, y = 120 + (i >> 1) * 16;
       const mv = Moves[slot.id];
-      Font.draw(ctx, mv.name, x, y, { color: slot.pp > 0 ? '#383838' : '#a0a0a0', shadow: '#d8d8c8' });
+      Font.draw(ctx, mv.name, x, y, { color: slot.pp > 0 ? '#383838' : '#a0a0a0', shadow: '#d8d8c8', maxWidth: 78 });
       if (BattleUI.moveIdx === i) Font.draw(ctx, '▶', x - 9, y, { color: '#e84848', shadow: null });
     });
     // right info panel
