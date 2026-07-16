@@ -43,12 +43,14 @@ const Dex = {
     const s = new PixelSurface(64, 64);
     if (side === 'front') def.draw(s);
     else def.drawBack(s);
-    s.weld(3);                              // reattach floating parts
-    s.despeckle(8);                         // erase stray fragments
-    if (def.outlineColor) s.outline(def.outlineColor);
-    else s.outlineSel();                    // hue-keyed selective outline
-    s.smoothSilhouette(0.42);               // AA the outline stair-steps
-    s.innerEdge(0.10);
+    if (!(def.rawArt && side === 'front')) {   // hand-drawn maps are exact
+      s.weld(3);                              // reattach floating parts
+      s.despeckle(8);                         // erase stray fragments
+      if (def.outlineColor) s.outline(def.outlineColor);
+      else s.outlineSel();                    // hue-keyed selective outline
+      s.smoothSilhouette(0.42);               // AA the outline stair-steps
+      s.innerEdge(0.10);
+    }
     const cv = s.toCanvas();
     Dex._spriteCache[ck] = cv;
     return cv;

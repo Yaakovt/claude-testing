@@ -394,115 +394,66 @@
     dex: { species: 'Ember Drake', h: '1.2m', w: '21.0kg',
       entry: 'It sprints across snowfields on burning soles, leaving lines of steam that glow at dusk.' },
     cry: { base: 460, sweep: 0.65, wave: 'square', dur: 0.45, vib: 16, grit: 0.25 },
+    rawArt: true,
     draw(s) {
-      // ==== FABLE ART v8: hand-blocked master-shading pass ====
-      const SF = SpriteForge;
-      const B  = { o:'#501410', d2:'#8c2818', d:'#b83c1c', b:'#e85c28', l:'#f8884c', h:'#ffb070' };
-      const CR = { o:'#6a4818', d:'#d8b080', b:'#f8e0b0', l:'#fff0d0', h:'#fff8e8' };
-      const CH = { o:'#2a1210', d:'#4a2018', b:'#6a3428', l:'#8a5038', h:'#8a5038' };
-      const FY = { o:'#8a4808', d:'#f89030', b:'#f8d848', l:'#fff8d8', h:'#ffffff' };
-      SF.draw(s, [
-      // ---- tail sweeping right, rising ----
-      { path: SF.limb(37, 44, 47, 40, 4, 3.2), ramp: B, shade: null },
-      { path: SF.limb(47, 40, 53, 32, 3.2, 2.4), ramp: B, shade: null },
-      // tail flame: outer swept teardrop + inner tongue + hot core
-      { path: [[52, 30], [50, 23], [52, 16], [56, 10], [58, 17], [58, 24], [56, 30]], ramp: { ...B, b: FY.d, l: FY.d, d: FY.d, o: FY.o }, flat: FY.d },
-      { path: [[53, 28], [52, 22], [55, 15], [56, 21], [56, 27]], flat: FY.b, ink: false },
-      { path: [[54, 26], [54, 21], [56, 24]], flat: FY.l, ink: false },
-      // ---- far (right) leg — will sit in shadow ----
-      { path: SF.limb(35, 46, 38, 55, 3.2, 2.4), smooth: 0.6, ramp: B, shade: null },
-      { path: [[34, 55], [42, 55], [43, 58], [35, 58]], smooth: 0.3, ramp: B, shade: null },
-      // ---- torso: upright pear, slight left lean ----
-      { path: [[27, 27], [33, 29], [37, 35], [38, 44], [32, 50], [24, 49], [20, 41], [22, 32]],
-        ramp: B, shade: null },
-      // ---- near (left) leg stepping toward viewer ----
-      { path: SF.limb(25, 45, 22, 53, 3.4, 2.6), smooth: 0.6, ramp: B, shade: null },
-      { path: [[16, 54], [24, 54], [25, 58], [17, 58]], smooth: 0.3, ramp: B, shade: null },
-      // ---- belly plate ----
-      { path: [[26, 33], [31, 35], [33, 42], [30, 48], [25, 46], [23, 39]], ramp: CR, shade: null },
-      // ---- left arm low with claws ----
-      { path: SF.limb(23, 34, 19, 40, 2.2, 1.7), smooth: 0.6, ramp: B, shade: null },
-      // ---- right arm raised to strike ----
-      { path: SF.limb(33, 31, 40, 27, 2.8, 2.2), smooth: 0.6, ramp: B, shade: null },
-      { path: SF.limb(40, 27, 44, 24, 2.2, 1.8), smooth: 0.6, ramp: B, shade: null },
-      // ---- neck rising from the chest ----
-      { path: SF.limb(27, 29, 25, 20, 3.6, 3.1), ramp: B, shade: null },
-      // ---- head: alert wedge, 3/4 left ----
-      { path: [[22, 8], [28, 10], [31, 14], [29, 19], [24, 21], [18, 20], [15, 15], [17, 10]],
-        smooth: 0.9, ramp: B, shade: null },
-      // snout with parted jaws
-      { path: [[17, 12], [10, 12], [7, 14], [9, 16], [15, 17], [18, 16]], smooth: 0.5, ramp: B, shade: null },
-      { path: [[16, 19], [10, 19], [8, 21], [13, 22], [17, 21]], smooth: 0.5, ramp: B, shade: null },
-      // ---- crest flame swept back off the crown ----
-      { path: [[25, 10], [30, 5], [36, 2], [40, 2], [35, 7], [30, 11], [27, 13]], flat: FY.d },
-      { path: [[27, 10], [31, 6], [36, 4], [32, 8], [29, 11]], flat: FY.b, ink: false },
-      ], { light: [-1, -1] });
-
-      const px=(x,y,c)=>s.set(x,y,c);
-      // ================= HAND-PLACED SHADING =================
-      // --- far leg fully in shadow, deep at hip crease ---
-      s.fillPoly([[33,45],[39,46],[39,58],[34,58],[33,50]], B.d);
-      s.fillPoly([[34,55],[42,55],[43,58],[35,58]], B.d);
-      s.line(35,46,38,47,B.d2); s.line(39,56,42,56,B.d2);
-      // --- torso: right-flank core shadow + under-arm crevice ---
-      s.fillPoly([[33,31],[37,36],[38,44],[34,48],[33,42],[34,35]], B.d);
-      s.fillPoly([[36,38],[38,44],[35,47]], B.d2);
-      s.line(32,30,35,33,B.d2);                       // under raised arm
-      s.dither(31,34,3,8,B.d,1);                       // soft seam into the flank shadow
-      // chest light from upper-left
-      s.fillPoly([[24,29],[28,28],[26,33],[23,33]], B.l);
-      px(24,30,B.h); px(25,29,B.h);
-      // --- neck cylinder: shadow right edge, light left ---
-      s.line(28,22,29,28,B.d); s.line(29,22,30,27,B.d);
-      s.line(23,21,22,27,B.l);
-      // cast shadow of the head on the neck root
-      s.line(24,22,28,22,B.d2);
-      // --- head: skull shadow right + under-jaw ---
-      s.fillPoly([[28,12],[31,15],[29,19],[26,20],[28,15]], B.d);
-      s.line(24,21,28,20,B.d2);                        // jaw underside
-      s.fillPoly([[18,9],[23,8],[21,12],[18,12]], B.l); // crown light
-      px(19,9,B.h); px(20,8,B.h);
-      // snout: top lit, underside dark, maw between jaws
-      s.line(10,12,16,12,B.l);
-      s.fillPoly([[9,17],[15,18],[17,19],[16,20],[10,19]], '#3a1210');
-      s.tri(10,17,13,17,11,20,'#fff8e8');              // fang
-      px(8,15,B.d);                                     // nostril
-      // --- belly: light top-left, dither mid, shadow arc bottom ---
-      s.fillPoly([[26,34],[30,36],[28,40],[25,37]], CR.l);
-      s.dither(25,40,7,3,CR.d,0);
-      s.fillPoly([[24,43],[31,44],[30,48],[25,46]], CR.d);
-      // --- near leg: front lit, back shaded; soot sock foot ---
-      s.line(22,47,21,52,B.l);
-      s.line(26,47,25,53,B.d);
-      s.fillPoly([[16,54],[24,54],[25,58],[17,58]], CH.b);
-      s.line(17,54,24,54,CH.d); px(16,56,CH.l);
-      s.tri(15,57,17,57,16,59,CR.b); s.tri(19,58,21,58,20,60,CR.b);   // claws
-      // far foot soot
-      s.fillPoly([[34,55],[42,55],[43,58],[35,58]], CH.d);
-      s.tri(41,58,43,58,42,60,CR.d);
-      // --- arms: quick core shadows + claws ---
-      s.line(20,39,19,41,B.d2);
-      s.tri(18,41,20,41,19,44,CR.b); s.tri(16,40,18,40,17,42,CR.b);
-      s.line(42,26,44,25,B.l);
-      s.tri(45,21,47,23,43,23,CR.b); s.tri(47,24,49,26,44,25,CR.b); s.tri(45,27,46,29,42,26,CR.b);
-      s.line(44,23,45,24,B.o); s.line(44,25,45,26,B.o);
-      // --- tail: underside shadow, top light, soot ring before flame ---
-      s.line(40,46,47,43,B.d); s.line(43,46,49,42,B.d2);
-      s.line(39,41,46,38,B.l); px(41,39,B.h);
-      s.line(51,34,54,33,CH.b); s.line(51,35,54,34,CH.d);
-      // --- char chevrons on the flank ---
-      s.line(34,38,36,40,CH.b); s.line(34,41,36,43,CH.b);
-      // --- eye: Gen-3 fierce — white sclera, blue iris, angled lid ---
-      s.rect(20,13,4,3,'#f8f8f8');
-      s.rect(21,14,2,2,'#4890d8'); px(21,14,'#1a1418');
-      px(20,13,'#ffffff');
-      s.line(19,12,24,12,'#501410'); s.line(19,11,23,11,B.d2);   // lid + brow
-      s.line(24,13,24,15,'#501410');
-      // --- crest flame core sparkle ---
-      px(31,7,FY.l); px(33,5,FY.l);
-      // --- final: selective 2px outline weight in crevices ---
-      s.line(23,44,24,48,B.o);                          // between legs
-      s.line(33,33,34,31,B.o);                          // armpit
+      // ==== FABLE ART v9: hand-drawn pixel map (every dot placed by hand) ====
+      const OX = 4, OY = 14;
+      const PAL = {
+        K:'#201014', D:'#2e1c22', d:'#462a30', A:'#5e3a3c', a:'#7a4e48',
+        Y:'#ffd848', y:'#fff8c0', F:'#f89030', f:'#e05818', X:'#a02818',
+        L:'#ffb040', l:'#f07020', E:'#ffb838', P:'#180c10', w:'#ffffff',
+        M:'#30100e', T:'#c05050', C:'#f0d8b0', g:'#8a5a50',
+      };
+      const ROWS = [
+      //         1111111111222222222233333333334444444444555555
+      //1234567890123456789012345678901234567890123456789012345
+      '............................................yy..........',
+      '...........................................XyyY.........',
+      '..........................................XYyyYX........',
+      '.........................................XYYyyYF........',
+      '.........................................XYYyYYFX.......',
+      '..........................................XFYYYFFX......',
+      '......................................XX..XFYYFFX.......',
+      '.....................................XYYX.XFFFFX........',
+      '.....................................XFYFX.XFFX.........',
+      '.............XX......................XFFFX..XFX.........',
+      '............XYYX.........XX.........XFFX...XAAX.........',
+      '...........XFYYFX.......XYYX......XAAFFAAAdAAdX.........',
+      '......KKKKKXFFFFXKKKKK..XFYFX...KAAAAAAAAdddAAdX........',
+      '....KKaaaaaKXFFXKaaaaKKKXFFFXKKAAAAAAAAAAddddAAdX.......',
+      '...KaaAAAAAaaAAaaAAAAaaAXFFXaAAAAAAAAAAAAAdddAAAX.......',
+      '..KaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALLAAAAAAAddAAAX.......',
+      '.KaAAAEEEAAAAAAAALLLAAAAAALLAAAALLAALLAAAAAAdAAdX.......',
+      '.KaAAEEEEPAAAAAALAAALLAALLAALLALAAAAAALLAAAAdAdX........',
+      '.KaAAEEPPPAAAAALAAAAAALLAAAAAALAAAAAAAAALLAAddX.........',
+      '.KaAAAEEPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAddX..........',
+      'KaAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAdddX...........',
+      'KaAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAddX.............',
+      'KaAwAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdX...............',
+      '.KMMMMMMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdX................',
+      '..KMTTMAAAAAAAffffAAAAAAAAAffffAAAAAAdX.................',
+      '...KKMAAAAAAffFFFFffAAAAAAffFFFFffAAdX..................',
+      '.....KAAAAAfFFLLLLFFfAAAAfFFLLLLFFfAdX..................',
+      '.....KAAAAAdAAAAAAAAdAAAAdAAAAAAAAdAAX..................',
+      '......KdAAdAAAAAAAAAAAAAAAAAAAAAAAAAdX..................',
+      '......KKddKKAAAKKKKKKKKKKKKAAAKKKKKKKX..................',
+      '.......KdAAAAdK.......KdAAAAAdK.........................',
+      '......KdAAAAAAdK.....KdAAAAAAAdK........................',
+      '.....KdADDAAAAAdK...KdADDAAAAAAdK.......................',
+      '....KdADDDDAAAAAdK.KdADDDDAAAAAAdK......................',
+      '....KdDDKDDDKAAAdK.KdDDKDDDKAAAAdK......................',
+      '...KdDDKKCCKKDDdK.KdDDKKCCKKDDAdK.......................',
+      '...KDDKKCCCCKKDK..KDDKKCCCCKKDDK........................',
+      '...KKKKCCKKCCKK...KKKKCCKKCCKKK.........................',
+      '......KCK..KCK.......KCK..KCK...........................',
+      '......KKK..KKK.......KKK..KKK...........................',
+      ];
+      ROWS.forEach((row, y) => {
+        for (let x = 0; x < row.length; x++) {
+          const ch = row[x];
+          if (ch !== '.' && PAL[ch]) s.set(OX + x, OY + y, PAL[ch]);
+        }
+      });
     },
     drawBack(s) {
       // Rear: swept crest, spine stripes, tail flame flaring on the right.
