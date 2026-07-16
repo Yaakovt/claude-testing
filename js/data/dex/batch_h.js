@@ -280,14 +280,53 @@
     dex: { species: 'Pyre Wolf', h: '1.6m', w: '68.0kg', entry: 'It hunts moonless nights, its mane a streak of black fire. Prey never hears it coming until the heat is upon them.' },
     cry: { base: 240, sweep: 0.6, wave: 'sawtooth', dur: 0.55, vib: 9, grit: 0.4 },
     draw(s) {
-      s.stroke(16, 50, 32, 48, 4, DK); s.stroke(32, 48, 46, 50, 4, FURD);
-      s.limb(24, 50, 22, 57, 3, 2, DK); s.limb(42, 50, 44, 57, 3, 2, DK);
-      s.ball(30, 34, 10, 9, FURD);
-      // black-fire mane
-      for (let i = 0; i < 5; i++) K.horn(s, 22 + i * 5, 28, 0, -1, 6, 2, i % 2 ? DK : FLAME);
-      K.horn(s, 24, 24, -0.5, -0.9, 6, 2, DK); K.horn(s, 36, 24, 0.5, -0.9, 6, 2, DK);
-      K.eye(s, 26, 34, 2, '#f85030'); K.eye(s, 34, 34, 2, '#f85030'); K.brow(s, 26, 31, 2); K.brow(s, 35, 31, 2);
-      s.tri(20, 36, 26, 36, 23, 40, FURD.b); s.line(21, 38, 25, 38, DK.d); K.fang(s, 21, 38, '#fff');
+      // ==== FABLE ART v7: SpriteForge MENACE pass ====
+      const SF = SpriteForge;
+      const FUR = Px.ramp('#8a4530');
+      const DK = Px.ramp('#33222e');
+      const FLAMEW = Px.ramp('#f0983a');
+      SF.draw(s, [
+      // tail: black-fire brush swept up
+      { path: [[46, 34], [54, 26], [58, 18], [56, 28], [50, 37]], smooth: 0.4, ramp: DK, shade: { d: 1, hi: 0 } },
+      { path: [[49, 30], [54, 23], [56, 19], [54, 26], [51, 33]], smooth: 0.4, ramp: FLAMEW, shade: null, ink: false },
+      // far legs
+      { path: SF.limb(40, 42, 46, 55, 3.2, 2.4), smooth: 0.5, ramp: DK, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(24, 42, 20, 54, 3, 2.3), smooth: 0.5, ramp: DK, shade: { d: 1, hi: 0 } },
+      // body: low lunge, chest down-left
+      { path: [[16, 30], [30, 26], [44, 30], [48, 38], [40, 45], [26, 46], [14, 40], [12, 34]],
+        ramp: FUR, shade: { d: 3, hi: 1 }, edge: 'fur' },
+      // black-fire hackle spikes along the shoulders
+      ...SF.spikes([[22, 27], [32, 25], [42, 29]], 8, -0.15, -1, 5).map((p, i) => (
+        { path: p, smooth: 0.2, ramp: i % 2 ? FLAMEW : DK, shade: { d: 1, hi: 0 } })),
+      // near legs braced
+      { path: SF.limb(20, 40, 15, 55, 3.4, 2.6), smooth: 0.5, ramp: FUR, shade: { d: 1, hi: 0 } },
+      { path: SF.limb(38, 42, 41, 56, 3.4, 2.6), smooth: 0.5, ramp: FUR, shade: { d: 1, hi: 0 } },
+      // head low and forward — wolf snarl
+      { path: [[14, 18], [22, 19], [26, 25], [23, 31], [15, 33], [8, 29], [6, 22], [9, 18]],
+        smooth: 0.8, ramp: FUR, shade: { d: 2, hi: 1 } },
+      // muzzle wrinkled open
+      { path: [[9, 26], [2, 28], [1, 31], [8, 32], [13, 30]], smooth: 0.5, ramp: FUR, shade: { d: 1, hi: 0 } },
+      { path: [[12, 34], [4, 37], [2, 39], [10, 39], [15, 36]], smooth: 0.5, ramp: FUR, shade: { d: 1, hi: 0 } },
+      // ears pinned BACK (angry wolf)
+      { path: [[20, 18], [27, 13], [31, 12], [25, 17], [22, 21]], smooth: 0.3, ramp: DK, shade: { d: 1, hi: 0 } },
+      { path: [[14, 18], [18, 13], [21, 11], [20, 13], [17, 17], [15, 20]], smooth: 0.3, ramp: DK, shade: { d: 1, hi: 0 } },
+      ], { light: [-1, -1] });
+
+      // snarling maw with fangs
+      s.fillPoly([[12, 30], [3, 31], [3, 37], [12, 34]], '#25101c');
+      s.tri(4, 31, 7, 31, 5, 34, '#ffffff');
+      s.tri(6, 36, 9, 35, 7, 33, '#ffffff');
+      s.set(3, 29, '#1a1418');                      // nose tip
+      s.line(8, 27, 12, 28, DK.d);                   // muzzle wrinkle
+      // burning narrowed eye
+      s.rect(15, 23, 4, 2, '#1a1418');
+      s.rect(16, 24, 2, 1, '#ffb838');
+      s.line(14, 21, 20, 22, '#1a1418');
+      // ember flecks rising off the hackles
+      s.set(28, 20, FLAMEW.h); s.set(38, 23, FLAMEW.h); s.set(33, 18, FLAMEW.l);
+      // claws
+      s.set(13, 56, '#e8e4da'); s.set(16, 57, '#e8e4da');
+      s.set(39, 57, '#e8e4da'); s.set(42, 57, '#e8e4da');
     },
     drawBack(s) {
       s.stroke(16, 50, 32, 48, 4, DK); s.stroke(32, 48, 46, 50, 4, DK);

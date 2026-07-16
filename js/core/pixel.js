@@ -302,6 +302,34 @@ class PixelSurface {
     }
   }
 
+  /**
+   * Remove stray fragments: any 4-connected component smaller than minSize
+   * (and not the largest) is erased. Kills floating spike tips and specks.
+   */
+  despeckle(minSize = 8) {
+    const seen = new Uint8Array(this.w * this.h);
+    const comps = [];
+    for (let i = 0; i < this.data.length; i++) {
+      if (!this.data[i] || seen[i]) continue;
+      const px = [i]; const q = [i]; seen[i] = 1;
+      while (q.length) {
+        const j = q.pop(); const jx = j % this.w, jy = (j / this.w) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = jx + dx, ny = jy + dy;
+          if (nx < 0 || ny < 0 || nx >= this.w || ny >= this.h) continue;
+          const k = ny * this.w + nx;
+          if (this.data[k] && !seen[k]) { seen[k] = 1; q.push(k); px.push(k); }
+        }
+      }
+      comps.push(px);
+    }
+    if (comps.length < 2) return;
+    const largest = comps.reduce((a, b) => (b.length > a.length ? b : a));
+    for (const c of comps) {
+      if (c !== largest && c.length < minSize) for (const i of c) this.data[i] = null;
+    }
+  }
+
   /** Darken the silhouette's own border pixels (soft inner edge). */
   innerEdge(darken = 0.18) {
     const src = this.data.slice();

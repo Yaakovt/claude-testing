@@ -33,7 +33,7 @@
       entry: 'The aurora over Norvenna is the light of its sleeping heartbeat. The sagas warn: the sky it dreams is gentler than the sky it wakes to.' },
     cry: { base: 170, sweep: 1.6, wave: 'sawtooth', dur: 0.9, vib: 14, vibRate: 6, grit: 0.35, sub: true },
     draw(s) {
-      // ==== FABLE ART v6: SpriteForge (contours, ink, cel, AA) ====
+      // ==== FABLE ART v7: SpriteForge MENACE pass ====
       const SF = SpriteForge;
       const BODY = Px.ramp('#4a5f9e');
       const PALEB = Px.ramp('#cdd8ef');
@@ -42,43 +42,50 @@
       const PINK = Px.ramp('#f08bd8');
       const GOLD = Px.ramp('#f3d558');
       SF.draw(s, [
-      // aurora mane: three ribbons draped along the spine's outer curve
-      { path: [[10, 12], [24, 5], [40, 8], [50, 18], [46, 20], [36, 12], [24, 10], [12, 16]], smooth: 0.8, ramp: PINK, shade: { d: 1, hi: 0 }, ink: false },
-      { path: [[10, 15], [24, 9], [38, 12], [48, 21], [44, 23], [34, 15], [24, 14], [12, 19]], smooth: 0.8, ramp: VIOL, shade: { d: 1, hi: 0 }, ink: false },
-      { path: [[11, 18], [24, 13], [36, 16], [46, 24], [42, 26], [33, 19], [24, 18], [13, 22]], smooth: 0.8, ramp: TEAL, shade: { d: 1, hi: 0 }, ink: false },
-      // serpent: one S — neck upper-left, dipping right, coiling down-left
-      { path: SF.limb(15, 22, 27, 17, 5, 5.5), ramp: BODY, shade: { d: 2, hi: 1 } },
-      { path: SF.limb(27, 17, 40, 22, 5.5, 6), ramp: BODY, shade: { d: 2, hi: 1 } },
-      { path: SF.limb(40, 22, 47, 33, 6, 6), ramp: BODY, shade: { d: 2, hi: 1 } },
-      { path: SF.limb(47, 33, 43, 44, 6, 5.5), ramp: BODY, shade: { d: 2, hi: 1 } },
-      { path: SF.limb(43, 44, 31, 50, 5.5, 4.8), ramp: BODY, shade: { d: 2, hi: 1 } },
-      { path: SF.limb(31, 50, 20, 50, 4.8, 4), ramp: BODY, shade: { d: 2, hi: 1 } },
-      // tail fork streamers trailing off bottom-left
-      { path: [[19, 47], [11, 44], [6, 41], [10, 47], [17, 52]], ramp: TEAL, shade: { d: 1, hi: 0 } },
-      { path: [[18, 51], [10, 52], [4, 51], [10, 55], [17, 55]], ramp: PINK, shade: { d: 1, hi: 0 } },
-      // pale belly plates along the lower coil
-      { path: [[24, 52], [32, 53], [40, 48], [41, 51], [33, 56], [23, 55]], smooth: 0.7, ramp: PALEB, shade: { d: 1, hi: 0 } },
-      // regal head facing down-left at the foe
-      { path: [[12, 14], [20, 15], [24, 21], [22, 28], [14, 31], [7, 27], [5, 20], [8, 15]],
-        ramp: BODY, shade: { d: 2, hi: 1 }, gleam: [11, 18] },
-      // tapered muzzle
-      { path: [[8, 26], [3, 30], [1, 33], [7, 32], [11, 29]], smooth: 0.6, ramp: BODY, shade: { d: 1, hi: 0 } },
-      // antler crown: three aurora horns rising off the crown
-      { path: [[11, 15], [7, 8], [5, 3], [11, 9], [13, 14]], ramp: TEAL, shade: { d: 1, hi: 0 } },
-      { path: [[15, 13], [15, 5], [16, 1], [19, 7], [18, 13]], ramp: VIOL, shade: { d: 1, hi: 0 } },
-      { path: [[19, 15], [23, 9], [27, 5], [24, 12], [21, 17]], ramp: PINK, shade: { d: 1, hi: 0 } },
-      // the Storm-Heart glowing at the throat
-      { path: SF.blob(17, 33, 3, 3), ramp: GOLD, shade: { d: 1, hi: 1 }, inkAll: true },
+      // storm-mane: three clean blades rooted in the neck, sweeping back-right
+      { path: [[24, 18], [36, 12], [46, 10], [36, 17], [27, 23]], smooth: 0.4, ramp: TEAL, shade: { d: 1, hi: 0 }, ink: false },
+      { path: [[26, 24], [39, 20], [49, 19], [38, 25], [29, 29]], smooth: 0.4, ramp: VIOL, shade: { d: 1, hi: 0 }, ink: false },
+      { path: [[28, 31], [41, 29], [50, 29], [40, 33], [31, 36]], smooth: 0.4, ramp: PINK, shade: { d: 1, hi: 0 }, ink: false },
+      // heavy ground coil (base of the rear)
+      { path: SF.limb(22, 50, 44, 48, 6.5, 6), ramp: BODY, shade: { d: 3, hi: 1 } },
+      { path: SF.limb(44, 48, 52, 40, 6, 5), ramp: BODY, shade: { d: 2, hi: 1 } },
+      // tail blade breaking upward at the coil's end
+      { path: [[51, 38], [57, 31], [60, 25], [59, 30], [55, 40]], smooth: 0.4, ramp: TEAL, shade: { d: 1, hi: 0 } },
+      // rising neck, thick and arched forward
+      { path: SF.limb(24, 48, 20, 34, 6, 5.5), ramp: BODY, shade: { d: 2, hi: 1 } },
+      { path: SF.limb(20, 34, 23, 22, 5.5, 5), ramp: BODY, shade: { d: 2, hi: 1 } },
+      // dorsal spikes down the neck and coil
+      ...SF.spikes([[26, 26], [24, 38], [30, 46], [42, 44]], 6, -0.75, -0.65, 6).map((p) => (
+        { path: p, smooth: 0.2, ramp: PALEB, shade: { d: 1, hi: 0 } })),
+      // head: hard angular wedge, striking DOWN-LEFT
+      { path: [[20, 12], [28, 15], [30, 21], [26, 27], [17, 29], [9, 25], [7, 18], [12, 12]],
+        smooth: 0.8, ramp: BODY, shade: { d: 2, hi: 1 } },
+      // upper jaw lunging left
+      { path: [[10, 24], [2, 26], [1, 29], [9, 29], [14, 27]], smooth: 0.5, ramp: BODY, shade: { d: 1, hi: 0 } },
+      // lower jaw thrown open
+      { path: [[14, 33], [4, 38], [2, 41], [10, 40], [16, 36]], smooth: 0.5, ramp: BODY, shade: { d: 1, hi: 0 } },
+      // blade crown: three long horns swept back like sabers
+      { path: [[18, 14], [27, 7], [34, 4], [33, 6], [24, 12], [21, 16]], smooth: 0.4, ramp: TEAL, shade: { d: 1, hi: 0 } },
+      { path: [[21, 16], [31, 11], [39, 9], [38, 11], [28, 16], [24, 19]], smooth: 0.4, ramp: VIOL, shade: { d: 1, hi: 0 } },
+      { path: [[15, 13], [21, 5], [25, 2], [24, 4], [18, 11], [17, 15]], smooth: 0.4, ramp: PINK, shade: { d: 1, hi: 0 } },
+      // the Storm-Heart blazing at the throat
+      { path: SF.blob(22, 33, 3.2, 3.2), ramp: GOLD, shade: { d: 1, hi: 1 }, inkAll: true },
       ], { light: [-1, -1] });
 
-      // fierce golden eye + brow
-      K.eyeBig(s, 14, 21, 2, 2.5, '#e8b820', { lid: -1, look: [-1, 0] });
-      // jaw + fang
-      s.line(2, 32, 6, 32, '#1a1418');
-      s.set(3, 33, '#ffffff');
-      // storm runes along the coils (kept ON the body)
-      s.set(32, 20, GOLD.b); s.set(43, 28, GOLD.b); s.set(44, 40, GOLD.b);
-      s.set(34, 48, GOLD.b); s.set(25, 18, GOLD.h); s.set(46, 34, GOLD.h);
+      // dark maw between the jaws + fangs
+      s.fillPoly([[13, 27], [3, 29], [3, 38], [13, 34]], '#25101c');
+      s.tri(5, 29, 8, 29, 6, 33, '#ffffff');       // upper fang
+      s.tri(6, 37, 9, 36, 8, 33, '#ffffff');       // lower fang
+      s.fillPoly([[8, 34], [12, 31], [13, 34], [9, 36]], '#a03848');   // tongue
+      // narrowed burning eye
+      s.rect(17, 19, 5, 2, '#1a1418');
+      s.rect(18, 20, 3, 1, '#ffd428'); s.set(18, 20, '#fff8c0');
+      s.line(16, 17, 22, 18, '#1a1418');            // heavy scowl brow
+      // storm charge: gold runes + crackle on the coil
+      s.set(30, 46, GOLD.b); s.set(40, 44, GOLD.b); s.set(48, 40, GOLD.b);
+      s.set(22, 40, GOLD.h); s.set(35, 51, GOLD.h);
+      // heart rays
+      s.set(22, 29, GOLD.h); s.set(19, 36, GOLD.h); s.set(26, 34, GOLD.h);
     },
     drawBack(s) {
       // Rear: the great coil seen from behind — crown from the back, mane falling

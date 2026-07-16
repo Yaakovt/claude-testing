@@ -280,21 +280,52 @@
     dex: { species: 'Night-Heart', h: '4.8m', w: '???kg', entry: 'When the aurora sleeps, its shadow wakes. The sagas say Auroryx and Umbryx are one being split by the turning of day into night.' },
     cry: { base: 150, sweep: 1.5, wave: 'sawtooth', dur: 0.95, vib: 12, vibRate: 5, grit: 0.4, sub: true },
     draw(s) {
-      // serpentine shadow, mirror of Auroryx
-      const spine = [[8, 50], [18, 44], [30, 42], [42, 40], [52, 34], [54, 22]];
-      for (let i = 0; i + 1 < spine.length; i++) s.stroke(spine[i][0], spine[i][1], spine[i + 1][0], spine[i + 1][1], i < 2 ? 4 : 6, NIGHT);
-      // starfield along the body (it IS the night)
-      s.set(20, 42, STAR.h); s.set(32, 40, STAR.b); s.set(44, 39, STAR.h); s.set(50, 30, STAR.b); s.set(26, 44, VOID.l);
-      // void mane
-      for (let i = 0; i < 4; i++) K.horn(s, 16 + i * 10, 40, 0.1, -1, 6, 2, VOID);
-      // head
-      s.ball(54, 18, 7, 6, NIGHT);
-      s.tri(59, 16, 63, 18, 59, 21, NIGHT.b);
-      K.horn(s, 50, 12, -0.6, -0.8, 8, 2, VOID); K.horn(s, 55, 10, 0.2, -1, 9, 2, VOID);
-      K.eye(s, 54, 17, 2, '#c078f0'); s.set(54, 17, STAR.h);
-      s.line(58, 20, 61, 20, '#120e18');
-      // crescent moon accent
-      s.fillCircle(46, 34, 3, STAR.b); s.fillCircle(48, 33, 3, NIGHT.b);
+      // ==== FABLE ART v7: SpriteForge MENACE pass ====
+      const SF = SpriteForge;
+      const NIGHT = Px.ramp('#2e2842');
+      const NIGHTL = Px.ramp('#4a4066');
+      const VOID = Px.ramp('#6a4a9e');
+      const STAR = Px.ramp('#e8e0ff');
+      SF.draw(s, [
+      // void mane: ragged shadow blades off the neck
+      ...SF.spikes([[24, 16], [30, 24], [34, 34]], 12, 0.9, -0.4, 5).map((p) => (
+        { path: p, smooth: 0.25, ramp: VOID, shade: { d: 1, hi: 0 }, ink: false })),
+      // ground coil
+      { path: SF.limb(22, 50, 44, 48, 6.5, 6), ramp: NIGHT, shade: { d: 3, hi: 1 } },
+      { path: SF.limb(44, 48, 52, 40, 6, 5), ramp: NIGHT, shade: { d: 2, hi: 1 } },
+      // smoke-wisp tail dissolving upward (attached)
+      { path: [[51, 38], [56, 32], [59, 26], [58, 31], [54, 40]], smooth: 0.6, ramp: VOID, shade: { d: 1, hi: 0 } },
+      // rising neck
+      { path: SF.limb(24, 48, 20, 34, 6, 5.5), ramp: NIGHT, shade: { d: 2, hi: 1 } },
+      { path: SF.limb(20, 34, 23, 22, 5.5, 5), ramp: NIGHT, shade: { d: 2, hi: 1 } },
+      // jagged dorsal shadow-spikes
+      ...SF.spikes([[26, 26], [24, 38], [30, 46], [42, 44]], 7, -0.7, -0.7, 6).map((p) => (
+        { path: p, smooth: 0.15, ramp: VOID, shade: { d: 1, hi: 0 } })),
+      // angular head striking down-left
+      { path: [[20, 12], [28, 15], [30, 21], [26, 27], [17, 29], [9, 25], [7, 18], [12, 12]],
+        smooth: 0.8, ramp: NIGHT, shade: { d: 2, hi: 1 } },
+      // open jaws
+      { path: [[10, 24], [2, 26], [1, 29], [9, 29], [14, 27]], smooth: 0.5, ramp: NIGHT, shade: { d: 1, hi: 0 } },
+      { path: [[14, 33], [4, 38], [2, 41], [10, 40], [16, 36]], smooth: 0.5, ramp: NIGHT, shade: { d: 1, hi: 0 } },
+      // crown: two crooked void horns
+      { path: [[17, 14], [23, 6], [27, 2], [26, 4], [21, 11], [19, 16]], smooth: 0.3, ramp: VOID, shade: { d: 1, hi: 0 } },
+      { path: [[21, 16], [30, 10], [37, 7], [36, 9], [27, 15], [23, 19]], smooth: 0.3, ramp: VOID, shade: { d: 1, hi: 0 } },
+      // crescent-moon chest mark
+      { path: SF.blob(22, 33, 3.2, 3.2), ramp: STAR, shade: null, inkAll: true },
+      ], { light: [-1, -1] });
+
+      // maw: starfield void inside the open mouth
+      s.fillPoly([[13, 27], [3, 29], [3, 38], [13, 34]], '#0d0a16');
+      s.set(6, 31, STAR.b); s.set(9, 35, STAR.d); s.set(4, 34, STAR.d);
+      s.tri(5, 29, 8, 29, 6, 33, '#e8e0ff');
+      // HOLLOW white eye — no pupil (the unsettling part)
+      s.rect(17, 19, 5, 2, '#ffffff');
+      s.set(17, 19, '#c8b8f8'); s.line(16, 17, 22, 18, '#0d0a16');
+      // crescent moon over the chest orb
+      s.fillCircle(23, 33, 2, NIGHT.b);
+      // stars across the coils
+      s.set(30, 46, STAR.b); s.set(40, 44, STAR.d); s.set(48, 40, STAR.b);
+      s.set(26, 40, STAR.d); s.set(36, 50, STAR.d); s.set(21, 27, STAR.d);
     },
     drawBack(s) {
       const spine = [[10, 26], [16, 38], [30, 46], [44, 42], [54, 50]];

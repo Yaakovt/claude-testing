@@ -76,17 +76,58 @@
     dex: { species: 'Titan Wyrm', h: '3.9m', w: '388.0kg', entry: 'The mountains themselves are said to be old Magnadrake, curled up and gone to sleep for good. Waking one is a very bad idea.' },
     cry: { base: 165, sweep: 0.5, wave: 'sawtooth', dur: 0.9, vib: 10, grit: 0.5, sub: true },
     draw(s) {
-      s.stroke(10, 54, 30, 56, 6, EARTHY); s.stroke(30, 56, 48, 48, 6, EARTHY); s.stroke(48, 48, 52, 34, 5, EARTHY);
-      s.limb(22, 50, 18, 60, 4, 3, EARTHY); K.claws(s, 13, 61, 3, SCUTE.b);
-      s.limb(40, 50, 44, 60, 4, 3, EARTHY); K.claws(s, 42, 61, 3, SCUTE.b);
-      for (let i = 0; i < 5; i++) K.horn(s, 16 + i * 8, 50, 0, -1, 6, 3, SCUTE);
-      s.stroke(52, 36, 48, 22, 5, EARTHY);
-      s.ball(46, 16, 9, 7, EARTHY); s.tri(53, 14, 61, 16, 53, 22, EARTHY.b);
-      s.line(54, 18, 60, 18, MAW.b); K.fang(s, 54, 18, '#fff'); K.fang(s, 58, 17, '#fff');
-      K.horn(s, 40, 9, -0.6, -0.8, 9, 2, SCUTE); K.horn(s, 47, 7, 0.3, -1, 10, 2, SCUTE);
-      K.eye(s, 45, 15, 2, '#f8c828'); K.brow(s, 45, 12, 2);
-      // molten chest core
-      s.set(30, 50, MAW.b); s.set(38, 52, MAW.l);
+      // ==== FABLE ART v7: SpriteForge MENACE pass ====
+      const SF = SpriteForge;
+      const EARTHY = Px.ramp('#b08048');
+      const EARTHD = Px.ramp('#7a5630');
+      const SCUTE = Px.ramp('#c8a860');
+      const MAGMA = Px.ramp('#e06030');
+      SF.draw(s, [
+      // massive tail sweeping right
+      { path: SF.limb(40, 44, 56, 50, 6, 3.5), ramp: EARTHY, shade: { d: 2, hi: 1 } },
+      ...SF.spikes([[44, 42], [52, 46], [58, 49]], 5, 0.2, -1, 3).map((p) => (
+        { path: p, smooth: 0.2, ramp: SCUTE, shade: { d: 1, hi: 0 } })),
+      // far leg
+      { path: SF.limb(38, 44, 41, 56, 4.5, 3.8), smooth: 0.5, ramp: EARTHD, shade: { d: 1, hi: 0 } },
+      // hulking body leaning FORWARD (aggression line)
+      { path: [[22, 20], [34, 22], [42, 30], [44, 41], [37, 50], [24, 52], [15, 44], [15, 30]],
+        ramp: EARTHY, shade: { d: 3, hi: 1 }, edge: 'scale' },
+      // ore plates armoring the back
+      { path: [[30, 21], [40, 27], [43, 36], [38, 33], [31, 26]], smooth: 0.5, ramp: SCUTE, shade: { d: 1, hi: 1 } },
+      // near leg planted wide
+      { path: SF.limb(24, 46, 21, 57, 5, 4.2), smooth: 0.5, ramp: EARTHY, shade: { d: 1, hi: 0 } },
+      // near arm raised mid-swipe with claws
+      { path: SF.limb(20, 32, 10, 40, 4, 3.2), ramp: EARTHY, shade: { d: 1, hi: 0 } },
+      // dorsal ridge spikes
+      ...SF.spikes([[24, 20], [34, 23], [41, 30]], 7, -0.3, -1, 4).map((p) => (
+        { path: p, smooth: 0.2, ramp: SCUTE, shade: { d: 1, hi: 0 } })),
+      // big head thrown back mid-roar, jaw wide
+      { path: [[24, 8], [32, 10], [35, 16], [33, 23], [25, 26], [17, 23], [15, 15], [18, 9]],
+        smooth: 0.8, ramp: EARTHY, shade: { d: 2, hi: 1 } },
+      // upper snout + open lower jaw
+      { path: [[17, 12], [9, 12], [6, 14], [12, 17], [18, 16]], smooth: 0.5, ramp: EARTHY, shade: { d: 1, hi: 0 } },
+      { path: [[17, 22], [8, 26], [5, 30], [13, 28], [19, 25]], smooth: 0.5, ramp: EARTHY, shade: { d: 1, hi: 0 } },
+      // back-swept blade horns
+      { path: [[26, 9], [33, 3], [39, 0], [32, 7], [28, 12]], smooth: 0.3, ramp: SCUTE, shade: { d: 1, hi: 0 } },
+      { path: [[21, 10], [25, 3], [28, 2], [26, 5], [22, 13]], smooth: 0.3, ramp: SCUTE, shade: { d: 1, hi: 0 } },
+      ], { light: [-1, -1] });
+
+      // molten maw glowing between the jaws
+      s.fillPoly([[16, 15], [8, 15], [8, 25], [16, 22]], '#3a1410');
+      s.fillPoly([[14, 17], [10, 18], [10, 23], [14, 21]], MAGMA.b);
+      s.set(12, 19, '#ffb050'); s.set(11, 21, '#ffd080');
+      s.tri(9, 15, 12, 15, 10, 19, '#ffffff');      // upper fang
+      s.tri(10, 25, 13, 24, 11, 21, '#ffffff');     // lower fang
+      // tiny furious eye under a heavy brow
+      s.rect(24, 15, 4, 2, '#1a1418');
+      s.rect(25, 16, 2, 1, '#ff9838');
+      s.line(23, 13, 29, 14, '#1a1418');
+      // claws on the raised arm + feet
+      s.tri(8, 41, 11, 42, 8, 45, '#e8e4da'); s.tri(11, 43, 14, 43, 12, 46, '#e8e4da');
+      s.set(18, 57, '#e8e4da'); s.set(21, 58, '#e8e4da'); s.set(39, 57, '#e8e4da');
+      // magma glow seams on the body
+      s.line(28, 40, 33, 44, MAGMA.b); s.set(30, 42, '#ffb050');
+      s.line(36, 34, 39, 38, MAGMA.d);
     },
     drawBack(s) {
       s.stroke(10, 54, 30, 56, 6, EARTHY); s.stroke(30, 56, 48, 48, 6, EARTHY); s.stroke(48, 48, 52, 34, 5, EARTHY);

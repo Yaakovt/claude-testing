@@ -253,5 +253,45 @@ const SpriteForge = (() => {
     mirror(path, cx = 31.5) {
       return path.map(([x, y]) => [2 * cx - x, y]).reverse();
     },
+
+    /**
+     * A row of spikes along a polyline — dorsal ridges, jagged manes, crowns.
+     * pts: spine points; len: spike length; nx,ny: spike direction; alt: vary
+     * lengths for a wilder look. Returns an array of triangle part-paths.
+     */
+    spikes(pts, len, nx, ny, count, alt = true) {
+      const out = [];
+      for (let i = 0; i < count; i++) {
+        const t = i / Math.max(1, count - 1);
+        const seg = Math.min(pts.length - 2, Math.floor(t * (pts.length - 1)));
+        const st = t * (pts.length - 1) - seg;
+        const bx = pts[seg][0] + (pts[seg + 1][0] - pts[seg][0]) * st;
+        const by = pts[seg][1] + (pts[seg + 1][1] - pts[seg][1]) * st;
+        const L = alt ? len * (0.7 + 0.5 * ((i % 3) / 2)) : len;
+        // triangle: base across the spine direction, tip outward
+        const dx = pts[seg + 1][0] - pts[seg][0], dy = pts[seg + 1][1] - pts[seg][1];
+        const dl = Math.hypot(dx, dy) || 1;
+        const px = dx / dl * (L * 0.35), py = dy / dl * (L * 0.35);
+        out.push([[bx - px, by - py], [bx + nx * L, by + ny * L], [bx + px, by + py]]);
+      }
+      return out;
+    },
+
+    /**
+     * Open fanged jaw: draws an upper lip line, dark gullet wedge, tongue and
+     * fang triangles onto a surface. dir=-1 mouth opens left, +1 right.
+     */
+    jaw(s, x, y, w, h, dir, opts = {}) {
+      const gullet = opts.gullet || '#2a1216';
+      const tongue = opts.tongue || '#b04a4a';
+      // dark open maw wedge
+      s.fillPoly([[x, y], [x + dir * w, y - h * 0.4], [x + dir * w, y + h * 0.6], [x, y + h]], gullet);
+      // tongue low in the maw
+      s.fillPoly([[x + dir * 1, y + h - 1], [x + dir * (w - 1), y + h * 0.55], [x + dir * (w - 2), y + h]], tongue);
+      // fangs: two upper, one lower
+      s.tri(x + dir * 2, y, x + dir * 4, y, x + dir * 3, y + 3, '#ffffff');
+      s.tri(x + dir * (w - 3), y - h * 0.28, x + dir * (w - 1), y - h * 0.28, x + dir * (w - 2), y - h * 0.28 + 3, '#ffffff');
+      s.tri(x + dir * (w * 0.55), y + h * 0.62, x + dir * (w * 0.55 - 2), y + h * 0.62, x + dir * (w * 0.55 - 1), y + h * 0.62 - 3, '#ffffff');
+    },
   };
 })();

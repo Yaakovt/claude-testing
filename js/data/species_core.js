@@ -44,6 +44,7 @@ const Dex = {
     if (side === 'front') def.draw(s);
     else def.drawBack(s);
     s.weld(3);                              // reattach floating parts
+    s.despeckle(8);                         // erase stray fragments
     if (def.outlineColor) s.outline(def.outlineColor);
     else s.outlineSel();                    // hue-keyed selective outline
     s.smoothSilhouette(0.42);               // AA the outline stair-steps
