@@ -17,8 +17,38 @@ function defineMap(def) {
   };
   def.ground = norm(def.ground);
   if (def.over) def.over = norm(def.over);
+  if (!def.indoor && def.warps && def.warps.length) carveExits(def);
   Maps[def.id] = def;
   return def;
+}
+
+/**
+ * Open a visible gap in the border for every edge exit. Town/route borders are
+ * a solid ring of trees; a warp usually sits a tile inside that ring, so the
+ * exit looked walled off. This carves solid tiles between each edge warp and
+ * the map edge down to a walkable path so you can SEE where you can leave.
+ */
+function carveExits(def) {
+  const legend = def.legend || {};
+  const chFor = (id) => Object.keys(legend).find((c) => legend[c] === id);
+  const path = chFor('path') || chFor('sand') || chFor('grass') || chFor('snow') || chFor('cavefloor') || ' ';
+  const SOLID = new Set(['tree', 'pine', 'snowpine', 'rock', 'boulder', 'crackrock', 'cutbush', 'fence', 'cavewall']);
+  const rows = def.ground.map((r) => r.split(''));
+  const over = def.over ? def.over.map((r) => r.split('')) : null;
+  const h = rows.length, w = rows[0].length;
+  const solidAt = (x, y) => rows[y] && SOLID.has(legend[rows[y][x]]);
+  for (const wp of def.warps) {
+    const d = [wp.x, w - 1 - wp.x, wp.y, h - 1 - wp.y];   // dist to L,R,T,B edge
+    const m = Math.min(...d);
+    if (m > 2) continue;                                   // interior warp (a door) — skip
+    const [dx, dy] = m === d[0] ? [-1, 0] : m === d[1] ? [1, 0] : m === d[2] ? [0, -1] : [0, 1];
+    let x = wp.x, y = wp.y;
+    for (let s = 0; s <= m + 1 && x >= 0 && x < w && y >= 0 && y < h; s++, x += dx, y += dy) {
+      if (solidAt(x, y)) { rows[y][x] = path; if (over && over[y]) over[y][x] = ' '; }
+    }
+  }
+  def.ground = rows.map((r) => r.join(''));
+  if (over) def.over = over.map((r) => r.join(''));
 }
 
 class Tilemap {

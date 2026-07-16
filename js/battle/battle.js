@@ -846,7 +846,9 @@ const Battle = {
         Game.box.push(en.serialize());
         Battle.E('text', { msg: en.name + ' was sent to the Storage Box!' });
       }
-      Battle.awardExp = () => {}; // no exp on catch
+      // (No exp on catch — result='caught' already short-circuits checkFaints,
+      // so we must NOT stub the awardExp method here: doing so permanently
+      // broke exp for every battle AFTER your first catch.)
       Battle.E('end');
     } else {
       const msgs = ['Oh no! It broke free!', 'Aww! It appeared to be caught!', 'Aargh! Almost had it!', 'Shoot! It was so close, too!'];
