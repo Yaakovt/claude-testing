@@ -74,6 +74,7 @@ const Game = {
       case 'trainercard': TrainerCard.update(); break;
       case 'moveforget': MoveForget.update(); break;
       case 'relearn': MoveRelearn.update(); break;
+      case 'starter': StarterSelect.update(); break;
     }
     if (Game.state !== 'title' && Game.state !== 'intro' && Game.state !== 'naming') Game.playtime++;
   },
@@ -97,6 +98,7 @@ const Game = {
       case 'trainercard': TrainerCard.draw(ctx); break;
       case 'moveforget': MoveForget.draw(ctx); break;
       case 'relearn': MoveRelearn.draw(ctx); break;
+      case 'starter': StarterSelect.draw(ctx); break;
       default: Screen.clear('#000');
     }
     if (Textbox.active) Textbox.draw(ctx);
@@ -223,8 +225,14 @@ const Game = {
   whiteout() {
     Game.healParty();
     Game.money = Math.floor(Game.money / 2);
+    // A trainer that beat us via line-of-sight left Scripts.running = true (it's
+    // normally cleared in the win callback, which never fires on a loss). Clear
+    // it here or the player is soft-locked and can't move after healing.
+    Scripts.running = false;
+    Game.flags.pendingWarp = null;
     const tp = Game.flags.lastCenter || { mapId: 'frosthollow', px: 8, py: 6 };
     Overworld.warpTo(tp.mapId, tp.px, tp.py, 'down');
+    Game.setState('overworld');
     Textbox.say('You scurried back to safety, then healed your fakemon.', () => {
       Music.play(Overworld.currentMusic());
     });

@@ -12,35 +12,27 @@ Scripts.register('aspen_starter', () => {
     Textbox.say('ASPEN: How is your ' + Dex.byKey[Game.flags.starter].name + ' doing? A fine partner. Off you go — the aurora won\'t study itself!', Scripts.done);
     return;
   }
-  const keys = ['trollsprout', 'cindrel', 'selkip'];
-  const choose = () => {
-    Textbox.say('ASPEN: Three young fakemon share my lab. One of them should go with you. Which calls to you?', () => {
-      Textbox.ask('Choose your first partner:',
-        ['Trollsprout — Grass', 'Cindrel — Fire', 'Selkip — Water'], (i) => {
-          const key = keys[i];
-          const d = Dex.byKey[key];
-          Game.registerDex(key, 'seen');
-          Textbox.ask('The ' + d.dex.species + ', ' + d.name + '. ' + d.dex.entry + ' ... Take this one?', ['Yes', 'No'], (yn) => {
-            if (yn !== 0) { choose(); return; }
-            Game.flags.starter = key;
-            Scripts.giveMon(key, 5, () => {
-              Textbox.say([
-                'ASPEN: Excellent choice! ' + d.name + ' already likes you.',
-                'ASPEN: Take these, too — a POKEDEX to record the fakemon you meet, and some Fieldorbs to catch them.',
-                'ASPEN: Two young trainers set out today as well — my grandkid KAI, and a sharp one named VERA. You\'ll surely cross paths.',
-                'ASPEN: Now — head south through Route 1 to BIRCHWICK TOWN and challenge Leader ASTRID. Your journey begins!',
-              ], () => {
-                Game.give('fieldorb', 5);
-                Game.flags.gotStarter = true;
-                Game.flags.hasDex = true;
-                Scripts.done();
-              });
-            });
-          });
+  Textbox.say('ASPEN: Three young fakemon share my lab. One of them should go with you. Which calls to you?', () => {
+    // Visual picker: shows all three with sprites + types (StarterSelect state).
+    StarterSelect.open((key) => {
+      const d = Dex.byKey[key];
+      Game.flags.starter = key;
+      Game.setState('overworld');
+      Scripts.giveMon(key, 5, () => {
+        Textbox.say([
+          'ASPEN: Excellent choice! ' + d.name + ' already likes you.',
+          'ASPEN: Take these, too — a POKEDEX to record the fakemon you meet, and some Fieldorbs to catch them.',
+          'ASPEN: Two young trainers set out today as well — my grandkid KAI, and a sharp one named VERA. You\'ll surely cross paths.',
+          'ASPEN: Now — head south through Route 1 to BIRCHWICK TOWN and challenge Leader ASTRID. Your journey begins!',
+        ], () => {
+          Game.give('fieldorb', 5);
+          Game.flags.gotStarter = true;
+          Game.flags.hasDex = true;
+          Scripts.done();
         });
+      });
     });
-  };
-  choose();
+  });
 });
 
 // keep the player from leaving the lab before choosing (door script guard)

@@ -617,18 +617,17 @@ const Tiles = (() => {
   });
 
   // ---- interiors ----
-  T('floor_wood', {
-    draw(s) {
-      s.rect(0, 0, 16, 16, WOOD.b);
-      // plank rows with staggered joints; grain kept to sparse single flecks
-      // so big floors don't turn into a busy brick pattern
-      for (const y of [5, 11]) s.line(0, y, 16, y, WOOD.d);
-      s.line(8, 0, 8, 5, WOOD.d); s.line(3, 5, 3, 11, WOOD.d); s.line(12, 11, 12, 16, WOOD.d);
-      s.set(2, 2, WOOD.l); s.set(12, 8, WOOD.l); s.set(5, 13, WOOD.l);
-      s.set(13, 13, WOOD.d2);                             // knot
-      s.rect(0, 0, 16, 1, Px.mix(WOOD.b, WOOD.l, 0.5));
-    },
-  });
+  // Wood-plank floor, shared by the floor tile AND drawn under free-standing
+  // furniture so those tiles never show the dark indoor clear-color around them.
+  function woodFloor(s) {
+    s.rect(0, 0, 16, 16, WOOD.b);
+    for (const y of [5, 11]) s.line(0, y, 16, y, WOOD.d);
+    s.line(8, 0, 8, 5, WOOD.d); s.line(3, 5, 3, 11, WOOD.d); s.line(12, 11, 12, 16, WOOD.d);
+    s.set(2, 2, WOOD.l); s.set(12, 8, WOOD.l); s.set(5, 13, WOOD.l);
+    s.set(13, 13, WOOD.d2);                             // knot
+    s.rect(0, 0, 16, 1, Px.mix(WOOD.b, WOOD.l, 0.5));
+  }
+  T('floor_wood', { draw: (s) => woodFloor(s) });
 
   T('floor_tile', {
     draw(s) {
@@ -691,6 +690,7 @@ const Tiles = (() => {
   T('chair', {
     solid: true,
     draw(s) {
+      woodFloor(s);
       s.rect(4, 2, 8, 3, WOOD.b); s.rect(4, 2, 8, 1, WOOD.l);      // backrest
       s.line(5, 3, 10, 3, WOOD.d);                                  // slat
       s.rect(4, 5, 8, 6, WOOD.l); s.rect(4, 5, 8, 1, WOOD.h);       // seat
@@ -754,6 +754,7 @@ const Tiles = (() => {
   T('pc', {
     solid: true, pc: true, anim: 4,
     draw(s, ph) {
+      woodFloor(s);
       s.rect(2, 8, 12, 7, '#a8a8b0');
       s.rect(3, 2, 10, 8, '#484858');
       s.rect(4, 3, 8, 6, ph % 2 ? '#68d8a8' : '#58b890');
@@ -767,6 +768,7 @@ const Tiles = (() => {
   T('plant', {
     solid: true,
     draw(s) {
+      woodFloor(s);
       // terracotta pot with rim + lush shrub
       s.rect(5, 10, 6, 5, '#c86848');
       s.rect(5, 10, 6, 1, '#e08868');
@@ -782,6 +784,7 @@ const Tiles = (() => {
   T('lab_machine', {
     solid: true, anim: 2,
     draw(s, ph) {
+      woodFloor(s);
       s.rect(1, 2, 14, 13, '#909098');
       s.rect(1, 2, 14, 1, '#b0b0b8');
       s.rect(2, 3, 12, 5, '#585868');
@@ -799,6 +802,7 @@ const Tiles = (() => {
   T('healer', {
     solid: true, healer: true, anim: 4,
     draw(s, ph) {
+      woodFloor(s);
       s.rect(1, 6, 14, 9, '#d8d0c0');
       s.rect(1, 6, 14, 1, '#f0e8d8');
       s.rect(2, 7, 12, 7, '#e8e0d0');
