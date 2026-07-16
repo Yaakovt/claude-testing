@@ -70,6 +70,15 @@ const Title = {
       ctx.drawImage(spr, 88, y, 64, 64);
       ctx.globalAlpha = 1;
     }
+    // mountain range on the horizon, catching the aurora glow
+    ctx.fillStyle = '#20284a';
+    ctx.beginPath(); ctx.moveTo(0, 132); ctx.lineTo(34, 106); ctx.lineTo(70, 132); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(52, 132); ctx.lineTo(104, 96); ctx.lineTo(158, 132); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(140, 132); ctx.lineTo(192, 104); ctx.lineTo(240, 132); ctx.fill();
+    ctx.strokeStyle = 'rgba(89,230,184,0.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(92, 104); ctx.lineTo(104, 96); ctx.stroke();
+    ctx.fillStyle = '#e8ecf4';
+    ctx.beginPath(); ctx.moveTo(98, 100); ctx.lineTo(104, 96); ctx.lineTo(111, 101); ctx.lineTo(104, 103); ctx.fill();
     // snowfield foreground
     ctx.fillStyle = '#e8f0f8'; ctx.fillRect(0, 132, 240, 28);
     ctx.fillStyle = '#d0e0ee';
@@ -104,17 +113,20 @@ const Title = {
     // "LEGENDS OF" small
     const s1 = 'LEGENDS OF';
     Font.draw(ctx, s1, cx - Font.width(s1) / 2, y - 12, { color: '#f8e8b0', shadow: '#604020' });
-    // "NORVENNA" big (draw scaled font glyphs)
+    // "NORVENNA" big: layered — deep shadow, gold rim, icy face
     const s2 = 'NORVENNA';
     ctx.save();
     ctx.translate(cx, y + 6);
     ctx.scale(2.2, 2.4);
     const w = Font.width(s2);
-    Font.draw(ctx, s2, -w / 2, -3, { color: '#8fe8ff', shadow: '#204058' });
+    Font.draw(ctx, s2, -w / 2 + 1, -2, { color: '#183048', shadow: null });   // drop shadow
+    Font.draw(ctx, s2, -w / 2, -4, { color: '#f8e8b0', shadow: null });       // gold rim above
+    Font.draw(ctx, s2, -w / 2, -3, { color: '#8fe8ff', shadow: '#204058' });  // icy face
     ctx.restore();
-    // underline sparkle
-    ctx.fillStyle = '#f8f8d0';
-    ctx.fillRect(cx - 52, y + 22, 104, 1);
+    // underline: gold bar with end sparkles
+    ctx.fillStyle = '#f8e8b0'; ctx.fillRect(cx - 54, y + 22, 108, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx - 56, y + 21, 2, 3); ctx.fillRect(cx + 54, y + 21, 2, 3);
     ctx.globalAlpha = 1;
   },
 };

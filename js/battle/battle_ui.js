@@ -553,32 +553,54 @@ const BattleUI = {
     BattleUI.drawHpBar(ctx, 152, 90, 76, BattleUI.hpShown.pl);
     const hpTxt = Math.max(0, mon.curHp) + '/' + mon.maxHp;
     Font.draw(ctx, hpTxt, 228 - Font.width(hpTxt), 97, { color: '#383838', shadow: '#d0d0c0' });
-    // EXP bar
-    ctx.fillStyle = '#484858';
+    // EXP bar: sunken channel with a two-tone sky-blue fill
+    ctx.fillStyle = '#4a4238';
+    ctx.fillRect(133, 105, 100, 5);
+    ctx.fillStyle = '#6a6258';
     ctx.fillRect(134, 106, 98, 3);
-    ctx.fillStyle = '#58c8f0';
-    ctx.fillRect(134, 106, Math.floor(98 * BattleUI.expShown), 3);
+    const ew = Math.floor(98 * BattleUI.expShown);
+    if (ew > 0) {
+      ctx.fillStyle = '#2888c8'; ctx.fillRect(134, 106, ew, 3);
+      ctx.fillStyle = '#78d8f8'; ctx.fillRect(134, 106, ew, 1);
+    }
+    Font.draw(ctx, 'EXP', 134, 99, { color: '#f8b838', shadow: '#584838' });
     if (mon.status) BattleUI.drawStatusTag(ctx, 132, 88, mon.status);
   },
 
   drawHpBar(ctx, x, y, w, frac) {
-    Font.draw(ctx, 'HP', x - 14, y - 2, { color: '#c8a030', shadow: null });
-    ctx.fillStyle = '#404048';
+    // "HP" chip: dark rounded tag with amber lettering, Gen-3 style
+    ctx.fillStyle = '#584838';
+    ctx.fillRect(x - 15, y - 2, 14, 8);
+    ctx.fillRect(x - 16, y - 1, 1, 6);
+    Font.draw(ctx, 'HP', x - 14, y - 2, { color: '#f8b838', shadow: null });
+    // pill track: dark outline with rounded caps, sunken gray channel
+    ctx.fillStyle = '#4a4238';
     ctx.fillRect(x - 1, y - 1, w + 2, 6);
-    ctx.fillStyle = '#585860';
+    ctx.fillRect(x - 2, y, 1, 4); ctx.fillRect(x + w + 1, y, 1, 4);
+    ctx.fillStyle = '#6a6258';
     ctx.fillRect(x, y, w, 4);
-    const col = frac > 0.5 ? '#58d048' : frac > 0.2 ? '#f8c830' : '#f05838';
-    ctx.fillStyle = col;
-    ctx.fillRect(x, y, Math.max(0, Math.floor(w * frac)), 4);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillRect(x, y, Math.max(0, Math.floor(w * frac)), 1);
+    ctx.fillStyle = '#565048';
+    ctx.fillRect(x, y + 3, w, 1);
+    // two-tone fill: bright crest over deep base
+    const fw = Math.max(0, Math.floor(w * frac));
+    if (fw > 0) {
+      const hi = frac > 0.5 ? '#78e858' : frac > 0.2 ? '#f8d858' : '#f87858';
+      const lo = frac > 0.5 ? '#38a838' : frac > 0.2 ? '#c89828' : '#c03828';
+      ctx.fillStyle = lo; ctx.fillRect(x, y, fw, 4);
+      ctx.fillStyle = hi; ctx.fillRect(x, y, fw, 2);
+    }
   },
 
   drawStatusTag(ctx, x, y, st) {
     const labels = { psn: 'PSN', tox: 'PSN', brn: 'BRN', par: 'PAR', slp: 'SLP', frz: 'FRZ' };
     const colors = { psn: '#a050c8', tox: '#8040b0', brn: '#e87038', par: '#d8b830', slp: '#8888a0', frz: '#68c0e8' };
-    ctx.fillStyle = colors[st] || '#888';
+    const c = colors[st] || '#888';
+    ctx.fillStyle = Px.shift(c, 0, 0, -0.18);
     ctx.fillRect(x, y, 18, 9);
+    ctx.fillStyle = c;
+    ctx.fillRect(x + 1, y, 16, 8);
+    ctx.fillStyle = Px.shift(c, 0, 0, 0.12);
+    ctx.fillRect(x + 1, y, 16, 1);
     Font.draw(ctx, labels[st] || '???', x + 2, y + 1, { color: '#fff', shadow: null });
   },
 

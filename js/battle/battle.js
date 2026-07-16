@@ -61,7 +61,12 @@ const Battle = {
     let emon;
     if (opts.kind === 'trainer') {
       emon = Battle.trainerMon(0);
-      Battle.E('text', { msg: (Battle.trainer.cls ? Battle.trainer.cls + ' ' : '') + Battle.trainer.name + ' wants to battle!' });
+      // Skip the class prefix when it would repeat a word already in the name
+      // ("Team Ionar" + "Ionar Grunt" -> just "Team Ionar Grunt" reads wrong).
+      const cls = Battle.trainer.cls || '';
+      const nm = Battle.trainer.name;
+      const dup = cls && cls.split(' ').some((w) => nm.split(' ').includes(w));
+      Battle.E('text', { msg: (cls && !dup ? cls + ' ' : '') + nm + ' wants to battle!' });
       Battle.E('sendEnemy');
       Battle.E('text', { msg: Battle.trainer.name + ' sent out ' + emon.name + '!' });
     } else {

@@ -1,32 +1,46 @@
 'use strict';
 /** Shared UI chrome (Gen-3 style panels) + the overworld dialogue box. */
 const UIKit = {
-  /** Main message panel: cream fill, dark+light double border. */
-  panel(ctx, x, y, w, h) {
-    ctx.fillStyle = '#304058';
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = '#607890';
-    ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = '#f8f8f0';
-    ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+  /** Rounded-corner rect (1px corner clip) — the base of every panel. */
+  rr(ctx, x, y, w, h, c) {
+    ctx.fillStyle = c;
+    ctx.fillRect(x + 1, y, w - 2, h);
+    ctx.fillRect(x, y + 1, w, h - 2);
   },
-  /** Small floating panel (info boxes). */
+  /** Main message panel: Emerald-style blue frame, cream body. */
+  panel(ctx, x, y, w, h) {
+    UIKit.rr(ctx, x, y, w, h, '#203048');                    // outline
+    UIKit.rr(ctx, x + 1, y + 1, w - 2, h - 2, '#7890b8');    // frame base
+    ctx.fillStyle = '#a8c0dc';                               // frame light (top+left)
+    ctx.fillRect(x + 2, y + 1, w - 4, 1); ctx.fillRect(x + 1, y + 2, 1, h - 4);
+    ctx.fillStyle = '#54688c';                               // frame dark (bottom+right)
+    ctx.fillRect(x + 2, y + h - 2, w - 4, 1); ctx.fillRect(x + w - 2, y + 2, 1, h - 4);
+    UIKit.rr(ctx, x + 3, y + 3, w - 6, h - 6, '#ffffff');    // inner highlight ring
+    ctx.fillStyle = '#f8f8f0';
+    ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+    ctx.fillStyle = '#e8e4d4';                               // body floor shade
+    ctx.fillRect(x + 4, y + h - 6, w - 8, 2);
+  },
+  /** Small floating panel (HP/info boxes): tan Gen-3 plaque. */
   miniPanel(ctx, x, y, w, h) {
-    ctx.fillStyle = '#404858';
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = '#e8e8d8';
-    ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = '#f8f8ec';
+    UIKit.rr(ctx, x, y, w, h, '#4a4238');                    // outline
+    UIKit.rr(ctx, x + 1, y + 1, w - 2, h - 2, '#d8cfae');    // bevel base
+    ctx.fillStyle = '#f4eed8';                               // top bevel light
+    ctx.fillRect(x + 2, y + 1, w - 4, 1);
+    ctx.fillStyle = '#b8ae8c';                               // bottom bevel dark
+    ctx.fillRect(x + 2, y + h - 2, w - 4, 1);
+    ctx.fillStyle = '#f0ead0';                               // body
     ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+    ctx.fillStyle = '#faf6e8';
+    ctx.fillRect(x + 2, y + 2, w - 4, 1);
   },
   /** Inset panel used inside the main panel (menus). */
   subPanel(ctx, x, y, w, h) {
-    ctx.fillStyle = '#304058';
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = '#8898a8';
-    ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+    UIKit.rr(ctx, x, y, w, h, '#203048');
+    UIKit.rr(ctx, x + 1, y + 1, w - 2, h - 2, '#a8b8c8');
+    UIKit.rr(ctx, x + 2, y + 2, w - 4, h - 4, '#ffffff');
+    ctx.fillStyle = '#e8ecf0';
+    ctx.fillRect(x + 3, y + h - 5, w - 6, 2);
   },
   /** Word-wrapped text. Returns lines drawn. */
   wrapText(ctx, text, x, y, maxW, opts = {}) {

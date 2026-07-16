@@ -22,24 +22,34 @@ const ItemIcons = (() => {
     const r = Px.ramp(col);
     s.fillCircle(8, 8, 6, '#2a2028');
     s.fillEllipse(8, 6, 5, 4, r.b);           // top half
+    s.fillEllipse(7, 5, 3, 2, r.l);           // dome light
     s.fillEllipse(8, 11, 5, 3, '#e8e8e0');     // bottom half
+    s.set(11, 12, '#c8c8c0');
     s.rect(3, 8, 11, 1, '#2a2028');            // band
-    s.fillCircle(8, 8, 1.6, '#f0f0e0');        // button
-    s.set(6, 5, r.h);                          // shine
+    s.fillCircle(8, 8, 2, '#2a2028');          // button ring
+    s.fillCircle(8, 8, 1.3, '#f0f0e0');
+    s.set(5, 4, '#ffffff'); s.set(6, 5, r.h);  // shine
   }
   function bottle(s, liquid) {
     const g = Px.ramp('#c8d0d8');
-    s.rect(6, 2, 4, 2, g.d);                    // cap
-    s.rect(5, 4, 6, 10, g.l);                   // glass
+    s.rect(6, 1, 4, 2, Px.shift(liquid, 0, 0, -0.15));   // colored cap
+    s.rect(6, 3, 4, 1, g.d);                    // neck ring
+    s.rect(5, 4, 6, 10, g.l);
     s.rect(6, 8, 4, 5, liquid);                 // liquid
+    s.set(7, 9, Px.shift(liquid, 0, 0, 0.18));  // liquid glint
+    s.rect(5, 6, 6, 1, '#ffffff');              // label band
     s.line(5, 4, 5, 13, g.d); s.line(10, 4, 10, 13, '#ffffff');
+    s.rect(6, 14, 4, 1, g.d);                   // base
   }
   function berry(s, col) {
     const r = Px.ramp(col);
     s.fillCircle(8, 10, 4, r.b);
+    s.fillEllipse(7, 9, 2, 1.4, r.l);
     s.set(6, 8, r.h);
-    s.line(8, 6, 8, 3, '#5a8a3a'); s.line(8, 4, 11, 3, '#6aa84a'); // stem+leaf
-    s.set(10, 3, '#8fbf6a');
+    s.set(8, 13, r.d); s.set(10, 12, r.d);      // underside shade
+    s.line(8, 6, 8, 3, '#5a8a3a');
+    s.fillEllipse(10, 3, 2, 1, '#6aa84a');      // leaf
+    s.set(11, 2, '#8fbf6a');
   }
   function charm(s, col) {
     const r = Px.ramp(col);
@@ -57,8 +67,11 @@ const ItemIcons = (() => {
     const r = Px.ramp(col);
     s.fillCircle(8, 8, 6, r.d);
     s.fillCircle(8, 8, 5, r.b);
-    s.fillCircle(8, 8, 1.5, '#e8e8f0');
-    s.set(6, 5, r.h);
+    // data sheen arc + hub ring
+    s.line(4, 6, 6, 4, r.h); s.set(5, 5, '#ffffff');
+    s.line(10, 12, 12, 10, r.l);
+    s.fillCircle(8, 8, 2, r.d2);
+    s.fillCircle(8, 8, 1.2, '#e8e8f0');
   }
   function key(s) {
     const g = Px.ramp('#e8c050');

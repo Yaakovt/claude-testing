@@ -60,46 +60,80 @@ const TrainerArt = (() => {
   }
 
   function render(st) {
-    const cv = document.createElement('canvas');
-    cv.width = 48; cv.height = 48;
-    const c = cv.getContext('2d');
-    // facing LEFT (toward the player's fakemon). A simple pixel-blocky figure.
-    // shadow
-    c.fillStyle = 'rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(24, 45, 12, 3, 0, 0, Math.PI * 2); c.fill();
-    // legs
-    c.fillStyle = st.pants; c.fillRect(19, 34, 5, 11); c.fillRect(25, 34, 5, 11);
-    c.fillStyle = '#20242a'; c.fillRect(18, 44, 7, 3); c.fillRect(25, 44, 7, 3);   // shoes
-    // torso (coat)
-    c.fillStyle = st.coat; c.fillRect(16, 20, 17, 16);
-    c.fillStyle = shade(st.coat, -18); c.fillRect(16, 20, 4, 16);                  // side shading
-    // throwing arm raised to the left
-    c.fillStyle = st.coat; c.fillRect(8, 18, 10, 4);
-    c.fillStyle = st.skin; c.fillRect(6, 17, 4, 4);                                // hand
-    // head
-    c.fillStyle = st.skin; c.beginPath(); c.arc(24, 14, 7, 0, Math.PI * 2); c.fill();
-    // hair
-    c.fillStyle = st.hair;
-    c.beginPath(); c.arc(24, 12, 7, Math.PI, 0); c.fill();
-    c.fillRect(17, 10, 5, 6);                                                       // side fringe (facing left)
-    if (st.long) { c.fillRect(28, 12, 5, 12); }                                     // long hair down the back
-    // eye (facing left)
-    c.fillStyle = '#20202a'; c.fillRect(20, 13, 2, 2);
-    // hat
-    if (st.hat) { c.fillStyle = st.hat; c.fillRect(16, 7, 15, 3); c.fillRect(12, 9, 8, 2); }
-    return cv;
-  }
+    // Dynamic "just threw the ball" pose facing LEFT, built on the pixel
+    // toolkit with proper ramps, cast shadow and a silhouette outline.
+    const s = new PixelSurface(48, 48);
+    const skin = Px.ramp(st.skin), hair = Px.ramp(st.hair);
+    const coat = Px.ramp(st.coat), pants = Px.ramp(st.pants);
 
-  function shade(hex, amt) {
-    const n = parseInt(hex.slice(1), 16);
-    let r = (n >> 16) + amt, g = ((n >> 8) & 255) + amt, b = (n & 255) + amt;
-    r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    s.fillEllipse(24, 45, 13, 3, '#00000030');                    // cast shadow
+
+    // legs in an A-stance: weight on the forward (left) leg
+    s.fillPoly([[27, 32], [32, 32], [34, 43], [29, 43]], pants.d); // back leg
+    s.rect(29, 43, 7, 3, '#20242a'); s.rect(34, 43, 2, 2, '#31353d');
+    s.fillPoly([[19, 32], [24, 32], [22, 43], [17, 43]], pants.b); // front leg
+    s.line(20, 33, 19, 42, pants.l);                               // crease
+    s.rect(14, 43, 8, 3, '#282c34'); s.rect(14, 43, 8, 1, '#3f444d');
+
+    // torso: coat leaning into the throw, lit from upper-left
+    s.fillPoly([[16, 18], [31, 19], [33, 33], [17, 33]], coat.b);
+    s.fillPoly([[28, 19], [31, 19], [33, 33], [30, 33]], coat.d);  // far-side shade
+    s.line(17, 20, 16, 31, coat.l);                                // near-edge light
+    s.rect(17, 31, 16, 2, coat.d);                                 // hem
+    s.set(22, 24, coat.d); s.set(23, 28, coat.d);                  // fold hints
+
+    // back arm trailing behind the swing
+    s.fillPoly([[30, 21], [35, 23], [34, 29], [31, 27]], coat.d);
+    s.rect(33, 29, 3, 3, skin.d);                                  // trailing hand
+
+    // throwing arm extended up-left with an open hand
+    s.fillPoly([[18, 21], [9, 15], [7, 18], [16, 25]], coat.l);
+    s.line(17, 22, 9, 17, coat.b);
+    s.rect(5, 13, 4, 4, skin.b); s.set(4, 14, skin.b);             // open palm
+    s.set(6, 12, skin.l);
+
+    // head in profile: jaw toward the foe, ear on the near side
+    s.fillEllipse(24, 12, 7, 6, skin.b);
+    s.rect(16, 12, 2, 3, skin.b);                                  // nose
+    s.set(16, 14, skin.d);
+    s.set(28, 13, skin.d); s.rect(27, 12, 2, 3, skin.d);           // ear shade
+    s.rect(19, 11, 2, 2, '#20202a'); s.set(19, 11, '#f4f4f4');     // keen eye
+    s.line(18, 9, 21, 9, hair.d);                                  // brow
+    s.set(18, 17, skin.d);                                         // set mouth
+
+    // hair: swept crown + fringe, optional long fall down the back
+    s.fillEllipse(25, 8, 7, 4, hair.b);
+    s.rect(18, 6, 13, 4, hair.b);
+    s.fillPoly([[17, 8], [21, 7], [20, 12], [17, 12]], hair.b);     // fringe
+    s.line(19, 5, 25, 5, hair.l);                                  // sheen
+    s.set(31, 9, hair.d);
+    if (st.long) {
+      s.fillPoly([[29, 10], [33, 12], [33, 25], [29, 24]], hair.b);
+      s.line(33, 14, 33, 24, hair.d); s.set(31, 25, hair.d);
+    }
+
+    // hat: domed cap with a forward bill
+    if (st.hat) {
+      const hat = Px.ramp(st.hat);
+      s.fillEllipse(24, 6, 8, 4, hat.b);
+      s.rect(16, 5, 16, 3, hat.b);
+      s.rect(16, 7, 16, 1, hat.d);                                 // band
+      s.rect(10, 7, 8, 2, hat.d); s.rect(10, 7, 8, 1, hat.b);      // bill
+      s.line(20, 3, 26, 3, hat.l);
+    }
+
+    s.outline('#241c20');
+    return s.toCanvas();
   }
 
   return {
     get(tr) {
       // Allow an external override sprite (Fable) via the asset manifest.
-      const key = (tr.id && (tr.id.startsWith('rival') ? 'rival' : tr.id === 'ionar_boss' ? 'ionar_boss' : tr.id === 'aspen_master' ? 'aspen_master' : (tr.cls || 'default'))) || 'default';
+      const id = tr.id || '';
+      const key = id.startsWith('rival') ? 'rival'
+        : id === 'ionar_boss' ? 'ionar_boss'
+        : id === 'aspen_master' ? 'aspen_master'
+        : (tr.cls || 'default');
       if (typeof Assets !== 'undefined') { const ov = Assets.get('trainers/' + key); if (ov) return ov; }
       if (!cache[key]) cache[key] = render(styleFor(tr));
       return cache[key];
