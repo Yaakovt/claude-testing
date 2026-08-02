@@ -50,11 +50,19 @@ public class BuildSessionManager {
 	private final Map<UUID, BuildSession> sessions = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<List<BuildSession.UndoEntry>>> undoHistory = new HashMap<>();
 	private final List<RestoreJob> restoreJobs = new ArrayList<>();
-	private final ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
-		Thread thread = new Thread(runnable, "aibuilder-ai");
-		thread.setDaemon(true);
-		return thread;
-	});
+	// Not final: leaving a singleplayer world fires SERVER_STOPPING, which shuts this
+	// executor down. Opening another world reuses this same manager, so we must be able
+	// to spin up a fresh executor - otherwise the next /build hits a dead worker and
+	// throws RejectedExecutionException.
+	private ExecutorService executor = newExecutor();
+
+	private static ExecutorService newExecutor() {
+		return Executors.newSingleThreadExecutor(runnable -> {
+			Thread thread = new Thread(runnable, "aibuilder-ai");
+			thread.setDaemon(true);
+			return thread;
+		});
+	}
 
 	private record RestoreJob(ServerLevel level, List<BuildSession.UndoEntry> entries, int[] cursor) {
 	}
@@ -251,6 +259,10 @@ public class BuildSessionManager {
 	}
 
 	private void generateAsync(MinecraftServer server, BuildSession session, String previousError, int attempt) {
+		// A previous world's SERVER_STOPPING may have shut the executor down; revive it.
+		if (executor.isShutdown()) {
+			executor = newExecutor();
+		}
 		executor.submit(() -> {
 			try {
 				AiBackend.GenResult result = session.backend.generate(session.request, previousError);
