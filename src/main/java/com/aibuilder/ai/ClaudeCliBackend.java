@@ -180,8 +180,11 @@ public class ClaudeCliBackend implements AiBackend {
 		// be mistaken for a logged-out account.
 		if (all.contains("not logged in") || all.contains("please log in") || all.contains("log in to")
 				|| all.contains("not authenticated") || all.contains("invalid api key")
-				|| all.contains("authentication_error") || all.contains("unauthorized")) {
-			return "Claude Code isn't logged in. Open a terminal, run \"claude\", and sign in with your Claude account once.";
+				|| all.contains("authentication_error") || all.contains("unauthorized")
+				|| all.contains("failed to authenticate") || all.contains("session expired")
+				|| all.contains("oauth") || all.contains("re-authenticate") || all.contains("reauthenticate")) {
+			return "Claude Code needs you to log in again (your session expired). Open a terminal, run \"claude\", "
+					+ "type /login, and sign in with your Claude account. Then try /build again.";
 		}
 		if (all.contains("rate limit") || all.contains("usage limit")) {
 			return "Your Claude usage limit was reached. Wait a bit and try again.";
