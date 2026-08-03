@@ -355,8 +355,13 @@ public class BuildSessionManager {
 	}
 
 	private void failSession(MinecraftServer server, BuildSession session, String message) {
+		// If this session is no longer the active one, the player already cancelled it -
+		// and cancelling kills the AI process, which then reports a non-zero exit. Don't
+		// surface a scary "Build failed (code 1)" for a build the player stopped on purpose.
+		if (!sessions.remove(session.playerId, session)) {
+			return;
+		}
 		session.state = BuildSession.State.FAILED;
-		sessions.remove(session.playerId, session);
 		ServerPlayer player = player(server, session.playerId);
 		if (player != null) {
 			tell(player, "❌ Build failed: " + message, ChatFormatting.RED);
