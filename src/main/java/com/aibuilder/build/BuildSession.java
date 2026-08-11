@@ -140,8 +140,8 @@ public class BuildSession {
 				if (entity == null) {
 					continue;
 				}
-				entity.moveTo(wp.getX() + 0.5, wp.getY(), wp.getZ() + 0.5,
-						level.random.nextFloat() * 360F, 0F);
+				entity.setPos(wp.getX() + 0.5, wp.getY(), wp.getZ() + 0.5);
+				entity.setYRot(level.getRandom().nextFloat() * 360F);
 				level.addFreshEntity(entity);
 			} catch (Exception ignored) {
 				// one bad mob shouldn't break the finished build
