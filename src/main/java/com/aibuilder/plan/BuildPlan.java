@@ -1,5 +1,6 @@
 package com.aibuilder.plan;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -10,10 +11,14 @@ import java.util.List;
  * the player stands at the origin looking toward +z, +y is up, y=0 is at the player's feet.
  */
 public record BuildPlan(String name, int sizeX, int sizeY, int sizeZ, String notes, List<Op> ops,
-						List<String> warnings) {
+						List<String> warnings, List<MobSpawn> mobs) {
 
 	/** An item to drop into a container block. slot < 0 means "next free slot". */
 	public record ContainerItem(Item item, int count, int slot) {
+	}
+
+	/** An entity to spawn at a canonical-space position once the blocks are placed. */
+	public record MobSpawn(Identifier id, int x, int y, int z) {
 	}
 
 	/**

@@ -96,14 +96,22 @@ public class BuildSessionManager {
 			}
 			case "speed" -> {
 				int bpt = parsePositiveInt(value);
-				if (bpt < 1 || bpt > 200) {
-					return "speed (blocks per tick) must be between 1 and 200";
+				if (bpt < 1 || bpt > 5000) {
+					return "speed (blocks per tick) must be between 1 and 5000";
 				}
 				config.blocksPerTick = bpt;
 				result = "Build speed set to " + bpt + " blocks/tick";
 			}
+			case "flyspeed" -> {
+				double fly = parsePositiveDouble(value);
+				if (fly < 0.2 || fly > 20) {
+					return "flyspeed (blocks per tick the mob flies) must be between 0.2 and 20";
+				}
+				config.builderSpeed = fly;
+				result = "Builder fly speed set to " + fly + " blocks/tick";
+			}
 			default -> {
-				return "Unknown setting '" + key + "'. Try: model, timeout, speed";
+				return "Unknown setting '" + key + "'. Try: model, timeout, speed, flyspeed";
 			}
 		}
 		config.save();
@@ -113,12 +121,21 @@ public class BuildSessionManager {
 	public String settingsSummary() {
 		AiBuilderConfig c = AiBuilderConfig.load();
 		return "AI Builder settings - model: " + (c.cliModel == null || c.cliModel.isBlank() ? "account default" : c.cliModel)
-				+ ", timeout: " + c.timeoutSeconds + "s, speed: " + c.blocksPerTick + " blocks/tick, backend: " + c.backend;
+				+ ", timeout: " + c.timeoutSeconds + "s, speed: " + c.blocksPerTick + " blocks/tick, flyspeed: "
+				+ c.builderSpeed + ", max blocks: " + String.format("%,d", c.maxVolume) + ", backend: " + c.backend;
 	}
 
 	private static int parsePositiveInt(String value) {
 		try {
 			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException e) {
+			return -1;
+		}
+	}
+
+	private static double parsePositiveDouble(String value) {
+		try {
+			return Double.parseDouble(value.trim());
 		} catch (NumberFormatException e) {
 			return -1;
 		}
@@ -238,15 +255,30 @@ public class BuildSessionManager {
 			return;
 		}
 
+		// A leading "instant" keyword builds with no mob, near-instantly.
+		boolean instant = false;
+		String req = request.trim();
+		if (req.regionMatches(true, 0, "instant", 0, 7)
+				&& (req.length() == 7 || Character.isWhitespace(req.charAt(7)))) {
+			instant = true;
+			req = req.substring(7).trim();
+		}
+		if (req.isEmpty()) {
+			tell(player, "Tell me what to build, e.g. /build instant a big castle", ChatFormatting.RED);
+			return;
+		}
+
 		// Pick up any edits to config/aibuilder.json without a game restart.
 		config = AiBuilderConfig.load();
 
-		BuildSession session = new BuildSession(player.getUUID(), request,
+		BuildSession session = new BuildSession(player.getUUID(), req,
 				(ServerLevel) player.level(), player.blockPosition(), player.getYRot());
 		session.backend = createBackend();
+		session.instant = instant;
 		sessions.put(player.getUUID(), session);
 
-		tell(player, "🤖 Designing \"" + request + "\" - this can take a minute or two...", ChatFormatting.AQUA);
+		tell(player, "🤖 Designing \"" + req + "\"" + (instant ? " (instant build)" : "")
+				+ " - this can take a minute or two...", ChatFormatting.AQUA);
 		MinecraftServer server = player.level().getServer();
 		generateAsync(server, session, null, 0);
 	}
@@ -332,8 +364,10 @@ public class BuildSessionManager {
 	/** Spawns the builder and starts placement for an already-parsed plan (AI or saved). */
 	private void beginPlacement(MinecraftServer server, BuildSession session, BuildPlan plan) {
 		session.preparePlacements(plan);
-		Vec3 spawnPos = Vec3.atCenterOf(session.anchor).add(0, 2.5, 0);
-		session.builder = BuilderMob.spawn(session.level, spawnPos, config);
+		if (!session.instant) {
+			Vec3 spawnPos = Vec3.atCenterOf(session.anchor).add(0, 2.5, 0);
+			session.builder = BuilderMob.spawn(session.level, spawnPos, config);
+		}
 		session.state = BuildSession.State.PLACING;
 
 		// Start fanfare: a "ding" plus a burst of sparks where the build will rise.
@@ -433,6 +467,7 @@ public class BuildSessionManager {
 			ServerPlayer player = player(server, session.playerId);
 			if (done) {
 				session.state = BuildSession.State.DONE;
+				session.spawnMobs();
 				if (session.builder != null) {
 					session.builder.celebrate();
 					session.builder.remove();

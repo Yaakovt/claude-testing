@@ -35,7 +35,9 @@ public final class BuildCommands {
 						}))
 				.executes(context -> {
 					context.getSource().sendFailure(Component.literal(
-							"Tell me what to build, e.g. /build a cozy medieval house with a redstone piston door")
+							"Tell me what to build, e.g. /build a cozy medieval house with a redstone piston door. "
+									+ "Tip: start with 'instant' (/build instant a big castle) to skip the builder mob "
+									+ "and place it near-instantly.")
 							.withStyle(ChatFormatting.RED));
 					return 0;
 				}));
@@ -82,7 +84,8 @@ public final class BuildCommands {
 								})))
 				.executes(context -> {
 					context.getSource().sendFailure(Component.literal(
-							"Usage: /buildset <model|timeout|speed> <value>  e.g. /buildset model sonnet")
+							"Usage: /buildset <model|timeout|speed|flyspeed> <value>  e.g. /buildset model sonnet, "
+									+ "/buildset flyspeed 4")
 							.withStyle(ChatFormatting.RED));
 					return 0;
 				}));

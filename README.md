@@ -54,11 +54,13 @@ building starts — the chat tells you what's happening.
 | Command | What it does |
 |---|---|
 | `/build <description>` | Designs and builds it in front of you (facing you) |
+| `/build instant <description>` | Same, but skips the builder mob and places it near-instantly |
 | `/buildcancel` | Stops the current design/build |
 | `/undo` | Reverts your last build (up to 3, configurable) |
 | `/buildset model <name>` | Switch AI model without leaving the game, e.g. `/buildset model sonnet` (or `default`) |
 | `/buildset timeout <seconds>` | Change how long to wait for a design, e.g. `/buildset timeout 600` |
-| `/buildset speed <n>` | Blocks placed per tick, e.g. `/buildset speed 5` (higher = faster building) |
+| `/buildset speed <n>` | Blocks placed per tick, e.g. `/buildset speed 20` (higher = faster building) |
+| `/buildset flyspeed <n>` | How fast the builder mob flies, e.g. `/buildset flyspeed 4` (higher = faster) |
 | `/buildstatus` | Show the current model, timeout, and speed |
 | `/buildsave <name>` | Save the build you just made under a name |
 | `/buildmake <name>` | Rebuild a saved design in front of you — no AI, no tokens, instant |
@@ -99,9 +101,9 @@ After the first launch, edit `%APPDATA%\.minecraft\config\aibuilder.json`:
 | `apiKey` | `""` | Anthropic API key, only for `backend: "api"` (env var `ANTHROPIC_API_KEY` also works) |
 | `apiModel` | `"claude-opus-4-8"` | Model for the API backend |
 | `timeoutSeconds` | `300` | How long to wait for a design |
-| `maxSize` / `maxVolume` / `maxOps` | `64` / `100000` / `4000` | Build size limits |
-| `blocksPerTick` | `3` | Build speed once the mob is in position (higher = faster) |
-| `builderSpeed` | `0.9` | How fast the mob flies (blocks per tick) |
+| `maxSize` / `maxVolume` / `maxOps` | `256` / `500000` / `20000` | Build size limits (existing configs are auto-upgraded once) |
+| `blocksPerTick` | `8` | Build speed once the mob is in position (higher = faster) |
+| `builderSpeed` | `1.6` | How fast the mob flies (blocks per tick) |
 | `builderMob` | `"minecraft:allay"` | Which mob does the building (try `"minecraft:bee"`...) |
 | `builderName` | `"Claude the Builder"` | The mob's name tag |
 | `undoHistory` | `3` | How many builds `/undo` remembers (per session; cleared when you quit) |
@@ -154,8 +156,10 @@ latest run → **Artifacts** → `ai-builder-mod`).
 ## Limitations
 
 - Every vanilla block is available (including command/structure blocks), and the AI can stock
-  containers (chests, barrels, furnaces, etc.) with items. Raw NBT in block strings is still not
-  supported — container contents use a dedicated, safer mechanism instead.
+  containers (chests, barrels, furnaces, etc.) with items. It can also spawn vanilla entities
+  (animals, villagers, armor stands, …) as part of a build via a `"mobs"` list. Raw NBT in block
+  strings is still not supported — container contents use a dedicated, safer mechanism instead.
+- Spawned mobs are *not* removed by `/undo` (only blocks are). Kill or lead them away manually.
 - `/undo` history is kept in memory only — it's lost when you quit the world.
 - One build at a time per player.
 - The builder mob is cosmetic — killing the fun by looking away won't stop the build. 🙂

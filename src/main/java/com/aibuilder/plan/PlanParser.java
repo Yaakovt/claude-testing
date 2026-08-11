@@ -120,7 +120,10 @@ public final class PlanParser {
 						+ "). Try asking for something smaller.");
 			}
 
-			return new BuildPlan(name, sx, sy, sz, notes, parsedOps, warnings);
+			List<BuildPlan.MobSpawn> mobs = root.has("mobs")
+					? parseMobs(root.getAsJsonArray("mobs"), sx, sy, sz, warnings) : List.of();
+
+			return new BuildPlan(name, sx, sy, sz, notes, parsedOps, warnings, mobs);
 		} catch (PlanException e) {
 			throw e;
 		} catch (Exception e) {
@@ -159,6 +162,43 @@ public final class PlanParser {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Parses an optional "mobs" array: each entry is ["id", x, y, z] in canonical space.
+	 * Unknown entity ids are skipped with a warning (a bad mob shouldn't fail the build).
+	 */
+	private static List<BuildPlan.MobSpawn> parseMobs(JsonArray arr, int sx, int sy, int sz, List<String> warnings) {
+		List<BuildPlan.MobSpawn> result = new ArrayList<>();
+		for (JsonElement element : arr) {
+			try {
+				JsonArray entry = element.getAsJsonArray();
+				if (entry.size() < 4) {
+					continue;
+				}
+				String idText = entry.get(0).getAsString().trim();
+				int x = clamp(entry.get(1).getAsInt(), 0, sx - 1);
+				int y = clamp(entry.get(2).getAsInt(), 0, sy - 1);
+				int z = clamp(entry.get(3).getAsInt(), 0, sz - 1);
+				Identifier id = idText.contains(":")
+						? Identifier.fromNamespaceAndPath(idText.split(":", 2)[0], idText.split(":", 2)[1])
+						: Identifier.fromNamespaceAndPath("minecraft", idText);
+				if (net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getOptional(id).isEmpty()) {
+					if (warnings.size() < 6) {
+						warnings.add("skipped unknown mob " + idText);
+					}
+					continue;
+				}
+				result.add(new BuildPlan.MobSpawn(id, x, y, z));
+			} catch (Exception ignored) {
+				// skip malformed mob entries
+			}
+		}
+		return result;
+	}
+
+	private static int clamp(int value, int lo, int hi) {
+		return Math.max(lo, Math.min(hi, value));
 	}
 
 	private static BlockState paletteState(List<BlockState> states, int index) throws PlanException {

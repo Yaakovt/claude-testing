@@ -33,15 +33,20 @@ public class AiBuilderConfig {
 	/** Seconds to wait for the AI to design a build before giving up. */
 	public int timeoutSeconds = 600;
 	/** Maximum size of a build along each axis. */
-	public int maxSize = 64;
+	public int maxSize = 256;
 	/** Maximum total volume (blocks) of a build. */
-	public int maxVolume = 100000;
+	public int maxVolume = 500000;
 	/** Maximum number of ops in a build plan. */
-	public int maxOps = 4000;
+	public int maxOps = 20000;
 	/** How many blocks the builder mob places per tick once it is in position. */
-	public int blocksPerTick = 3;
+	public int blocksPerTick = 8;
 	/** Builder mob flight speed in blocks per tick. */
-	public double builderSpeed = 0.9;
+	public double builderSpeed = 1.6;
+	/**
+	 * Bumped when defaults change so existing config files can be upgraded once.
+	 * 0 = pre-upgrade file (or none yet); load() raises old limits to the new ones.
+	 */
+	public int configVersion = 0;
 	/** Which mob builds for you (must be a living mob id). */
 	public String builderMob = "minecraft:allay";
 	/** Display name of the builder mob. */
@@ -73,6 +78,17 @@ public class AiBuilderConfig {
 			} catch (Exception e) {
 				LOGGER.error("Failed to read config/aibuilder.json, using defaults", e);
 			}
+		}
+		// One-time upgrade: raise old ceilings/speeds to the new higher defaults so an
+		// existing install gets them without hand-editing the file. Only bumps values
+		// that are still below the new floor, and runs once (guarded by configVersion).
+		if (config.configVersion < 1) {
+			config.maxSize = Math.max(config.maxSize, 256);
+			config.maxVolume = Math.max(config.maxVolume, 500000);
+			config.maxOps = Math.max(config.maxOps, 20000);
+			config.blocksPerTick = Math.max(config.blocksPerTick, 8);
+			config.builderSpeed = Math.max(config.builderSpeed, 1.6);
+			config.configVersion = 1;
 		}
 		// Always rewrite so new options appear in the file after mod updates.
 		config.save();

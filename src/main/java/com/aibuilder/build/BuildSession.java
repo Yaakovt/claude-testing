@@ -3,9 +3,13 @@ package com.aibuilder.build;
 import com.aibuilder.config.AiBuilderConfig;
 import com.aibuilder.plan.BuildPlan;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -42,6 +46,8 @@ public class BuildSession {
 
 	public volatile State state = State.GENERATING;
 	public com.aibuilder.ai.AiBackend backend;
+	/** When true, place everything in a few big batches with no builder mob (near-instant). */
+	public boolean instant;
 
 	public BuildPlan plan;
 	/** Tokens the AI used to design this build (0 for a replayed/saved build). */
@@ -83,22 +89,12 @@ public class BuildSession {
 		Rotation rotation = rotation();
 		Map<BlockPos, Placement> finalStates = new LinkedHashMap<>();
 
-		int halfX = buildPlan.sizeX() / 2;
 		for (BuildPlan.Op op : buildPlan.ops()) {
 			BlockState rotated = op.state().rotate(rotation);
 			for (int y = op.y1(); y <= op.y2(); y++) {
 				for (int z = op.z1(); z <= op.z2(); z++) {
 					for (int x = op.x1(); x <= op.x2(); x++) {
-						// Center on the player, start 2 blocks in front, then rotate to face them.
-						int cx = x - halfX;
-						int cz = z + 2;
-						int rx = cx, rz = cz;
-						for (int i = 0; i < rotationSteps; i++) {
-							int tmp = rx;
-							rx = -rz;
-							rz = tmp;
-						}
-						BlockPos world = anchor.offset(rx, y, rz);
+						BlockPos world = worldPos(x, y, z);
 						finalStates.remove(world); // re-insert so later ops also place later
 						finalStates.put(world, new Placement(world, rotated, op.attachable(), op.items()));
 					}
@@ -112,6 +108,45 @@ public class BuildSession {
 				.thenComparingInt(p -> p.pos().getY()));
 		this.placements = ordered;
 		this.cursor = 0;
+	}
+
+	/** Canonical (x,y,z) -> world position: center on the player, 2 in front, rotated to face them. */
+	private BlockPos worldPos(int x, int y, int z) {
+		int halfX = plan.sizeX() / 2;
+		int cx = x - halfX;
+		int cz = z + 2;
+		int rx = cx, rz = cz;
+		for (int i = 0; i < rotationSteps; i++) {
+			int tmp = rx;
+			rx = -rz;
+			rz = tmp;
+		}
+		return anchor.offset(rx, y, rz);
+	}
+
+	/** Spawns the plan's mobs once blocks are placed, so they don't suffocate. Best effort. */
+	public void spawnMobs() {
+		if (plan == null || plan.mobs() == null || plan.mobs().isEmpty()) {
+			return;
+		}
+		for (BuildPlan.MobSpawn mob : plan.mobs()) {
+			try {
+				EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(mob.id()).orElse(null);
+				if (type == null) {
+					continue;
+				}
+				BlockPos wp = worldPos(mob.x(), mob.y(), mob.z());
+				Entity entity = type.create(level, EntitySpawnReason.COMMAND);
+				if (entity == null) {
+					continue;
+				}
+				entity.moveTo(wp.getX() + 0.5, wp.getY(), wp.getZ() + 0.5,
+						level.random.nextFloat() * 360F, 0F);
+				level.addFreshEntity(entity);
+			} catch (Exception ignored) {
+				// one bad mob shouldn't break the finished build
+			}
+		}
 	}
 
 	public int totalPlacements() {
@@ -138,7 +173,9 @@ public class BuildSession {
 			return false;
 		}
 
-		int budget = Math.max(1, config.blocksPerTick);
+		// Instant builds have no mob and place a big batch per tick (a few ticks even for
+		// a huge build), so there's no lag spike from doing hundreds of thousands at once.
+		int budget = instant ? 20000 : Math.max(1, config.blocksPerTick);
 		while (budget > 0 && cursor < placements.size()) {
 			Placement placement = placements.get(cursor);
 			if (builder != null && !builder.isNear(placement.pos())) {

@@ -26,7 +26,8 @@ public final class PromptBuilder {
 				  "ops": [
 				    {"f": [x1,y1,z1, x2,y2,z2, paletteIndex]},
 				    {"s": [x,y,z, paletteIndex]}
-				  ]
+				  ],
+				  "mobs": [ ["minecraft:cow", x, y, z], ["minecraft:armor_stand", x, y, z] ]
 				}
 
 				Rules:
@@ -47,6 +48,15 @@ public final class PromptBuilder {
 				{"s": [3,1,2, 5], "items": [["minecraft:diamond", 5], ["minecraft:golden_apple", 3], ["minecraft:iron_sword", 1, 9]]}
 				Use this to make builds feel lived-in: stock chests, barrels, furnaces (fuel + input), item frames won't work \
 				(not a container), but most storage blocks do. Only "s" (single-block) ops support items.
+
+				# Spawning mobs and entities (optional "mobs" array)
+				Bring builds to life with the optional top-level "mobs" array. Each entry is \
+				["entity_id", x, y, z] at a canonical position inside the build (same coordinate frame as ops; \
+				spawned after all blocks are placed). Any vanilla entity id works: animals in a barn or pen \
+				(minecraft:cow, minecraft:sheep, minecraft:chicken), villagers in a house (minecraft:villager), \
+				an minecraft:iron_golem or minecraft:armor_stand as a guard, minecraft:item_frame decor, boats, \
+				etc. Place them in sensible spots (inside pens/rooms, on floors, not inside solid blocks). \
+				Keep it tasteful - a handful, not a swarm. Omit "mobs" entirely if none fit.
 
 				# Coordinate system and orientation
 				The player stands at the ORIGIN looking toward +z (south).
