@@ -194,7 +194,7 @@ public class BuildSessionManager {
 	}
 
 	/** Rebuilds a saved design in front of the player without calling the AI. */
-	public void buildSaved(ServerPlayer player, String name) {
+	public void buildSaved(ServerPlayer player, String name, boolean instant) {
 		if (sessions.containsKey(player.getUUID())) {
 			tell(player, "You already have a build in progress. Use /buildcancel first.", ChatFormatting.RED);
 			return;
@@ -208,6 +208,7 @@ public class BuildSessionManager {
 		MinecraftServer server = player.level().getServer();
 		BuildSession session = new BuildSession(player.getUUID(), "saved:" + name,
 				(ServerLevel) player.level(), player.blockPosition(), player.getYRot());
+		session.instant = instant;
 		sessions.put(player.getUUID(), session);
 
 		BuildPlan plan;
@@ -218,7 +219,8 @@ public class BuildSessionManager {
 			return;
 		}
 		session.planJson = json;
-		tell(player, "🔁 Rebuilding saved \"" + name + "\" - no AI needed...", ChatFormatting.AQUA);
+		tell(player, "🔁 Rebuilding saved \"" + name + "\"" + (instant ? " (instant)" : "")
+				+ " - no AI needed...", ChatFormatting.AQUA);
 		beginPlacement(server, session, plan);
 	}
 

@@ -63,7 +63,8 @@ building starts — the chat tells you what's happening.
 | `/buildset flyspeed <n>` | How fast the builder mob flies, e.g. `/buildset flyspeed 4` (higher = faster) |
 | `/buildstatus` | Show the current model, timeout, and speed |
 | `/buildsave <name>` | Save the build you just made under a name |
-| `/buildmake <name>` | Rebuild a saved design in front of you — no AI, no tokens, instant |
+| `/buildmake <name>` | Rebuild a saved design in front of you — no AI, no tokens |
+| `/buildmake instant <name>` | Same, but skips the builder mob and places it near-instantly |
 | `/buildlist` | List your saved builds |
 | `/buildideas` | Get suggestions for what to build |
 | `/buildadd <text>` | Add a chunk to a long description (chat limits one command to 256 chars) |

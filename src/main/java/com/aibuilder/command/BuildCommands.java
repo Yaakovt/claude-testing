@@ -120,10 +120,21 @@ public final class BuildCommands {
 					return 0;
 				}));
 
-		// /buildmake <name> - rebuild a saved design (no AI, free)
+		// /buildmake <name>  or  /buildmake instant <name> - rebuild a saved design (no AI, free)
 		dispatcher.register(Commands.literal("buildmake")
 				.requires(PermissionPredicates.require(
 						Identifier.fromNamespaceAndPath("aibuilder", "command/build"), PermissionLevel.GAMEMASTERS))
+				.then(Commands.literal("instant")
+						.then(Commands.argument("name", StringArgumentType.word())
+								.executes(context -> {
+									ServerPlayer player = context.getSource().getPlayer();
+									if (player == null) {
+										context.getSource().sendFailure(Component.literal("Only players can /buildmake."));
+										return 0;
+									}
+									manager.buildSaved(player, StringArgumentType.getString(context, "name"), true);
+									return 1;
+								})))
 				.then(Commands.argument("name", StringArgumentType.word())
 						.executes(context -> {
 							ServerPlayer player = context.getSource().getPlayer();
@@ -131,12 +142,12 @@ public final class BuildCommands {
 								context.getSource().sendFailure(Component.literal("Only players can /buildmake."));
 								return 0;
 							}
-							manager.buildSaved(player, StringArgumentType.getString(context, "name"));
+							manager.buildSaved(player, StringArgumentType.getString(context, "name"), false);
 							return 1;
 						}))
 				.executes(context -> {
 					context.getSource().sendFailure(Component.literal(
-							"Usage: /buildmake <name> - rebuilds a saved design. See /buildlist")
+							"Usage: /buildmake <name>  (or /buildmake instant <name> to skip the mob). See /buildlist")
 							.withStyle(ChatFormatting.RED));
 					return 0;
 				}));
